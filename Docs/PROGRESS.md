@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (MVP2 Iter 2 código pronto, falta setup Editor)
+**Última atualização:** 2026-05-19 (MVP2 Iter 3 código pronto, falta setup Editor)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`) — milestone MVP1 tag `v0.1.0-mvp`
 
@@ -13,29 +13,29 @@
 
 ## Estou aqui agora
 
-**MVP2 Iteração 2 — HUD básico (código pronto, falta setup na Editor).**
+**MVP2 Iteração 3 — Tela de Game Over com Restart (código pronto, falta setup na Editor).**
 
-Adiciona feedback visual contínuo: tempo decorrido (mm:ss), distância
-percorrida (m), moedas coletadas e tier atual. UGUI overlay com TextMeshPro.
+Fecha o loop morte → retry. Hoje o jogo só loga Game Over no Console;
+agora aparece uma tela com a razão (DeadEnd/OutOfBounds/HitObstacle), stats
+finais (time/distance/coins/best tier) e botão Restart (também tecla R).
 
 ### Próximo passo concreto
 
-Seguir `Docs/MVP2_Iteracao2_HUD.md`:
-1. Criar Canvas Screen Space Overlay + importar TMP Essentials (1-click prompt).
-2. 4 TextMeshProUGUI children no Canvas: TimeText, DistText, CoinsText, TierText.
-3. GameObject `_GameTimer` com componente GameTimer.
-4. GameObject `_HUD` com componente HUDController, atribuir 4 refs.
-5. Play test: tempo cresce, distância em metros, moedas atualizam ao coletar, tier muda com T.
-6. Commit: `feat(mvp2-iter2): HUD com tempo, distância, moedas e tier`.
+Seguir `Docs/MVP2_Iteracao3_GameOver.md`:
+1. Criar `GameOverPanel` filho do `_HUD_Canvas` (background image semi-transparente full-screen, painel central com Vertical Layout).
+2. 6 TMP_Texts: Title, Reason, Time, Distance, Coins, BestTier.
+3. Botão "Restart" com TMP_Text label.
+4. GameObject `_GameOver` com `GameOverController` + refs atribuídas.
+5. Play test: cada uma das 3 razões mostra label correto, stats batem com HUD, R/Button restartam tudo.
+6. Commit: `feat(mvp2-iter3): tela de Game Over com stats e restart`.
 
-Checklist Iter 2:
+Checklist Iter 3:
 
-- [x] `Core/GameTimer.cs` — singleton, pausa em GameOver, FormatMMSS, Reset.
-- [x] `UI/HUDController.cs` — 4 TMP_Text refs, LateUpdate poll + eventos.
-- [ ] **Canvas + 4 TextMeshProUGUI** na cena.
-- [ ] **`_GameTimer`** GameObject na cena.
-- [ ] **`_HUD`** GameObject com HUDController + refs atribuídas.
-- [ ] **Play test** com critérios do guide.
+- [x] `UI/GameOverController.cs` — subscribe OnGameOver, popula stats, Time.timeScale=0, Restart via SceneManager.LoadScene.
+- [x] `DifficultyDebugController` gateado em `IsPlaying` — tecla R durante Game Over vai SÓ pro restart, não pro reset de dificuldade.
+- [ ] **GameOverPanel + filhos** no Canvas.
+- [ ] **`_GameOver`** GameObject com GameOverController + refs.
+- [ ] **Play test** das 3 razões + Restart por botão e tecla R.
 - [ ] Commit assets.
 
 ---
@@ -45,11 +45,21 @@ Checklist Iter 2:
 Plano e decisões de design em `Docs/MVP2_Plan.md`. Roadmap:
 
 - **Iter 1 — Obstáculos letais** ✅ validada.
-- **Iter 2 — HUD básico** (em andamento) — tempo, distância, moedas, tier.
-- **Iter 3 — Tela de Game Over** — stats + botão Restart.
+- **Iter 2 — HUD básico** ✅ validada.
+- **Iter 3 — Tela de Game Over** (em andamento) — stats + botão Restart.
 - **Iter 4 — Power-ups + Barreira** — 4 tipos (Shield, SlowDown, Reset, Magnet),
   duração em tiles, stack permitido. Barreira = obstáculo não-letal consumida
   por shield.
+
+### MVP2 Iter 2 — HUD básico
+Validada em 2026-05-19.
+- [x] Core/GameTimer (singleton, pausa em OnGameOver, FormatMMSS).
+- [x] UI/HUDController (4 TMP_Text refs, LateUpdate + eventos).
+- [x] Canvas Screen Space Overlay 1920×1080 com 4 TextMeshProUGUI.
+- [x] _GameTimer e _HUD GameObjects + refs.
+- [x] Play test: tempo cresce em mm:ss e congela em GameOver, distância em metros, moedas e tier atualizam.
+- [x] Bug encontrado durante setup: faltava IsTrigger no Coin's collider; usuário também adicionou Rigidbody no Player (kinematic) pra triggers serem confiáveis.
+- [x] Commit `4b4a882`.
 
 ### MVP2 Iter 1 — Obstáculos letais
 Validada em 2026-05-19.

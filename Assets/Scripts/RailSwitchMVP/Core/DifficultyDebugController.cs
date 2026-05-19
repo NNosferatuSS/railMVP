@@ -20,6 +20,11 @@ namespace RailSwitchMVP.Core
             if (restrictToDebugBuilds && !(Application.isEditor || Debug.isDebugBuild))
                 return;
 
+            // Pula durante Game Over — a tecla R aí vira "restart total da run"
+            // (handled by GameOverController), não "reset de dificuldade".
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlaying)
+                return;
+
             var kb = Keyboard.current;
             if (kb == null) return;
 
