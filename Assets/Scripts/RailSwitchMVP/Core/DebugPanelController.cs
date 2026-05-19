@@ -166,10 +166,7 @@ namespace RailSwitchMVP.Core
             }
             GUILayout.Label($"Slot: {slot.HeldItem}", _hintStyle);
             if (GUILayout.Button("Grant TimeFreeze")) slot.SetItem(ActiveItemType.TimeFreeze);
-            if (GUILayout.Button("Grant Teleport")) slot.SetItem(ActiveItemType.Teleport);
             if (GUILayout.Button("Use (Space)")) slot.UseItem();
-            if (GUILayout.Button("Teleport Left (Shift+←)")) slot.UseItemWithDirection(-1);
-            if (GUILayout.Button("Teleport Right (Shift+→)")) slot.UseItemWithDirection(+1);
         }
 
         void DrawPowerUpSection()
@@ -189,12 +186,16 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Grant Ghost")) pum.GrantGhost(pum.GhostDefaultTiles);
             if (GUILayout.Button("Grant Lane Preview")) pum.GrantLanePreview(pum.LanePreviewDefaultTiles);
             if (GUILayout.Button("Grant Coin Radar")) pum.GrantCoinRadar(pum.CoinRadarDefaultTiles);
+            if (GUILayout.Button("Grant Teleport")) pum.GrantTeleport(pum.TeleportDefaultTiles);
 
             GUILayout.Label(
                 $"Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
                 _hintStyle);
             GUILayout.Label(
-                $"2xCoins {pum.DoubleCoinsTilesRemaining} | Ghost {pum.GhostTilesRemaining} | Preview {pum.LanePreviewTilesRemaining} | Radar {pum.CoinRadarTilesRemaining}",
+                $"2xCoins {pum.DoubleCoinsTilesRemaining} | Ghost {pum.GhostTilesRemaining} | Preview {pum.LanePreviewTilesRemaining}",
+                _hintStyle);
+            GUILayout.Label(
+                $"Radar {pum.CoinRadarTilesRemaining} | Teleport {pum.TeleportTilesRemaining}",
                 _hintStyle);
         }
 

@@ -43,9 +43,11 @@ namespace RailSwitchMVP.UI
         [SerializeField] private TMP_Text lanePreviewText;
         [SerializeField] private TMP_Text coinRadarText;
 
-        [Header("Active item slot (PostMVP2.3)")]
-        [Tooltip("Texto do active item no slot. 'Item: <none>' quando vazio.")]
+        [Header("PostMVP2.3")]
+        [Tooltip("Texto do active item no slot. 'Item: -' quando vazio.")]
         [SerializeField] private TMP_Text activeItemText;
+        [Tooltip("Teleport (tile-based window). Mostra 'Teleport N (Shift+←/→)' quando ativo.")]
+        [SerializeField] private TMP_Text teleportText;
 
         [Header("References (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
@@ -108,6 +110,7 @@ namespace RailSwitchMVP.UI
             SetPowerUpText(ghostText, "", false);
             SetPowerUpText(lanePreviewText, "", false);
             SetPowerUpText(coinRadarText, "", false);
+            SetPowerUpText(teleportText, "", false);
         }
 
         void OnDestroy()
@@ -144,10 +147,7 @@ namespace RailSwitchMVP.UI
                 activeItemText.text = "Item: -";
                 return;
             }
-            string hint = type == ActiveItemType.Teleport
-                ? "Shift+←/→"
-                : "Space";
-            activeItemText.text = $"Item: {type} ({hint})";
+            activeItemText.text = $"Item: {type} (Space)";
         }
 
         void LateUpdate()
@@ -205,6 +205,9 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.CoinRadar:
                     SetPowerUpText(coinRadarText, $"Radar {value}", true);
                     break;
+                case PowerUpType.Teleport:
+                    SetPowerUpText(teleportText, $"Teleport {value} (Shift+←/→)", true);
+                    break;
                 // DifficultyReset é instantâneo — não tem indicador.
             }
         }
@@ -220,6 +223,7 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.Ghost: SetPowerUpText(ghostText, "", false); break;
                 case PowerUpType.LanePreview: SetPowerUpText(lanePreviewText, "", false); break;
                 case PowerUpType.CoinRadar: SetPowerUpText(coinRadarText, "", false); break;
+                case PowerUpType.Teleport: SetPowerUpText(teleportText, "", false); break;
             }
         }
 

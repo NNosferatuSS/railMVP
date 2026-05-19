@@ -16,6 +16,8 @@ namespace RailSwitchMVP.Core
         Ghost,
         LanePreview,
         CoinRadar,
+        // PostMVP2.3:
+        Teleport,
     }
 
     /// <summary>
@@ -56,6 +58,11 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int lanePreviewDefaultTiles = 12;
         [SerializeField] private int coinRadarDefaultTiles = 12;
 
+        [Header("Active-action passive (PostMVP2.3)")]
+        [Tooltip("Tiles que o player pode usar Shift+←/→ pra teleportar. " +
+            "Não conta cada teleport — só transições de tile. Stack estende.")]
+        [SerializeField] private int teleportDefaultTiles = 8;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private int shieldCharges;
         [SerializeField] private int slowDownTilesRemaining;
@@ -64,6 +71,7 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int ghostTilesRemaining;
         [SerializeField] private int lanePreviewTilesRemaining;
         [SerializeField] private int coinRadarTilesRemaining;
+        [SerializeField] private int teleportTilesRemaining;
 
         public int ShieldCharges => shieldCharges;
         public int SlowDownTilesRemaining => slowDownTilesRemaining;
@@ -72,6 +80,7 @@ namespace RailSwitchMVP.Core
         public int GhostTilesRemaining => ghostTilesRemaining;
         public int LanePreviewTilesRemaining => lanePreviewTilesRemaining;
         public int CoinRadarTilesRemaining => coinRadarTilesRemaining;
+        public int TeleportTilesRemaining => teleportTilesRemaining;
 
         public bool HasShield => shieldCharges > 0;
         public bool HasSlowDown => slowDownTilesRemaining > 0;
@@ -80,6 +89,7 @@ namespace RailSwitchMVP.Core
         public bool IsGhost => ghostTilesRemaining > 0;
         public bool HasLanePreview => lanePreviewTilesRemaining > 0;
         public bool HasCoinRadar => coinRadarTilesRemaining > 0;
+        public bool HasTeleport => teleportTilesRemaining > 0;
 
         public float SpeedMultiplier => HasSlowDown ? slowDownSpeedMultiplier : 1f;
         public int CoinMultiplier => HasDoubleCoins ? 2 : 1;
@@ -89,6 +99,7 @@ namespace RailSwitchMVP.Core
         public int GhostDefaultTiles => ghostDefaultTiles;
         public int LanePreviewDefaultTiles => lanePreviewDefaultTiles;
         public int CoinRadarDefaultTiles => coinRadarDefaultTiles;
+        public int TeleportDefaultTiles => teleportDefaultTiles;
 
         public event System.Action<PowerUpType> OnPowerUpActivated;
         public event System.Action<PowerUpType> OnPowerUpExpired;
@@ -188,6 +199,14 @@ namespace RailSwitchMVP.Core
             OnPowerUpTick?.Invoke(PowerUpType.CoinRadar, coinRadarTilesRemaining);
         }
 
+        public void GrantTeleport(int tiles)
+        {
+            teleportTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +Teleport (tiles={teleportTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.Teleport);
+            OnPowerUpTick?.Invoke(PowerUpType.Teleport, teleportTilesRemaining);
+        }
+
         /// <summary>
         /// Consome 1 shield. Retorna true se havia shield (ataque absorvido).
         /// </summary>
@@ -213,6 +232,7 @@ namespace RailSwitchMVP.Core
             Tick(ref ghostTilesRemaining, PowerUpType.Ghost);
             Tick(ref lanePreviewTilesRemaining, PowerUpType.LanePreview);
             Tick(ref coinRadarTilesRemaining, PowerUpType.CoinRadar);
+            Tick(ref teleportTilesRemaining, PowerUpType.Teleport);
         }
 
         void Tick(ref int counter, PowerUpType type)
@@ -253,6 +273,7 @@ namespace RailSwitchMVP.Core
             ghostTilesRemaining = 0;
             lanePreviewTilesRemaining = 0;
             coinRadarTilesRemaining = 0;
+            teleportTilesRemaining = 0;
         }
     }
 }
