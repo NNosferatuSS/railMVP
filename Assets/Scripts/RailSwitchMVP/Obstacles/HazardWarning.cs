@@ -22,6 +22,11 @@ namespace RailSwitchMVP.Obstacles
         [Tooltip("Quanto acima do hazard o ícone fica.")]
         public float heightOffset = 2.5f;
 
+        [Tooltip("Offset Z em relação ao hazard (em unidades mundiais). " +
+            "Negativo = ícone aparece ANTES do hazard (próximo ao player), " +
+            "dando antecedência pra o player desviar. Default 0 = mesma row.")]
+        public float leadOffsetZ = 0f;
+
         [Tooltip("Tamanho da fonte do ícone (TMP world-space).")]
         public float fontSize = 8f;
 
@@ -42,13 +47,19 @@ namespace RailSwitchMVP.Obstacles
         }
 
         /// <summary>
-        /// Configura cor + símbolo do warning. Chamável após AddComponent
-        /// pra customização pelo generator.
+        /// Configura cor + símbolo + offset do warning. Chamável após
+        /// AddComponent pra customização pelo generator.
         /// </summary>
-        public void Setup(Color newColor, string newSymbol = null)
+        public void Setup(Color newColor, string newSymbol = null, float? leadZ = null)
         {
             color = newColor;
             if (!string.IsNullOrEmpty(newSymbol)) symbol = newSymbol;
+            if (leadZ.HasValue)
+            {
+                leadOffsetZ = leadZ.Value;
+                if (_iconTransform != null)
+                    _iconTransform.localPosition = new Vector3(0f, heightOffset, leadOffsetZ);
+            }
             ApplyToIcon();
         }
 
@@ -58,7 +69,7 @@ namespace RailSwitchMVP.Obstacles
 
             var iconGo = new GameObject("WarningIcon");
             iconGo.transform.SetParent(transform, false);
-            iconGo.transform.localPosition = Vector3.up * heightOffset;
+            iconGo.transform.localPosition = new Vector3(0f, heightOffset, leadOffsetZ);
 
             _tmp = iconGo.AddComponent<TextMeshPro>();
             _tmp.fontSize = fontSize;

@@ -60,6 +60,10 @@ namespace RailSwitchMVP.Core
         private const string _lethalWarningSymbol = "X";
         private const string _barrierWarningSymbol = "!";
 
+        [Tooltip("Quantas rows antes do hazard o ícone de warning aparece. " +
+            "3 = warning visível 3 tiles ANTES do hazard real (dá tempo de planejar o switch).")]
+        [SerializeField] private int warningRowsAhead = 3;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private List<int> previousCriticalLanes = new List<int>();
 
@@ -375,15 +379,20 @@ namespace RailSwitchMVP.Core
         }
 
         /// <summary>
-        /// Adiciona um HazardWarning (ícone flutuante) num hazard spawnado.
-        /// Se o prefab já tem o componente, só faz Setup. Senão, AddComponent + Setup.
+        /// Adiciona um HazardWarning (ícone flutuante) num hazard spawnado,
+        /// posicionado N rows à frente do hazard (mais perto do player).
+        /// Player vê o aviso bem antes de chegar no hazard.
         /// </summary>
-        static void AttachWarning(GameObject hazardGo, Color color, string symbol)
+        void AttachWarning(GameObject hazardGo, Color color, string symbol)
         {
-            if (hazardGo == null) return;
+            if (hazardGo == null || config == null) return;
             var warning = hazardGo.GetComponent<HazardWarning>();
             if (warning == null) warning = hazardGo.AddComponent<HazardWarning>();
-            warning.Setup(color, symbol);
+
+            // Offset Z negativo = ícone aparece "N rows antes" do hazard
+            // (mais próximo do player, no eixo Z forward).
+            float leadZ = -warningRowsAhead * (config.trackLength + config.rowGap);
+            warning.Setup(color, symbol, leadZ);
         }
     }
 }
