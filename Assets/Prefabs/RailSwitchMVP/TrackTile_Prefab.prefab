@@ -265,7 +265,7 @@ MonoBehaviour:
   endPoint: {fileID: 1920192248283590359}
   padding: 0.1
   coinHeight: 0.5
-  spawnOnStartCount: 3
+  spawnOnStartCount: 0
   isCriticalPath: 1
 --- !u!1 &6468110206497205525
 GameObject:
