@@ -178,8 +178,14 @@ namespace RailSwitchMVP.Core
 
             for (int L = 0; L < row.Tiles.Length; L++)
             {
-                if (row.Tiles[L] != null)
-                    Destroy(row.Tiles[L].gameObject);
+                if (row.Tiles[L] == null) continue;
+
+                var tileGo = row.Tiles[L].gameObject;
+                // Pool retorna se disponível; senão, Destroy.
+                if (PrefabPool.Instance != null)
+                    PrefabPool.Instance.Release(tileGo);
+                else
+                    Destroy(tileGo);
             }
             _rows.Remove(rowIndex);
         }

@@ -41,11 +41,14 @@ próxima sync do Desktop).
 
 Ordem combinada com user:
 1. ✅ **Diferenciar Lethal vs Barrier** — commit `7d010f7`. Validado pelo user.
-2. ✅ **UI warning sobre decoys perigosos** — commit `<próximo>`. Ícone "!"/"X"
-   3D billboard auto-adicionado pelo generator a cada hazard. Vermelho = Lethal,
-   amarelo = Barrier. Falta play test.
-3. **Pooling** — próximo.
-4. **Mais power-ups/obstáculos** — brainstorm de ideias antes.
+2. ✅ **UI warning sobre decoys perigosos** — commit `33aefd5`. Ícone "!"/"X"
+   3D billboard auto-adicionado pelo generator a cada hazard.
+3. ✅ **Pooling de tiles** — commit `<próximo>`. PrefabPool singleton com
+   ObjectPool<GameObject> da Unity 6. TrackTile.ResetForReuse via snapshot
+   de _initialChildren. Falta adicionar `_PrefabPool` na cena + play test.
+   Escopo: tiles only nesta etapa. Coins/obstacles/power-ups continuam
+   Instantiate/Destroy (pooling deles é follow-up).
+4. **Mais power-ups/obstáculos** — brainstorm de ideias antes (próximo).
 
 Ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
 

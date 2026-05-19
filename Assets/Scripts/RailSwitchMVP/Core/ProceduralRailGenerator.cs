@@ -283,7 +283,18 @@ namespace RailSwitchMVP.Core
                 if (!plan.LanePopulated[L]) continue;
 
                 Vector3 worldPos = TrackTile.ComputeWorldPosition(rowIndex, L, plan.GlobalMax, config);
-                var tileGo = Instantiate(tilePrefab, worldPos, Quaternion.identity, parent);
+
+                // Spawn via pool se disponível; senão, fallback pra Instantiate normal.
+                GameObject tileGo;
+                bool fromPool = PrefabPool.Instance != null;
+                if (fromPool)
+                {
+                    tileGo = PrefabPool.Instance.Spawn(tilePrefab, worldPos, Quaternion.identity, parent);
+                }
+                else
+                {
+                    tileGo = Instantiate(tilePrefab, worldPos, Quaternion.identity, parent);
+                }
                 tileGo.name = $"Tile_R{rowIndex}_L{L}";
 
                 var tile = tileGo.GetComponent<TrackTile>();
@@ -292,6 +303,9 @@ namespace RailSwitchMVP.Core
                     Debug.LogError("[ProceduralRailGenerator] tilePrefab does not have a TrackTile component.", tilePrefab);
                     continue;
                 }
+
+                // Limpa estado de uso anterior (no-op em Instantiate fresh).
+                if (fromPool) tile.ResetForReuse();
 
                 tile.Row = rowIndex;
                 tile.Lane = L;

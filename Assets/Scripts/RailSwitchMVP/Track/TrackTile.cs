@@ -39,6 +39,11 @@ namespace RailSwitchMVP.Track
         [Header("Debug")]
         [SerializeField] private RailGenConfig debugConfig;
 
+        // Snapshot dos children que vieram do prefab (vs spawnados em runtime).
+        // Usado pelo ResetForReuse pra distinguir "estrutura permanente" de
+        // "conteúdo dinâmico" sem precisar de marcadores manuais nos prefabs.
+        private Transform[] _initialChildren;
+
         void Awake()
         {
             // Auto-resolve componentes (caso o prefab já esteja completo)
@@ -49,6 +54,40 @@ namespace RailSwitchMVP.Track
 
             // Backlink do switch para este tile (necessário para o TargetLane)
             if (Switch != null) Switch.OwnerTile = this;
+
+            // Snapshot dos children do prefab antes de qualquer spawn dinâmico.
+            // Awake roda uma vez por instância — esse snapshot persiste entre
+            // usos do pool.
+            _initialChildren = new Transform[transform.childCount];
+            for (int i = 0; i < transform.childCount; i++)
+                _initialChildren[i] = transform.GetChild(i);
+        }
+
+        /// <summary>
+        /// Limpa estado dinâmico antes de reutilizar o tile do pool. Destrói
+        /// todos os children que NÃO vieram do prefab original (coins,
+        /// obstáculos, power-ups, warning icons), reseta o switch pro Middle,
+        /// zera flags. Chamado pelo gerador após PrefabPool.Spawn.
+        /// </summary>
+        public void ResetForReuse()
+        {
+            // Switch volta pro centro
+            if (Switch != null) Switch.SetState(SwitchState.Middle);
+
+            // Reset flags
+            IsOnCriticalPath = false;
+
+            // Destroi children dinâmicos. Se _initialChildren é null (primeira
+            // ativação, Awake ainda não rodou), nada a fazer.
+            if (_initialChildren == null) return;
+
+            var keep = new HashSet<Transform>(_initialChildren);
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i);
+                if (!keep.Contains(child))
+                    Destroy(child.gameObject);
+            }
         }
 
         void Start()
