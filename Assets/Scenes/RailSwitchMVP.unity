@@ -473,6 +473,7 @@ MonoBehaviour:
     cameraZoomMax: 0
     coinsPerCriticalTile: 0
     coinsPerDecoyTile: 0
+    obstacleChanceOnDecoy: 0
 --- !u!4 &995310518
 Transform:
   m_ObjectHideFlags: 0
@@ -631,7 +632,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Core.ProceduralRailGenerator
   config: {fileID: 11400000, guid: 4206ddfc572689b499014c435e26d321, type: 2}
   tilePrefab: {fileID: 6099193709384623378, guid: 98c66245c32ebcc4dbc7482f8764d803, type: 3}
+  lethalObstaclePrefab: {fileID: 7361413902271656149, guid: e5110fb5a248d1046b4007f11b1f5784, type: 3}
   previousCriticalLanes: 
+  transitionAnchorLane: -1
 --- !u!1 &1903520834
 GameObject:
   m_ObjectHideFlags: 0

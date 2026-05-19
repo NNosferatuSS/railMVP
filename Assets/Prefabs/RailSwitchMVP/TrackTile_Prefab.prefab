@@ -186,6 +186,7 @@ GameObject:
   - component: {fileID: 3406072297439739450}
   - component: {fileID: 5560036018871329764}
   - component: {fileID: 4301760965809135803}
+  - component: {fileID: 1533898879455967306}
   m_Layer: 0
   m_Name: TrackTile_Prefab
   m_TagString: Untagged
@@ -232,6 +233,7 @@ MonoBehaviour:
   IsOnCriticalPath: 1
   Switch: {fileID: 5560036018871329764}
   Coins: {fileID: 4301760965809135803}
+  Obstacles: {fileID: 0}
   debugConfig: {fileID: 11400000, guid: 4206ddfc572689b499014c435e26d321, type: 2}
 --- !u!114 &5560036018871329764
 MonoBehaviour:
@@ -267,6 +269,21 @@ MonoBehaviour:
   coinHeight: 0.5
   spawnOnStartCount: 0
   isCriticalPath: 1
+--- !u!114 &1533898879455967306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6099193709384623378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 592cd3f014a348b4a9da2ef1e975fe07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Track.ObstacleSpawner
+  startPoint: {fileID: 2323621104240423797}
+  endPoint: {fileID: 1920192248283590359}
+  obstacleHeight: 0.5
 --- !u!1 &6468110206497205525
 GameObject:
   m_ObjectHideFlags: 0
