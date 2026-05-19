@@ -304,19 +304,7 @@ namespace RailSwitchMVP.Player
 
             if (landingRow.HasTile(_ghostFlightLane))
             {
-                // Aterriza.
-                currentTile = landingRow.Tiles[_ghostFlightLane];
-                targetTile = null;
-                inGap = false;
-                gapProgress = 0f;
-                OnTileEntered?.Invoke(currentTile);
-
-                if (currentTile.StartPoint != null)
-                {
-                    Vector3 p = currentTile.StartPoint.position;
-                    p.y = _playerY;
-                    transform.position = p;
-                }
+                LandOnTile(landingRow.Tiles[_ghostFlightLane]);
                 return;
             }
 
@@ -329,12 +317,59 @@ namespace RailSwitchMVP.Player
             bool stillGhost = PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost;
             if (!stillGhost || _ghostFlightSkips >= MaxGhostFlightSkips)
             {
+                // Ghost expirou mid-flight: força landing na lane mais próxima
+                // COM tile na row atual. Snap lateral (raro caso). Sem isso o
+                // player ficaria sem controle indefinidamente — pior UX que o
+                // snap rápido.
+                int rescueLane = FindClosestPopulatedLane(landingRow, _ghostFlightLane);
+                if (rescueLane >= 0)
+                {
+                    Debug.Log($"[PlayerRailRider] Ghost expirou em voo — rescue land row={landingRow.RowIndex} lane={rescueLane} (target era {_ghostFlightLane})");
+                    LandOnTile(landingRow.Tiles[rescueLane]);
+                    return;
+                }
+                // Row inteira vazia — fallback game over (extremamente raro com minLanesPerRow≥2).
                 TriggerGameOver(GameOverReason.DeadEnd);
                 return;
             }
 
             _ghostFlightRow++;
             SetupGhostGap();
+        }
+
+        void LandOnTile(TrackTile tile)
+        {
+            currentTile = tile;
+            targetTile = null;
+            inGap = false;
+            gapProgress = 0f;
+            OnTileEntered?.Invoke(currentTile);
+            if (currentTile != null && currentTile.StartPoint != null)
+            {
+                Vector3 p = currentTile.StartPoint.position;
+                p.y = _playerY;
+                transform.position = p;
+            }
+        }
+
+        // Encontra a lane com tile mais próxima de targetLane na row dada.
+        // Retorna -1 se a row está completamente vazia (impossível em geração normal).
+        static int FindClosestPopulatedLane(RowData row, int targetLane)
+        {
+            if (row == null) return -1;
+            int best = -1;
+            int bestDist = int.MaxValue;
+            for (int L = 0; L < row.Tiles.Length; L++)
+            {
+                if (row.Tiles[L] == null) continue;
+                int dist = Mathf.Abs(L - targetLane);
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    best = L;
+                }
+            }
+            return best;
         }
 
         void TriggerGameOver(GameOverReason reason)
