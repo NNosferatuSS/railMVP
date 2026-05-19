@@ -23,16 +23,24 @@ namespace RailSwitchMVP.Track
         [Tooltip("Elevação Y das moedas em relação à reta StartPoint→EndPoint")]
         public float coinHeight = 0.5f;
 
-        [Header("Iter 2 — Setup manual")]
-        [Tooltip("Quantidade de moedas a spawnar no Start(). Em Iter 3+ o gerador chama Spawn() diretamente.")]
-        public int spawnOnStartCount = 3;
+        [Header("Auto-spawn (Iter 2 / cena manual)")]
+        [Tooltip("Se > 0, spawna automaticamente N moedas no Start. " +
+            "DEIXE EM 0 quando os tiles vêm do gerador procedural (Iter 3+) — " +
+            "o ProceduralRailGenerator chama Spawn() explicitamente conforme o tier.")]
+        public int spawnOnStartCount = 0;
 
-        [Tooltip("Marca para o gerador (Iter 3+). Em Iter 2 não tem efeito além de log.")]
+        [Tooltip("Usado apenas pelo auto-spawn manual; o gerador procedural passa o flag por argumento.")]
         public bool isCriticalPath = true;
+
+        void Awake()
+        {
+            // Resolve no Awake para que o ProceduralRailGenerator (Iter 3) possa
+            // chamar Spawn() imediatamente após Instantiate, ainda no mesmo frame.
+            ResolvePointsFromTile();
+        }
 
         void Start()
         {
-            ResolvePointsFromTile();
             if (spawnOnStartCount > 0)
                 Spawn(spawnOnStartCount, isCriticalPath);
         }

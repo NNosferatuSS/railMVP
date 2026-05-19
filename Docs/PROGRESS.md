@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-18 (após validação Iter 1, código Iter 2 pronto)
+**Última atualização:** 2026-05-19 (após validação Iter 2, código Iter 3 pronto)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 
@@ -13,60 +13,52 @@
 
 ## Estou aqui agora
 
-**Iteração 2 — Switches + transição + moedas + Game Over (código pronto, falta setup na Editor).**
+**Iteração 3 — Geração procedural com Critical Path (código pronto, falta setup na Editor).**
 
-Código C# da Iter 2 commitado. Falta:
-1. Atualizar o prefab `TrackTile_Prefab` (adicionar Arrow + SwitchController + CoinSpawner).
-2. Criar prefab `Coin_Prefab` (cylinder amarelo com trigger + CollectibleCoin).
-3. Adicionar managers de cena (`_RailManager`, `_GameManager`, `_CoinManager`, `_Input`).
-4. Refazer a cena com **3 linhas × 3 lanes**, omitindo `(Row=2, Lane=0)` pra demonstrar DeadEnd.
-5. Play test: setas ←/→ mudam o switch, transição entre tiles, DeadEnd e OutOfBounds disparam Game Over, moedas coletadas incrementam `CoinManager`.
+A partir desta iteração os tiles **não vivem mais na cena** — eles são
+instanciados em runtime pelo `ProceduralRailGenerator` conforme o player
+avança. A cena fica reduzida a: managers + Player + Camera. Streaming:
+spawna `rowsAhead` à frente, despawna após `rowsBehind` atrás.
 
 ### Próximo passo concreto
 
-Abrir `Docs/Iteracao2_Setup.md` e seguir do início.
+Abrir `Docs/Iteracao3_Setup.md` e seguir do início.
 
-Checklist da Iteração 2:
+Checklist da Iteração 3:
 
-- [x] Scripts: `SwitchController`, `CoinSpawner`, `RowData`, `RailManager`,
-      `GameManager`, `CollectibleCoin`, `CoinManager`, `IDirectionalInput`,
-      `KeyboardDirectionalInput` criados.
-- [x] `TrackTile.cs` atualizado (refs Switch+Coins + auto-registro no RailManager).
-- [x] `PlayerRailRider.cs` reescrito (gap transition + game over + dispatch input).
-- [ ] Tag `Coin` criada (Project Settings → Tags and Layers).
-- [ ] Prefab `Coin_Prefab` (cylinder amarelo escala (0.3, 0.05, 0.3), `SphereCollider isTrigger`, `CollectibleCoin`).
-- [ ] Atualizar `TrackTile_Prefab`: adicionar `Arrow` (Cone/Cube fino em EndPoint), `SwitchController` na raiz, `CoinSpawner` na raiz com refs.
-- [ ] Adicionar `_RailManager`, `_GameManager`, `_CoinManager`, `_Input` na cena.
-- [ ] Refazer cena com 3×3 (omitir Row=2/Lane=0).
-- [ ] **Play test** — setas ←/→, DeadEnd, OutOfBounds, coleta moedas.
-- [ ] Commit assets: `feat(iter2): scene + prefabs com switches e moedas`.
+- [x] Scripts: `ProceduralRailGenerator` (algoritmo §4.2).
+- [x] `RailManager` reescrito (spawn ahead / despawn behind + bootstrap row 0 + StartTile pro Player).
+- [x] `CoinSpawner` ajustado (gerador chama Spawn explicitamente; sem auto-spawn no Start).
+- [x] `PlayerRailRider` aceita startTile do RailManager se vazio no Inspector.
+- [ ] **Cena**: deletar todos os 8 tiles da Iter 2 (RailManager passa a spawnar).
+- [ ] **`_RailManager`** na cena: arrastar `TrackTile_Prefab`, `RailGenConfig_Default`, adicionar `ProceduralRailGenerator` (no mesmo GameObject ou separado) com refs.
+- [ ] **Player**: deixar `Start Tile` vazio (RailManager preenche em runtime).
+- [ ] **Play test**: jogo gera linhas infinitamente, critical path visível por gizmos verdes, decoys laranjas, dead-ends acontecem em decoys, FPS estável.
+- [ ] Commit assets: `feat(iter3): cena procedural + critical path`.
 
 ---
 
 ## Concluído
 
+### Iteração 2 — Switches + transição + moedas + Game Over
+Validado em 2026-05-19.
+- [x] 9 scripts novos (SwitchController, CoinSpawner, RowData, RailManager mínimo, GameManager, CollectibleCoin, CoinManager, IDirectionalInput, KeyboardDirectionalInput).
+- [x] TrackTile + PlayerRailRider atualizados.
+- [x] Cena com 3×3 (R2L0 omitido), prefab Coin_Prefab, prefab TrackTile_Prefab atualizado.
+- [x] Play test: setas funcionam, transição suave, DeadEnd em R2L0, OutOfBounds nas bordas, moedas somam.
+- [x] Commit `e18f208`.
+
 ### Iteração 1 — Cena estática + câmera + difficulty
 Validado em 2026-05-18.
 - [x] Estrutura de pastas + 6 scripts.
-- [x] `RailGenConfig_Default` SO.
-- [x] `DifficultyConfig_Default` SO com 1 tier.
-- [x] Prefab `TrackTile_Prefab` (Mesh 2×0.2×10, StartPoint Z=-5, EndPoint Z=+5).
-- [x] Cena `RailSwitchMVP_Scene.unity` com 3 tiles + Player + Camera.
+- [x] `RailGenConfig_Default` SO + `DifficultyConfig_Default` SO com 1 tier.
+- [x] Prefab `TrackTile_Prefab` + cena com 3 tiles + Player + Camera.
 - [x] Play test: movimento forward, framing de câmera, zoom adaptativo OK.
 - [x] Commits `fe850b7` (setup) e `b73070d` (push test).
 
 ---
 
 ## Roadmap restante
-
-### Iteração 3 — Geração procedural com Critical Path
-- [ ] `ProceduralRailGenerator` com algoritmo da §4.2.
-- [ ] Trocar `RailManager` minimalista por uma versão com spawn ahead / despawn behind.
-- [ ] Moedas distribuídas conforme `isCriticalPath`.
-- [ ] Gizmos coloridos para validação visual do critical path.
-
-> **Já feito antecipadamente na Iter 2 (pra evitar refactor):**
-> `RowData` (POCO) e `RailManager` mínimo com `Dictionary<row, RowData>` + auto-registro de tiles.
 
 ### Iteração 4 — Dificuldade dinâmica
 - [ ] `DifficultyConfig` populado com os 5–6 tiers da tabela §2.4.

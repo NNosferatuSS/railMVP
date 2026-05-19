@@ -61,20 +61,30 @@ namespace RailSwitchMVP.Player
             if (_input == null)
                 Debug.LogWarning("[PlayerRailRider] No IDirectionalInput found in scene. Switches won't respond to input.");
 
-            // Posiciona o player no startPoint do tile inicial
-            if (startTile != null && startTile.StartPoint != null)
-            {
-                currentTile = startTile;
-                Vector3 pos = startTile.StartPoint.position;
-                pos.y = _playerY;
-                transform.position = pos;
-            }
-            else
-            {
-                Debug.LogWarning("[PlayerRailRider] No startTile assigned. Player will start at world origin.");
-            }
+            // Iter 2: startTile vem do Inspector. Iter 3: RailManager chama SetStartTile no Start dele.
+            if (startTile != null)
+                ApplyStartTile(startTile);
 
             transform.rotation = Quaternion.identity;
+        }
+
+        /// <summary>
+        /// Chamado pelo RailManager em runtime quando o tile inicial é gerado proceduralmente.
+        /// </summary>
+        public void SetStartTile(TrackTile tile)
+        {
+            if (tile == null) return;
+            startTile = tile;
+            ApplyStartTile(tile);
+        }
+
+        void ApplyStartTile(TrackTile tile)
+        {
+            if (tile == null || tile.StartPoint == null) return;
+            currentTile = tile;
+            Vector3 pos = tile.StartPoint.position;
+            pos.y = _playerY;
+            transform.position = pos;
         }
 
         void Update()
