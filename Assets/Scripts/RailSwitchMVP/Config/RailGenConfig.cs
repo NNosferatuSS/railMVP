@@ -19,6 +19,12 @@ namespace RailSwitchMVP.Config
         [Tooltip("Espaço entre o fim de uma linha e o início da próxima (onde fica o switch)")]
         public float rowGap = 2f;
 
+        [Tooltip("Número GLOBAL de lanes. Define o range fixo de posições X no mundo. " +
+            "Cada tier ATIVA um subset centrado deste range (Tier 0 com maxLanes=3 usa apenas " +
+            "as 3 lanes centrais; Tier 5 com maxLanes=9 usa todas as 9). " +
+            "Deve ser >= o maxLanes do tier mais alto.")]
+        public int globalMaxLanes = 9;
+
         [Header("Streaming")]
         [Tooltip("Quantas linhas spawnar à frente do player")]
         public int rowsAhead = 12;

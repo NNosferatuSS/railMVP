@@ -83,12 +83,14 @@ namespace RailSwitchMVP.Track
         }
 
         /// <summary>
-        /// Helper: calcula a posição mundial do center do tile dado os parâmetros do grid.
-        /// Usado pelo gerador procedural (Iter 3).
+        /// Helper: calcula a posição mundial do center do tile.
+        /// X é estável entre tiers: usa <c>config.globalMaxLanes</c> em vez do
+        /// maxLanes do tier ativo. Lane N tem sempre o mesmo X mundial, garantindo
+        /// que o switch ±1 sempre move exatamente 1 laneSpacing visualmente.
         /// </summary>
-        public static Vector3 ComputeWorldPosition(int row, int lane, int maxLanesAtSpawn, RailGenConfig config)
+        public static Vector3 ComputeWorldPosition(int row, int lane, int globalMaxLanes, RailGenConfig config)
         {
-            float x = (lane - (maxLanesAtSpawn - 1) / 2f) * config.laneSpacing;
+            float x = (lane - (globalMaxLanes - 1) / 2f) * config.laneSpacing;
             float z = row * (config.trackLength + config.rowGap) + config.trackLength * 0.5f;
             return new Vector3(x, 0f, z);
         }

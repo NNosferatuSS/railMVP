@@ -55,10 +55,19 @@ namespace RailSwitchMVP.Core
                 return null;
             }
 
-            int maxLanes = Mathf.Max(1, tier.maxLanes);
-            int minPerRow = Mathf.Clamp(tier.minLanesPerRow, 1, maxLanes);
-            int maxPerRow = Mathf.Clamp(tier.maxLanesPerRow, minPerRow, maxLanes);
-            int criticalPathsPerRow = Mathf.Clamp(tier.criticalPathsPerRow, 1, maxLanes);
+            int globalMax = Mathf.Max(1, config.globalMaxLanes);
+            int tierMax = Mathf.Clamp(tier.maxLanes, 1, globalMax);
+
+            // Range fixo de lanes ATIVAS deste tier: subset centrado em globalMax.
+            // Ex: globalMax=9, tierMax=3 → lowerBound=3, upperBound=5 (lanes 3,4,5).
+            //     globalMax=9, tierMax=5 → lowerBound=2, upperBound=6.
+            //     globalMax=9, tierMax=9 → lowerBound=0, upperBound=8.
+            int lowerBound = (globalMax - tierMax) / 2;
+            int upperBound = lowerBound + tierMax - 1;
+
+            int minPerRow = Mathf.Clamp(tier.minLanesPerRow, 1, tierMax);
+            int maxPerRow = Mathf.Clamp(tier.maxLanesPerRow, minPerRow, tierMax);
+            int criticalPathsPerRow = Mathf.Clamp(tier.criticalPathsPerRow, 1, tierMax);
             float lanePopChance = Mathf.Clamp01(tier.lanePopulationChance);
 
             // === Step 1 + 2: avançar critical paths da linha anterior ===
@@ -66,38 +75,40 @@ namespace RailSwitchMVP.Core
 
             if (previousCriticalLanes.Count == 0)
             {
-                // Bootstrap (primeira linha): centro do grid.
-                int seed = maxLanes / 2;
+                // Bootstrap (primeira linha): centro do grid global.
+                int seed = (lowerBound + upperBound) / 2;
                 nextCriticalLanes.Add(seed);
             }
             else
             {
                 foreach (int prevLane in previousCriticalLanes)
                 {
-                    int clamped = Mathf.Clamp(prevLane, 0, maxLanes - 1);
+                    // Clamp em [lowerBound, upperBound] — se o tier encolheu,
+                    // critical paths fora do range são puxados pra dentro.
+                    int clamped = Mathf.Clamp(prevLane, lowerBound, upperBound);
                     int offset = Random.Range(-1, 2); // -1, 0, +1
-                    int newLane = Mathf.Clamp(clamped + offset, 0, maxLanes - 1);
+                    int newLane = Mathf.Clamp(clamped + offset, lowerBound, upperBound);
                     nextCriticalLanes.Add(newLane);
                 }
             }
 
             // Garante criticalPathsPerRow ativos
-            int safety = maxLanes * 4;
+            int safety = tierMax * 4;
             while (nextCriticalLanes.Count < criticalPathsPerRow && safety-- > 0)
             {
-                int addLane = Random.Range(0, maxLanes);
+                int addLane = Random.Range(lowerBound, upperBound + 1);
                 nextCriticalLanes.Add(addLane);
             }
 
-            // === Step 3: marcar lanes garantidas ===
-            var lanePopulated = new bool[maxLanes];
+            // === Step 3: marcar lanes garantidas (em coordenadas globais) ===
+            var lanePopulated = new bool[globalMax];
             foreach (int L in nextCriticalLanes)
                 lanePopulated[L] = true;
 
             int totalCount = nextCriticalLanes.Count;
 
-            // === Step 4: popular decoys ===
-            for (int L = 0; L < maxLanes; L++)
+            // === Step 4: popular decoys (apenas dentro do range ativo do tier) ===
+            for (int L = lowerBound; L <= upperBound; L++)
             {
                 if (lanePopulated[L]) continue;
                 if (totalCount >= maxPerRow) break;
@@ -108,11 +119,11 @@ namespace RailSwitchMVP.Core
                 }
             }
 
-            // === Step 5: enforçar mínimo ===
-            safety = maxLanes * 4;
+            // === Step 5: enforçar mínimo (apenas dentro do range ativo) ===
+            safety = tierMax * 4;
             while (totalCount < minPerRow && safety-- > 0)
             {
-                int L = Random.Range(0, maxLanes);
+                int L = Random.Range(lowerBound, upperBound + 1);
                 if (!lanePopulated[L])
                 {
                     lanePopulated[L] = true;
@@ -121,17 +132,18 @@ namespace RailSwitchMVP.Core
             }
 
             // === Step 6: instanciar tiles + spawnar moedas ===
-            var row = new RowData(rowIndex, maxLanes);
+            // RowData tem capacidade globalMax (X estável; lanes inativas ficam null).
+            var row = new RowData(rowIndex, globalMax);
             var criticalLanesArr = new int[nextCriticalLanes.Count];
             int ci = 0;
             foreach (int L in nextCriticalLanes) criticalLanesArr[ci++] = L;
             row.CriticalLanes = criticalLanesArr;
 
-            for (int L = 0; L < maxLanes; L++)
+            for (int L = 0; L < globalMax; L++)
             {
                 if (!lanePopulated[L]) continue;
 
-                Vector3 worldPos = TrackTile.ComputeWorldPosition(rowIndex, L, maxLanes, config);
+                Vector3 worldPos = TrackTile.ComputeWorldPosition(rowIndex, L, globalMax, config);
                 var tileGo = Instantiate(tilePrefab, worldPos, Quaternion.identity, parent);
                 tileGo.name = $"Tile_R{rowIndex}_L{L}";
 
@@ -144,7 +156,7 @@ namespace RailSwitchMVP.Core
 
                 tile.Row = rowIndex;
                 tile.Lane = L;
-                tile.MaxLanesAtSpawn = maxLanes;
+                tile.MaxLanesAtSpawn = globalMax;
                 tile.IsOnCriticalPath = nextCriticalLanes.Contains(L);
 
                 // Estado inicial aleatório do switch

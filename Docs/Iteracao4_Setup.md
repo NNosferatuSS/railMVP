@@ -215,10 +215,16 @@ git commit -m "feat(iter4): tiers populados + debug controller"
   forem 12 e 18 em todos os tiers, não vai mudar visualmente.
 
 **Tile aparece "saltando" lateralmente quando maxLanes muda:**
-- Esperado. A spec §2.6 aceita esse comportamento — a posição mundial
-  das lanes muda quando `maxLanes` aumenta porque a fórmula é
-  `(lane - (maxLanes-1)/2) * laneSpacing`. O critical path se mantém
-  válido (offset ±1) mas o X mundial muda. Calibrar tuning se ficar feio.
+- ~~Esperado pela spec §2.6.~~ **CORRIGIDO** com Fix A (commit pós-Iter 4):
+  agora `RailGenConfig.globalMaxLanes = 9` define um range fixo de posições
+  X no mundo, e os tiers ativam apenas um subset centrado deste range
+  (Tier 0 = lanes [3,4,5], Tier 5 = lanes [0..8]). Como a fórmula de X
+  agora usa `globalMaxLanes` em vez do `maxLanes` do tier, lane N tem
+  sempre o mesmo X mundial — o switch ±1 sempre move exatamente
+  1 laneSpacing visualmente.
+- Se você reabrir o `RailGenConfig_Default` deve aparecer o novo campo
+  `Global Max Lanes = 9`. Não mude esse valor a não ser que o tier mais
+  alto tenha `maxLanes > 9`.
 
 **Tecla R/T não funciona:**
 - Confirme que adicionou `_DebugController` na cena.

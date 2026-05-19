@@ -24,3 +24,58 @@ MonoBehaviour:
     cameraZoomMax: 18
     coinsPerCriticalTile: 3
     coinsPerDecoyTile: 0
+  - triggerAtDistance: 100
+    maxLanes: 5
+    minLanesPerRow: 2
+    maxLanesPerRow: 4
+    criticalPathsPerRow: 1
+    lanePopulationChance: 0.55
+    playerSpeed: 10
+    cameraZoomMin: 14
+    cameraZoomMax: 20
+    coinsPerCriticalTile: 3
+    coinsPerDecoyTile: 0
+  - triggerAtDistance: 250
+    maxLanes: 5
+    minLanesPerRow: 3
+    maxLanesPerRow: 4
+    criticalPathsPerRow: 1
+    lanePopulationChance: 0.55
+    playerSpeed: 12
+    cameraZoomMin: 15
+    cameraZoomMax: 22
+    coinsPerCriticalTile: 4
+    coinsPerDecoyTile: 0
+  - triggerAtDistance: 500
+    maxLanes: 7
+    minLanesPerRow: 3
+    maxLanesPerRow: 5
+    criticalPathsPerRow: 1
+    lanePopulationChance: 0.5
+    playerSpeed: 14
+    cameraZoomMin: 17
+    cameraZoomMax: 24
+    coinsPerCriticalTile: 4
+    coinsPerDecoyTile: 0
+  - triggerAtDistance: 800
+    maxLanes: 7
+    minLanesPerRow: 4
+    maxLanesPerRow: 6
+    criticalPathsPerRow: 2
+    lanePopulationChance: 0.5
+    playerSpeed: 16
+    cameraZoomMin: 19
+    cameraZoomMax: 26
+    coinsPerCriticalTile: 5
+    coinsPerDecoyTile: 0
+  - triggerAtDistance: 1200
+    maxLanes: 9
+    minLanesPerRow: 4
+    maxLanesPerRow: 7
+    criticalPathsPerRow: 2
+    lanePopulationChance: 0.45
+    playerSpeed: 18
+    cameraZoomMin: 21
+    cameraZoomMax: 28
+    coinsPerCriticalTile: 5
+    coinsPerDecoyTile: 0
