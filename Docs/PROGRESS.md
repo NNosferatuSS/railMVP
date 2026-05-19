@@ -40,17 +40,28 @@ próxima sync do Desktop).
 ## Pós-MVP2 — Roadmap em andamento
 
 Ordem combinada com user:
-1. ✅ **Diferenciar Lethal vs Barrier** — commit `7d010f7`. Validado pelo user.
-2. ✅ **UI warning sobre decoys perigosos** — commit `33aefd5`. Ícone "!"/"X"
-   3D billboard auto-adicionado pelo generator a cada hazard.
-3. ✅ **Pooling de tiles** — commit `<próximo>`. PrefabPool singleton com
-   ObjectPool<GameObject> da Unity 6. TrackTile.ResetForReuse via snapshot
-   de _initialChildren. Falta adicionar `_PrefabPool` na cena + play test.
-   Escopo: tiles only nesta etapa. Coins/obstacles/power-ups continuam
-   Instantiate/Destroy (pooling deles é follow-up).
-4. **Mais power-ups/obstáculos** — brainstorm de ideias antes (próximo).
+1. ✅ **Diferenciar Lethal vs Barrier** — commit `7d010f7`. Validado.
+2. ✅ **UI warning sobre decoys perigosos** — commit `33aefd5`. Versão atual
+   na mesma row. **Upgrade pendente:** mover pra 3 rows à frente, alinhado
+   na lane do hazard.
+3. ✅ **Pooling de tiles** — commit `108fb6a` + fix `1d72996`.
+4. ✅ **Brainstorm de obstáculos/power-ups** — discutido com user.
+   - **Confirmados:** SpeedUp zone, Lane Swap (F), Vortex safe (E),
+     2x Coins (G), Ghost (H), Lane Preview (J), Coin Radar (K),
+     Time Freeze (I) + Teleport (novo) via sistema de inventário/active items.
+   - **Dropados:** Mover (A), Slow zone (D), Double Switch (L).
+   - **Backlog:** Spike Strip (C).
+5. ✅ **Debug tool** — commit `<próximo>`. `DebugPanelController` OnGUI F1
+   toggle: power-ups grant, tier shortcuts, trigger game over, add coins.
 
-Ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
+### Próximas iterações (ordem)
+- **PostMVP2.1:** UI Warning upgrade (3 rows à frente).
+- **PostMVP2.2:** Passive power-ups batch (2x Coins, Ghost, Lane Preview, Coin Radar).
+- **PostMVP2.3:** Active items system (inventário + slot + hotkey).
+- **PostMVP2.4:** Time Freeze + Teleport (precisam do active items).
+- **PostMVP2.5:** New obstacles (SpeedUp, Lane Swap, Vortex safe).
+
+Ver follow-ups originais em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
 
 ### Polish de identidade
 - ✅ **Lethal vs Barrier mecanicamente distintos**: Shield protege APENAS
