@@ -5,48 +5,66 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (MVP fechado)
+**Última atualização:** 2026-05-19 (MVP2 Iter 1 código pronto, falta setup Editor)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
-**Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
+**Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`) — milestone MVP1 tag `v0.1.0-mvp`
 
 ---
 
-## 🎉 MVP FECHADO
+## Estou aqui agora
+
+**MVP2 Iteração 1 — Obstáculos letais (código pronto, falta setup na Editor).**
+
+Plano completo do MVP2 em `Docs/MVP2_Plan.md` (4 iterações). Iteração 1
+adiciona obstáculos letais que spawnam só em decoys, com probabilidade
+escalando por tier (0% → 55%).
+
+### Próximo passo concreto
+
+Seguir `Docs/MVP2_Iteracao1_Obstaculos.md`:
+1. Criar prefab `Obstacle_Lethal_Prefab` (cubo vermelho + BoxCollider trigger + LethalObstacle).
+2. Adicionar `ObstacleSpawner` ao `TrackTile_Prefab` (refs StartPoint/EndPoint).
+3. Atribuir o prefab no campo `Lethal Obstacle Prefab` do ProceduralRailGenerator.
+4. Play test: confirmar que cubos vermelhos só aparecem em decoys, colisão = Game Over com `HitObstacle`.
+5. Commit assets: `feat(mvp2-iter1): Obstacle_Lethal prefab + setup na cena`.
+
+Checklist Iter 1:
+
+- [x] Folder `Obstacles/` + `ObstacleBase.cs` (abstract) + `LethalObstacle.cs`.
+- [x] `Track/ObstacleSpawner.cs` (paralelo ao CoinSpawner).
+- [x] `TrackTile.cs` com novo campo `Obstacles` + auto-resolve.
+- [x] `DifficultyTier.obstacleChanceOnDecoy` + 6 tiers populados.
+- [x] `ProceduralRailGenerator.lethalObstaclePrefab` + spawn em decoys.
+- [ ] **Prefab `Obstacle_Lethal_Prefab`** criado.
+- [ ] **`TrackTile_Prefab`** atualizado com ObstacleSpawner.
+- [ ] **`ProceduralRailGenerator`** com prefab atribuído.
+- [ ] **Play test** com critérios da seção 6 do guide.
+- [ ] Commit assets.
+
+---
+
+## MVP Parte 2 (em andamento)
+
+Plano e decisões de design em `Docs/MVP2_Plan.md`. Roadmap:
+
+- **Iter 1 — Obstáculos letais** (em andamento) — risco em decoys, critical
+  path 100% limpo.
+- **Iter 2 — HUD básico** — tempo, distância, moedas, tier (UGUI overlay).
+- **Iter 3 — Tela de Game Over** — stats + botão Restart.
+- **Iter 4 — Power-ups + Barreira** — 4 tipos (Shield, SlowDown, Reset, Magnet),
+  duração em tiles, stack permitido. Barreira = obstáculo não-letal consumida
+  por shield.
+
+---
+
+## 🎉 MVP1 FECHADO (tag `v0.1.0-mvp`)
 
 Todos os 12 critérios de sucesso da spec §14 atendidos. Core gameloop
-validado. Próximos passos abaixo são opcionais (pós-MVP).
+validado em 5 iterações.
 
-**Sugestão:** tag o commit final como `v0.1.0-mvp` pra marcar o milestone:
-```
-git tag -a v0.1.0-mvp -m "MVP fechado: core gameloop validado em 5 iterações"
-git push origin v0.1.0-mvp
-```
-
----
-
-## Pós-MVP — Opções de direção
-
-Sem ordem obrigatória. Ver `Docs/Iteracao5_StressTest.md §5` pra lista
-completa de follow-ups. Categorias:
-
-### Polish do core (opcional)
-- Pooling de tiles (substituir Instantiate/Destroy — economiza GC).
-- Buffer reuse no generator (evitar `new bool[]` e `new HashSet<>` por linha).
-
-### Mecânica nova (spec §15)
-- **Obstáculos** (§15.1): `ObstacleSpawner` no TrackTile, colisão = `GameOverReason.HitObstacle`.
-- **Power-ups** (§15.2): Slow-down e Difficulty Reset como mecânica de gameplay (não só debug R).
-
-### Apresentação
-- **UI/HUD**: contador de moedas, distância, tier indicator, tela de Game Over.
-- **Modelo visual**: trocar Capsule do player + cube esticado da seta por modelos de verdade.
-- **Audio**: música ambiente, SFX (switch, coin, death).
-
-### Persistência
-- `PlayerPrefs.HighScore` simples.
-
-### Mobile / outros inputs
-- Implementar `TouchDirectionalInput` (interface `IDirectionalInput` já tá pronta).
+Follow-ups pós-MVP1 originais (`Docs/Iteracao5_StressTest.md §5`) parcialmente
+migrados pro MVP2 Plan. Restantes (polish/performance/persistência) ficam pra
+depois do MVP2.
 
 ---
 

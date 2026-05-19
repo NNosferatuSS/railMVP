@@ -45,6 +45,13 @@ namespace RailSwitchMVP.Config
 
         [Tooltip("Quantidade de moedas em cada tile decoy (0 = sem moedas em decoys)")]
         public int coinsPerDecoyTile;
+
+        [Header("Obstacles (MVP2)")]
+        [Range(0f, 1f)]
+        [Tooltip("Probabilidade de um tile DECOY receber um obstáculo letal. " +
+            "Critical path NUNCA recebe obstáculo (decisão de design MVP2 — " +
+            "reforça \"moeda = caminho seguro\").")]
+        public float obstacleChanceOnDecoy;
     }
 
     /// <summary>

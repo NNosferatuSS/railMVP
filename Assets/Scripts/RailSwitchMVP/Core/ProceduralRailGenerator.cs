@@ -40,6 +40,10 @@ namespace RailSwitchMVP.Core
         [SerializeField] private RailGenConfig config;
         [SerializeField] private GameObject tilePrefab;
 
+        [Tooltip("Prefab do obstáculo letal. Se vazio, MVP2 Iter 1 vira no-op " +
+            "(nenhum obstáculo spawna mesmo com chance > 0 no tier).")]
+        [SerializeField] private GameObject lethalObstaclePrefab;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private List<int> previousCriticalLanes = new List<int>();
 
@@ -291,6 +295,17 @@ namespace RailSwitchMVP.Core
                         : tier.coinsPerDecoyTile;
                     if (coinCount > 0)
                         tile.Coins.Spawn(coinCount, tile.IsOnCriticalPath);
+                }
+
+                // Obstacles (MVP2 Iter 1): só em DECOYS, com probabilidade do tier.
+                // Critical path nunca recebe — preserva o pilar "siga as moedas".
+                if (!tile.IsOnCriticalPath
+                    && tile.Obstacles != null
+                    && lethalObstaclePrefab != null
+                    && tier.obstacleChanceOnDecoy > 0f
+                    && Random.value < tier.obstacleChanceOnDecoy)
+                {
+                    tile.Obstacles.Spawn(lethalObstaclePrefab);
                 }
 
                 row.Tiles[L] = tile;
