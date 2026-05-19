@@ -11,6 +11,11 @@ namespace RailSwitchMVP.Core
         SlowDown,
         Magnet,
         DifficultyReset,
+        // PostMVP2.2:
+        DoubleCoins,
+        Ghost,
+        LanePreview,
+        CoinRadar,
     }
 
     /// <summary>
@@ -45,22 +50,45 @@ namespace RailSwitchMVP.Core
         [Tooltip("Duração default em tiles do Magnet pickup.")]
         [SerializeField] private int magnetDefaultTiles = 6;
 
+        [Header("Passive power-ups defaults (PostMVP2.2)")]
+        [SerializeField] private int doubleCoinsDefaultTiles = 10;
+        [SerializeField] private int ghostDefaultTiles = 5;
+        [SerializeField] private int lanePreviewDefaultTiles = 12;
+        [SerializeField] private int coinRadarDefaultTiles = 12;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private int shieldCharges;
         [SerializeField] private int slowDownTilesRemaining;
         [SerializeField] private int magnetTilesRemaining;
+        [SerializeField] private int doubleCoinsTilesRemaining;
+        [SerializeField] private int ghostTilesRemaining;
+        [SerializeField] private int lanePreviewTilesRemaining;
+        [SerializeField] private int coinRadarTilesRemaining;
 
         public int ShieldCharges => shieldCharges;
         public int SlowDownTilesRemaining => slowDownTilesRemaining;
         public int MagnetTilesRemaining => magnetTilesRemaining;
+        public int DoubleCoinsTilesRemaining => doubleCoinsTilesRemaining;
+        public int GhostTilesRemaining => ghostTilesRemaining;
+        public int LanePreviewTilesRemaining => lanePreviewTilesRemaining;
+        public int CoinRadarTilesRemaining => coinRadarTilesRemaining;
 
         public bool HasShield => shieldCharges > 0;
         public bool HasSlowDown => slowDownTilesRemaining > 0;
         public bool HasMagnet => magnetTilesRemaining > 0;
+        public bool HasDoubleCoins => doubleCoinsTilesRemaining > 0;
+        public bool IsGhost => ghostTilesRemaining > 0;
+        public bool HasLanePreview => lanePreviewTilesRemaining > 0;
+        public bool HasCoinRadar => coinRadarTilesRemaining > 0;
 
         public float SpeedMultiplier => HasSlowDown ? slowDownSpeedMultiplier : 1f;
+        public int CoinMultiplier => HasDoubleCoins ? 2 : 1;
         public int SlowDownDefaultTiles => slowDownDefaultTiles;
         public int MagnetDefaultTiles => magnetDefaultTiles;
+        public int DoubleCoinsDefaultTiles => doubleCoinsDefaultTiles;
+        public int GhostDefaultTiles => ghostDefaultTiles;
+        public int LanePreviewDefaultTiles => lanePreviewDefaultTiles;
+        public int CoinRadarDefaultTiles => coinRadarDefaultTiles;
 
         public event System.Action<PowerUpType> OnPowerUpActivated;
         public event System.Action<PowerUpType> OnPowerUpExpired;
@@ -127,6 +155,39 @@ namespace RailSwitchMVP.Core
                 DifficultyManager.Instance.ResetDifficulty();
         }
 
+        // PostMVP2.2 — passive power-ups
+        public void GrantDoubleCoins(int tiles)
+        {
+            doubleCoinsTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +DoubleCoins (tiles={doubleCoinsTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.DoubleCoins);
+            OnPowerUpTick?.Invoke(PowerUpType.DoubleCoins, doubleCoinsTilesRemaining);
+        }
+
+        public void GrantGhost(int tiles)
+        {
+            ghostTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +Ghost (tiles={ghostTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.Ghost);
+            OnPowerUpTick?.Invoke(PowerUpType.Ghost, ghostTilesRemaining);
+        }
+
+        public void GrantLanePreview(int tiles)
+        {
+            lanePreviewTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +LanePreview (tiles={lanePreviewTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.LanePreview);
+            OnPowerUpTick?.Invoke(PowerUpType.LanePreview, lanePreviewTilesRemaining);
+        }
+
+        public void GrantCoinRadar(int tiles)
+        {
+            coinRadarTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +CoinRadar (tiles={coinRadarTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.CoinRadar);
+            OnPowerUpTick?.Invoke(PowerUpType.CoinRadar, coinRadarTilesRemaining);
+        }
+
         /// <summary>
         /// Consome 1 shield. Retorna true se havia shield (ataque absorvido).
         /// </summary>
@@ -146,23 +207,22 @@ namespace RailSwitchMVP.Core
 
         void HandleTileEntered(TrackTile newTile)
         {
-            if (slowDownTilesRemaining > 0)
-            {
-                slowDownTilesRemaining--;
-                if (slowDownTilesRemaining == 0)
-                    OnPowerUpExpired?.Invoke(PowerUpType.SlowDown);
-                else
-                    OnPowerUpTick?.Invoke(PowerUpType.SlowDown, slowDownTilesRemaining);
-            }
+            Tick(ref slowDownTilesRemaining, PowerUpType.SlowDown);
+            Tick(ref magnetTilesRemaining, PowerUpType.Magnet);
+            Tick(ref doubleCoinsTilesRemaining, PowerUpType.DoubleCoins);
+            Tick(ref ghostTilesRemaining, PowerUpType.Ghost);
+            Tick(ref lanePreviewTilesRemaining, PowerUpType.LanePreview);
+            Tick(ref coinRadarTilesRemaining, PowerUpType.CoinRadar);
+        }
 
-            if (magnetTilesRemaining > 0)
-            {
-                magnetTilesRemaining--;
-                if (magnetTilesRemaining == 0)
-                    OnPowerUpExpired?.Invoke(PowerUpType.Magnet);
-                else
-                    OnPowerUpTick?.Invoke(PowerUpType.Magnet, magnetTilesRemaining);
-            }
+        void Tick(ref int counter, PowerUpType type)
+        {
+            if (counter <= 0) return;
+            counter--;
+            if (counter == 0)
+                OnPowerUpExpired?.Invoke(type);
+            else
+                OnPowerUpTick?.Invoke(type, counter);
         }
 
         // ===== Magnet — auto-coleta de coins próximas todo frame ativo =====
@@ -189,6 +249,10 @@ namespace RailSwitchMVP.Core
             shieldCharges = 0;
             slowDownTilesRemaining = 0;
             magnetTilesRemaining = 0;
+            doubleCoinsTilesRemaining = 0;
+            ghostTilesRemaining = 0;
+            lanePreviewTilesRemaining = 0;
+            coinRadarTilesRemaining = 0;
         }
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Obstacles
 {
@@ -12,6 +13,9 @@ namespace RailSwitchMVP.Obstacles
     /// - LethalObstacle: mata sempre. Shield não ajuda. Player tem que evitar.
     /// - BarrierObstacle: Shield consome 1 carga e passa. Sem shield, mata.
     ///
+    /// Ghost power-up (PostMVP2.2): se ativo, TODO obstáculo é ignorado
+    /// silenciosamente. Não consome Shield, não chama OnPlayerHit.
+    ///
     /// Convenção: obstáculos têm Collider com IsTrigger=true.
     /// O player tem tag "Player".
     /// </summary>
@@ -21,6 +25,11 @@ namespace RailSwitchMVP.Obstacles
         void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player")) return;
+
+            // Ghost = atravessa qualquer obstáculo sem efeito.
+            if (PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost)
+                return;
+
             OnPlayerHit(other);
         }
 

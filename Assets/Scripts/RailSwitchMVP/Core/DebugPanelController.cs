@@ -101,7 +101,7 @@ namespace RailSwitchMVP.Core
             foreach (var off in offsets)
             {
                 int target = currentLane + off;
-                if (nextRow.HasTile(target) && IsCritical(nextRow, target))
+                if (nextRow.HasTile(target) && nextRow.IsCriticalLane(target))
                     return off;
             }
 
@@ -113,14 +113,6 @@ namespace RailSwitchMVP.Core
             }
 
             return 0; // desiste (player provavelmente dead-end)
-        }
-
-        static bool IsCritical(RowData row, int lane)
-        {
-            if (row.CriticalLanes == null) return false;
-            for (int i = 0; i < row.CriticalLanes.Length; i++)
-                if (row.CriticalLanes[i] == lane) return true;
-            return false;
         }
 
         void OnGUI()
@@ -171,12 +163,19 @@ namespace RailSwitchMVP.Core
                 return;
             }
             if (GUILayout.Button("Grant Shield (+1)")) pum.GrantShield();
-            if (GUILayout.Button("Grant SlowDown (+default tiles)")) pum.GrantSlowDown(pum.SlowDownDefaultTiles);
-            if (GUILayout.Button("Grant Magnet (+default tiles)")) pum.GrantMagnet(pum.MagnetDefaultTiles);
+            if (GUILayout.Button("Grant SlowDown")) pum.GrantSlowDown(pum.SlowDownDefaultTiles);
+            if (GUILayout.Button("Grant Magnet")) pum.GrantMagnet(pum.MagnetDefaultTiles);
             if (GUILayout.Button("Grant Difficulty Reset")) pum.GrantDifficultyReset();
+            if (GUILayout.Button("Grant 2x Coins")) pum.GrantDoubleCoins(pum.DoubleCoinsDefaultTiles);
+            if (GUILayout.Button("Grant Ghost")) pum.GrantGhost(pum.GhostDefaultTiles);
+            if (GUILayout.Button("Grant Lane Preview")) pum.GrantLanePreview(pum.LanePreviewDefaultTiles);
+            if (GUILayout.Button("Grant Coin Radar")) pum.GrantCoinRadar(pum.CoinRadarDefaultTiles);
 
             GUILayout.Label(
-                $"State: Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
+                $"Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
+                _hintStyle);
+            GUILayout.Label(
+                $"2xCoins {pum.DoubleCoinsTilesRemaining} | Ghost {pum.GhostTilesRemaining} | Preview {pum.LanePreviewTilesRemaining} | Radar {pum.CoinRadarTilesRemaining}",
                 _hintStyle);
         }
 

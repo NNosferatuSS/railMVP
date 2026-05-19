@@ -55,8 +55,15 @@ Ordem combinada com user:
    toggle: power-ups grant, tier shortcuts, trigger game over, add coins.
 
 ### Próximas iterações (ordem)
-- **PostMVP2.1:** UI Warning upgrade (3 rows à frente).
-- **PostMVP2.2:** Passive power-ups batch (2x Coins, Ghost, Lane Preview, Coin Radar).
+- ✅ **PostMVP2.1:** UI Warning upgrade (3 rows à frente) — commit `269b947`.
+- ✅ **Debug.AutoFollow:** auto-follow critical path toggle — commit `ad60c0b`.
+- ✅ **PostMVP2.2:** Passive power-ups batch — commit `<próximo>`.
+  - 2x Coins, Ghost, Lane Preview, Coin Radar.
+  - CollectibleCoin aplica CoinMultiplier + scale pulse no Radar.
+  - ObstacleBase skip se Ghost ativo.
+  - HUDController com 4 indicadores novos + lógica de direção pro Lane Preview.
+  - Debug panel com 4 grant buttons.
+  - Falta: criar 4 prefabs novos + 4 TMP_Texts no HUD (ver `Docs/PostMVP2_2_PassivePowerUps.md`).
 - **PostMVP2.3:** Active items system (inventário + slot + hotkey).
 - **PostMVP2.4:** Time Freeze + Teleport (precisam do active items).
 - **PostMVP2.5:** New obstacles (SpeedUp, Lane Swap, Vortex safe).

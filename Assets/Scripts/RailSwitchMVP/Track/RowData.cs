@@ -20,5 +20,13 @@ namespace RailSwitchMVP.Track
 
         public bool HasTile(int lane) =>
             lane >= 0 && lane < Tiles.Length && Tiles[lane] != null;
+
+        public bool IsCriticalLane(int lane)
+        {
+            if (CriticalLanes == null) return false;
+            for (int i = 0; i < CriticalLanes.Length; i++)
+                if (CriticalLanes[i] == lane) return true;
+            return false;
+        }
     }
 }

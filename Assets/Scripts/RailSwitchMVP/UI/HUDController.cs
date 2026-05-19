@@ -4,6 +4,7 @@ using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
 using RailSwitchMVP.Collectibles;
 using RailSwitchMVP.Player;
+using RailSwitchMVP.Track;
 
 namespace RailSwitchMVP.UI
 {
@@ -34,6 +35,13 @@ namespace RailSwitchMVP.UI
         [SerializeField] private TMP_Text slowDownText;
         [Tooltip("Texto do Magnet. Mostrado quando ativo.")]
         [SerializeField] private TMP_Text magnetText;
+
+        [Header("Power-ups indicators (PostMVP2.2)")]
+        [SerializeField] private TMP_Text doubleCoinsText;
+        [SerializeField] private TMP_Text ghostText;
+        [Tooltip("Lane Preview: mostra '← / ↑ / →' apontando ao critical da próxima row.")]
+        [SerializeField] private TMP_Text lanePreviewText;
+        [SerializeField] private TMP_Text coinRadarText;
 
         [Header("References (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
@@ -72,10 +80,18 @@ namespace RailSwitchMVP.UI
                 powerUpManager.OnPowerUpTick += HandlePowerUpTick;
                 powerUpManager.OnPowerUpExpired += HandlePowerUpExpired;
             }
+
+            if (player != null)
+                player.OnTileEntered += HandlePlayerTileEntered;
+
             // Estado inicial: tudo escondido
             SetPowerUpText(shieldText, "", false);
             SetPowerUpText(slowDownText, "", false);
             SetPowerUpText(magnetText, "", false);
+            SetPowerUpText(doubleCoinsText, "", false);
+            SetPowerUpText(ghostText, "", false);
+            SetPowerUpText(lanePreviewText, "", false);
+            SetPowerUpText(coinRadarText, "", false);
         }
 
         void OnDestroy()
@@ -87,6 +103,13 @@ namespace RailSwitchMVP.UI
                 powerUpManager.OnPowerUpTick -= HandlePowerUpTick;
                 powerUpManager.OnPowerUpExpired -= HandlePowerUpExpired;
             }
+            if (player != null) player.OnTileEntered -= HandlePlayerTileEntered;
+        }
+
+        void HandlePlayerTileEntered(TrackTile newTile)
+        {
+            // Lane preview precisa re-calcular direção quando o player muda de tile.
+            UpdateLanePreviewText();
         }
 
         void LateUpdate()
@@ -132,6 +155,18 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.Magnet:
                     SetPowerUpText(magnetText, $"Magnet {value}", true);
                     break;
+                case PowerUpType.DoubleCoins:
+                    SetPowerUpText(doubleCoinsText, $"2x Coins {value}", true);
+                    break;
+                case PowerUpType.Ghost:
+                    SetPowerUpText(ghostText, $"Ghost {value}", true);
+                    break;
+                case PowerUpType.LanePreview:
+                    UpdateLanePreviewText();
+                    break;
+                case PowerUpType.CoinRadar:
+                    SetPowerUpText(coinRadarText, $"Radar {value}", true);
+                    break;
                 // DifficultyReset é instantâneo — não tem indicador.
             }
         }
@@ -143,7 +178,63 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.Shield:   SetPowerUpText(shieldText, "", false); break;
                 case PowerUpType.SlowDown: SetPowerUpText(slowDownText, "", false); break;
                 case PowerUpType.Magnet:   SetPowerUpText(magnetText, "", false); break;
+                case PowerUpType.DoubleCoins: SetPowerUpText(doubleCoinsText, "", false); break;
+                case PowerUpType.Ghost: SetPowerUpText(ghostText, "", false); break;
+                case PowerUpType.LanePreview: SetPowerUpText(lanePreviewText, "", false); break;
+                case PowerUpType.CoinRadar: SetPowerUpText(coinRadarText, "", false); break;
             }
+        }
+
+        void UpdateLanePreviewText()
+        {
+            if (lanePreviewText == null) return;
+            if (powerUpManager == null || !powerUpManager.HasLanePreview)
+            {
+                if (lanePreviewText.gameObject.activeSelf)
+                    lanePreviewText.gameObject.SetActive(false);
+                return;
+            }
+            if (player == null || player.CurrentTile == null) return;
+
+            var rm = RailManager.Instance;
+            if (rm == null) return;
+            var nextRow = rm.GetRow(player.CurrentTile.Row + 1);
+            if (nextRow == null) return;
+
+            int currentLane = player.CurrentTile.Lane;
+            int? offset = null;
+
+            // 1ª passada: critical path (±1)
+            int[] candidates = { 0, -1, 1 };
+            foreach (var c in candidates)
+            {
+                int target = currentLane + c;
+                if (nextRow.HasTile(target) && nextRow.IsCriticalLane(target))
+                {
+                    offset = c;
+                    break;
+                }
+            }
+
+            // Fallback: qualquer tile populado
+            if (!offset.HasValue)
+            {
+                foreach (var c in candidates)
+                {
+                    int target = currentLane + c;
+                    if (nextRow.HasTile(target)) { offset = c; break; }
+                }
+            }
+
+            string dirArrow;
+            switch (offset)
+            {
+                case -1: dirArrow = "<- LEFT"; break;
+                case 1:  dirArrow = "RIGHT ->"; break;
+                case 0:  dirArrow = "^ STAY"; break;
+                default: dirArrow = "?"; break;
+            }
+            SetPowerUpText(lanePreviewText, $"Next: {dirArrow} ({powerUpManager.LanePreviewTilesRemaining})", true);
         }
 
         void SetPowerUpText(TMP_Text label, string text, bool visible)
