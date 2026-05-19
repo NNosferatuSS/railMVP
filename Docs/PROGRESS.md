@@ -5,31 +5,60 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (após validação Iter 3, código Iter 4 pronto)
+**Última atualização:** 2026-05-19 (MVP fechado)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 
 ---
 
-## Estou aqui agora
+## 🎉 MVP FECHADO
 
-**Iteração 5 — Stress test (última do MVP).**
+Todos os 12 critérios de sucesso da spec §14 atendidos. Core gameloop
+validado. Próximos passos abaixo são opcionais (pós-MVP).
 
-A última iteração do plano original. Stress test do gerador procedural pra
-validar que:
-1. **Headless test**: gerar ~10 000 linhas (sem cena, em Edit Mode) e verificar
-   que critical path nunca fica vazio, sempre tem rota viável, e o algoritmo
-   nunca trava (mesmo com tier changes simulados no meio).
-2. **Profiler**: 60 fps mantidos em Play normal com 12 rows × 9 lanes ativas
-   (Tier 5), incluindo despawn/spawn em loop.
+**Sugestão:** tag o commit final como `v0.1.0-mvp` pra marcar o milestone:
+```
+git tag -a v0.1.0-mvp -m "MVP fechado: core gameloop validado em 5 iterações"
+git push origin v0.1.0-mvp
+```
 
-### Próximo passo concreto
+---
 
-(A criar: `Docs/Iteracao5_StressTest.md` — guia da última iteração.)
+## Pós-MVP — Opções de direção
+
+Sem ordem obrigatória. Ver `Docs/Iteracao5_StressTest.md §5` pra lista
+completa de follow-ups. Categorias:
+
+### Polish do core (opcional)
+- Pooling de tiles (substituir Instantiate/Destroy — economiza GC).
+- Buffer reuse no generator (evitar `new bool[]` e `new HashSet<>` por linha).
+
+### Mecânica nova (spec §15)
+- **Obstáculos** (§15.1): `ObstacleSpawner` no TrackTile, colisão = `GameOverReason.HitObstacle`.
+- **Power-ups** (§15.2): Slow-down e Difficulty Reset como mecânica de gameplay (não só debug R).
+
+### Apresentação
+- **UI/HUD**: contador de moedas, distância, tier indicator, tela de Game Over.
+- **Modelo visual**: trocar Capsule do player + cube esticado da seta por modelos de verdade.
+- **Audio**: música ambiente, SFX (switch, coin, death).
+
+### Persistência
+- `PlayerPrefs.HighScore` simples.
+
+### Mobile / outros inputs
+- Implementar `TouchDirectionalInput` (interface `IDirectionalInput` já tá pronta).
 
 ---
 
 ## Concluído
+
+### Iteração 5 — Stress test
+Validado em 2026-05-19.
+- [x] `PlanRow` extraído de `GenerateRow` (planejamento puro sem Instantiate).
+- [x] Editor/StressTestRunner com menu `Tools → RailSwitchMVP → Run Stress Test`.
+- [x] 10k rows passou em **7ms** com 0 falhas. 100k rows em **66ms**.
+- [x] Profiler manual confirmado pelo user (quick test).
+- [x] Commit `8af72eb`.
 
 ### Iteração 4 — Dificuldade dinâmica
 Validado em 2026-05-19.
