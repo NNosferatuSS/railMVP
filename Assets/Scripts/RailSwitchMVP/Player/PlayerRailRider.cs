@@ -149,6 +149,14 @@ namespace RailSwitchMVP.Player
                 ExitGap();
         }
 
+        // === Ghost flight state (PostMVP2.2) ===
+        // Quando Ghost está ativo e player encontra DeadEnd, ele "voa" sobre
+        // rows vazias até pousar num tile real. Estado tracking abaixo.
+        private int _ghostFlightLane;
+        private int _ghostFlightRow;
+        private int _ghostFlightSkips;
+        private const int MaxGhostFlightSkips = 12;
+
         void TryEnterGap()
         {
             if (currentTile == null) return;
@@ -156,6 +164,8 @@ namespace RailSwitchMVP.Player
             int targetLane = currentTile.Switch != null
                 ? currentTile.Switch.TargetLane
                 : currentTile.Lane;
+
+            bool isGhost = PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost;
 
             RowData nextRow = (RailManager.Instance != null)
                 ? RailManager.Instance.GetRow(currentTile.Row + 1)
@@ -168,14 +178,29 @@ namespace RailSwitchMVP.Player
                 return;
             }
 
+            // OutOfBounds: com Ghost, clamp pra current lane (segue reto).
+            // Sem Ghost, Game Over.
             if (targetLane < 0 || targetLane >= nextRow.MaxLanesAtSpawn)
             {
-                TriggerGameOver(GameOverReason.OutOfBounds);
-                return;
+                if (isGhost)
+                {
+                    targetLane = currentTile.Lane;
+                }
+                else
+                {
+                    TriggerGameOver(GameOverReason.OutOfBounds);
+                    return;
+                }
             }
 
+            // DeadEnd: com Ghost, voa sobre. Sem Ghost, Game Over.
             if (!nextRow.HasTile(targetLane))
             {
+                if (isGhost)
+                {
+                    BeginGhostFlight(targetLane);
+                    return;
+                }
                 TriggerGameOver(GameOverReason.DeadEnd);
                 return;
             }
@@ -190,14 +215,53 @@ namespace RailSwitchMVP.Player
             inGap = true;
         }
 
+        // Inicia voo Ghost: configura phantom destination = onde o tile ESTARIA
+        // se a row N+1 tivesse um no targetLane.
+        void BeginGhostFlight(int targetLane)
+        {
+            _ghostFlightLane = targetLane;
+            _ghostFlightRow = currentTile.Row + 1;
+            _ghostFlightSkips = 0;
+            SetupGhostGap();
+        }
+
+        void SetupGhostGap()
+        {
+            int globalMax = config.globalMaxLanes;
+            Vector3 phantomCenter = TrackTile.ComputeWorldPosition(
+                _ghostFlightRow, _ghostFlightLane, globalMax, config);
+            // StartPoint do phantom = center - trackLength/2 no eixo Z.
+            Vector3 phantomStart = phantomCenter;
+            phantomStart.z -= config.trackLength * 0.5f;
+
+            if (currentTile != null && currentTile.EndPoint != null)
+                _gapStartPos = currentTile.EndPoint.position;
+            else
+                _gapStartPos = transform.position;
+            _gapEndPos = phantomStart;
+            _gapStartPos.y = _playerY;
+            _gapEndPos.y = _playerY;
+
+            targetTile = null; // marca "ghost gap" pra ExitGap saber
+            gapProgress = 0f;
+            inGap = true;
+        }
+
         void ExitGap()
         {
+            // targetTile == null → estávamos em ghost flight, tratar separado.
+            if (targetTile == null)
+            {
+                TryLandFromGhostFlight();
+                return;
+            }
+
+            // Normal: aterriza no targetTile.
             currentTile = targetTile;
             targetTile = null;
             inGap = false;
             gapProgress = 0f;
 
-            // Notifica listeners (PowerUpManager decrementa duração em tiles aqui)
             if (currentTile != null)
                 OnTileEntered?.Invoke(currentTile);
 
@@ -207,6 +271,56 @@ namespace RailSwitchMVP.Player
                 p.y = _playerY;
                 transform.position = p;
             }
+        }
+
+        // Tenta pousar no fim de um ghost gap. Se a row destino tem tile,
+        // aterriza. Senão, voa mais uma row (com safety limit).
+        void TryLandFromGhostFlight()
+        {
+            var landingRow = (RailManager.Instance != null)
+                ? RailManager.Instance.GetRow(_ghostFlightRow)
+                : null;
+
+            if (landingRow == null)
+            {
+                // Row não existe (não gerada ainda ou fora do mundo) — game over.
+                TriggerGameOver(GameOverReason.OutOfBounds);
+                return;
+            }
+
+            if (landingRow.HasTile(_ghostFlightLane))
+            {
+                // Aterriza.
+                currentTile = landingRow.Tiles[_ghostFlightLane];
+                targetTile = null;
+                inGap = false;
+                gapProgress = 0f;
+                OnTileEntered?.Invoke(currentTile);
+
+                if (currentTile.StartPoint != null)
+                {
+                    Vector3 p = currentTile.StartPoint.position;
+                    p.y = _playerY;
+                    transform.position = p;
+                }
+                return;
+            }
+
+            // Sem tile na row — voa outra. Conta esta row como traversada
+            // (decrementa Ghost e outros power-ups via OnTileEntered).
+            OnTileEntered?.Invoke(null);
+            _ghostFlightSkips++;
+
+            // Pós-tick: Ghost ainda ativo? Safety limit OK?
+            bool stillGhost = PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost;
+            if (!stillGhost || _ghostFlightSkips >= MaxGhostFlightSkips)
+            {
+                TriggerGameOver(GameOverReason.DeadEnd);
+                return;
+            }
+
+            _ghostFlightRow++;
+            SetupGhostGap();
         }
 
         void TriggerGameOver(GameOverReason reason)
