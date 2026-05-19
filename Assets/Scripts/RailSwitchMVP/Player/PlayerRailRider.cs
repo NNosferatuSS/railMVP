@@ -45,6 +45,12 @@ namespace RailSwitchMVP.Player
         public float DistanceTraveled => distanceTraveled;
         public TrackTile CurrentTile => currentTile;
 
+        /// <summary>
+        /// Disparado quando o player entra num NOVO tile (após o gap ou ao
+        /// iniciar). Usado pelo PowerUpManager pra decrementar duração em tiles.
+        /// </summary>
+        public event System.Action<TrackTile> OnTileEntered;
+
         void Start()
         {
             _playerY = transform.position.y;
@@ -94,7 +100,13 @@ namespace RailSwitchMVP.Player
                 return;
 
             if (difficulty != null)
-                currentSpeed = difficulty.CurrentTier.playerSpeed;
+            {
+                float baseSpeed = difficulty.CurrentTier.playerSpeed;
+                float multiplier = PowerUpManager.Instance != null
+                    ? PowerUpManager.Instance.SpeedMultiplier
+                    : 1f;
+                currentSpeed = baseSpeed * multiplier;
+            }
 
             // Input → switch do tile atual.
             if (_input != null && currentTile != null && currentTile.Switch != null && !inGap)
@@ -184,6 +196,10 @@ namespace RailSwitchMVP.Player
             targetTile = null;
             inGap = false;
             gapProgress = 0f;
+
+            // Notifica listeners (PowerUpManager decrementa duração em tiles aqui)
+            if (currentTile != null)
+                OnTileEntered?.Invoke(currentTile);
 
             if (currentTile != null && currentTile.StartPoint != null)
             {

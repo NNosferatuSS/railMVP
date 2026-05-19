@@ -34,6 +34,7 @@ namespace RailSwitchMVP.Track
         public SwitchController Switch;
         public CoinSpawner Coins;
         public ObstacleSpawner Obstacles;
+        public PowerUpSpawner PowerUps;
 
         [Header("Debug")]
         [SerializeField] private RailGenConfig debugConfig;
@@ -44,6 +45,7 @@ namespace RailSwitchMVP.Track
             if (Switch == null) Switch = GetComponentInChildren<SwitchController>();
             if (Coins == null) Coins = GetComponentInChildren<CoinSpawner>();
             if (Obstacles == null) Obstacles = GetComponentInChildren<ObstacleSpawner>();
+            if (PowerUps == null) PowerUps = GetComponentInChildren<PowerUpSpawner>();
 
             // Backlink do switch para este tile (necessário para o TargetLane)
             if (Switch != null) Switch.OwnerTile = this;

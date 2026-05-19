@@ -24,6 +24,16 @@ namespace RailSwitchMVP.Collectibles
         void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player")) return;
+            Collect();
+        }
+
+        /// <summary>
+        /// Coleta a moeda (soma no CoinManager + destrói). Chamável diretamente
+        /// pelo MagnetPickup (PowerUpManager.Update) — sem precisar de colisão
+        /// física, pra coletar moedas em lanes adjacentes.
+        /// </summary>
+        public void Collect()
+        {
             if (CoinManager.Instance != null)
                 CoinManager.Instance.AddCoins(value);
             Destroy(gameObject);

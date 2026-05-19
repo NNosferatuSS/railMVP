@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (MVP2 Iter 3 código pronto, falta setup Editor)
+**Última atualização:** 2026-05-19 (MVP2 Iter 4 código pronto, falta setup Editor — última iteração do MVP2)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`) — milestone MVP1 tag `v0.1.0-mvp`
 
@@ -13,43 +13,63 @@
 
 ## Estou aqui agora
 
-**MVP2 Iteração 3 — Tela de Game Over com Restart (código pronto, falta setup na Editor).**
+**MVP2 Iteração 4 — Power-ups + Barreira (código pronto, falta setup na Editor).**
 
-Fecha o loop morte → retry. Hoje o jogo só loga Game Over no Console;
-agora aparece uma tela com a razão (DeadEnd/OutOfBounds/HitObstacle), stats
-finais (time/distance/coins/best tier) e botão Restart (também tecla R).
+Última iteração do MVP2. Adiciona 4 tipos de power-up (Shield, SlowDown,
+Magnet, DifficultyReset) com duração em tiles e stack permitido. Adiciona
+um segundo tipo de obstáculo (Barreira, absorvida por Shield). HUD ganha
+3 indicadores de power-up ativo.
 
 ### Próximo passo concreto
 
-Seguir `Docs/MVP2_Iteracao3_GameOver.md`:
-1. Criar `GameOverPanel` filho do `_HUD_Canvas` (background image semi-transparente full-screen, painel central com Vertical Layout).
-2. 6 TMP_Texts: Title, Reason, Time, Distance, Coins, BestTier.
-3. Botão "Restart" com TMP_Text label.
-4. GameObject `_GameOver` com `GameOverController` + refs atribuídas.
-5. Play test: cada uma das 3 razões mostra label correto, stats batem com HUD, R/Button restartam tudo.
-6. Commit: `feat(mvp2-iter3): tela de Game Over com stats e restart`.
+Seguir `Docs/MVP2_Iteracao4_PowerUps.md`:
+1. Criar 5 prefabs: Obstacle_Barrier (cubo amarelo+preto), PowerUp_Shield
+   (esfera azul), PowerUp_SlowDown (cyan), PowerUp_Magnet (roxo),
+   PowerUp_DifficultyReset (verde).
+2. Atualizar `TrackTile_Prefab` adicionando PowerUpSpawner.
+3. No `_RailManager → ProceduralRailGenerator`: atribuir os 5 novos prefabs.
+4. Adicionar `_PowerUpManager` GameObject na cena.
+5. Adicionar 3 TMP_Texts no HUD pra indicadores (Shield/Slow/Magnet) e atribuir refs no HUDController.
+6. Play test com critérios do guide.
+7. Commit final do MVP2.
 
-Checklist Iter 3:
+Checklist Iter 4:
 
-- [x] `UI/GameOverController.cs` — subscribe OnGameOver, popula stats, Time.timeScale=0, Restart via SceneManager.LoadScene.
-- [x] `DifficultyDebugController` gateado em `IsPlaying` — tecla R durante Game Over vai SÓ pro restart, não pro reset de dificuldade.
-- [ ] **GameOverPanel + filhos** no Canvas.
-- [ ] **`_GameOver`** GameObject com GameOverController + refs.
-- [ ] **Play test** das 3 razões + Restart por botão e tecla R.
-- [ ] Commit assets.
+- [x] `Core/PowerUpManager.cs` — singleton, contadores Shield/Slow/Magnet, eventos, scan de coins.
+- [x] `PowerUps/PowerUpBase.cs` + 4 pickups (Shield, SlowDown, Magnet, DifficultyReset).
+- [x] `Track/PowerUpSpawner.cs`.
+- [x] `Obstacles/BarrierObstacle.cs` + `ObstacleBase` consome shield no OnTriggerEnter.
+- [x] `PlayerRailRider.OnTileEntered` event + SpeedMultiplier.
+- [x] `DifficultyTier`: barrierChanceOnDecoy + powerUpChanceOnCritical/Decoy.
+- [x] Generator: spawn de barriers e power-ups (gate XOR com obstáculo).
+- [x] `HUDController`: 3 TMP_Text refs novos + events do PowerUpManager.
+- [ ] **5 prefabs novos** criados.
+- [ ] **`TrackTile_Prefab`** atualizado com PowerUpSpawner.
+- [ ] **`_RailManager`** com 5 prefabs atribuídos.
+- [ ] **`_PowerUpManager`** GameObject na cena.
+- [ ] **3 TMP_Texts** novos no HUD com refs atribuídas.
+- [ ] **Play test** com critérios do guide.
+- [ ] Commit final do MVP2.
 
 ---
 
-## MVP Parte 2 (em andamento)
+## MVP Parte 2 (em andamento — última iteração)
 
 Plano e decisões de design em `Docs/MVP2_Plan.md`. Roadmap:
 
 - **Iter 1 — Obstáculos letais** ✅ validada.
 - **Iter 2 — HUD básico** ✅ validada.
-- **Iter 3 — Tela de Game Over** (em andamento) — stats + botão Restart.
-- **Iter 4 — Power-ups + Barreira** — 4 tipos (Shield, SlowDown, Reset, Magnet),
-  duração em tiles, stack permitido. Barreira = obstáculo não-letal consumida
-  por shield.
+- **Iter 3 — Tela de Game Over** ✅ validada.
+- **Iter 4 — Power-ups + Barreira** (em andamento, última).
+
+### MVP2 Iter 3 — Tela de Game Over com Restart
+Validada em 2026-05-19.
+- [x] UI/GameOverController (subscribe OnGameOver, popula 5 stats, Time.timeScale=0, Restart via SceneManager.LoadScene).
+- [x] DifficultyDebugController gated em IsPlaying.
+- [x] GameOverPanel filho do _HUD_Canvas, Vertical Layout + Content Size Fitter, 6 TMP_Texts + RestartButton.
+- [x] _GameOver GameObject + refs assigned.
+- [x] Play test: 3 razões mostram label correto, stats batem com HUD, R/Button restartam, R durante jogo ainda reseta tier.
+- [x] Commit `27d6101`.
 
 ### MVP2 Iter 2 — HUD básico
 Validada em 2026-05-19.

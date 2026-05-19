@@ -52,6 +52,21 @@ namespace RailSwitchMVP.Config
             "Critical path NUNCA recebe obstáculo (decisão de design MVP2 — " +
             "reforça \"moeda = caminho seguro\").")]
         public float obstacleChanceOnDecoy;
+
+        [Range(0f, 1f)]
+        [Tooltip("Probabilidade de um tile DECOY receber uma barreira (absorvida por Shield). " +
+            "Independente de obstacleChanceOnDecoy — mas tiles nunca recebem AMBOS no mesmo lugar.")]
+        public float barrierChanceOnDecoy;
+
+        [Header("Power-ups (MVP2)")]
+        [Range(0f, 1f)]
+        [Tooltip("Probabilidade de um tile do CRITICAL PATH receber um power-up.")]
+        public float powerUpChanceOnCritical;
+
+        [Range(0f, 1f)]
+        [Tooltip("Probabilidade de um tile DECOY receber um power-up. " +
+            "Tile com obstáculo OU barreira não recebe power-up.")]
+        public float powerUpChanceOnDecoy;
     }
 
     /// <summary>

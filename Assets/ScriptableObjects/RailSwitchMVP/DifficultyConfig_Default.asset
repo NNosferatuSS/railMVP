@@ -25,6 +25,9 @@ MonoBehaviour:
     coinsPerCriticalTile: 3
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0
+    barrierChanceOnDecoy: 0
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03
   - triggerAtDistance: 100
     maxLanes: 5
     minLanesPerRow: 2
@@ -37,6 +40,9 @@ MonoBehaviour:
     coinsPerCriticalTile: 3
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0.15
+    barrierChanceOnDecoy: 0
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03
   - triggerAtDistance: 250
     maxLanes: 5
     minLanesPerRow: 3
@@ -49,6 +55,9 @@ MonoBehaviour:
     coinsPerCriticalTile: 4
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0.25
+    barrierChanceOnDecoy: 0.1
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03
   - triggerAtDistance: 500
     maxLanes: 7
     minLanesPerRow: 3
@@ -61,6 +70,9 @@ MonoBehaviour:
     coinsPerCriticalTile: 4
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0.35
+    barrierChanceOnDecoy: 0.2
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03
   - triggerAtDistance: 800
     maxLanes: 7
     minLanesPerRow: 4
@@ -73,6 +85,9 @@ MonoBehaviour:
     coinsPerCriticalTile: 5
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0.45
+    barrierChanceOnDecoy: 0.25
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03
   - triggerAtDistance: 1200
     maxLanes: 9
     minLanesPerRow: 4
@@ -85,3 +100,6 @@ MonoBehaviour:
     coinsPerCriticalTile: 5
     coinsPerDecoyTile: 0
     obstacleChanceOnDecoy: 0.55
+    barrierChanceOnDecoy: 0.3
+    powerUpChanceOnCritical: 0.08
+    powerUpChanceOnDecoy: 0.03

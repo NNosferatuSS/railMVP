@@ -44,6 +44,14 @@ namespace RailSwitchMVP.Core
             "(nenhum obstáculo spawna mesmo com chance > 0 no tier).")]
         [SerializeField] private GameObject lethalObstaclePrefab;
 
+        [Tooltip("Prefab da barreira (MVP2 Iter 4). Absorvida por shield. Se vazio, no-op.")]
+        [SerializeField] private GameObject barrierObstaclePrefab;
+
+        [Tooltip("Array de prefabs de power-up (MVP2 Iter 4). Sugestão: 4 elementos " +
+            "(Shield, SlowDown, Magnet, DifficultyReset). Generator escolhe um random " +
+            "uniformemente. Array vazio = no-op (power-ups não spawnam).")]
+        [SerializeField] private GameObject[] powerUpPrefabs;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private List<int> previousCriticalLanes = new List<int>();
 
@@ -297,15 +305,43 @@ namespace RailSwitchMVP.Core
                         tile.Coins.Spawn(coinCount, tile.IsOnCriticalPath);
                 }
 
-                // Obstacles (MVP2 Iter 1): só em DECOYS, com probabilidade do tier.
-                // Critical path nunca recebe — preserva o pilar "siga as moedas".
-                if (!tile.IsOnCriticalPath
-                    && tile.Obstacles != null
-                    && lethalObstaclePrefab != null
-                    && tier.obstacleChanceOnDecoy > 0f
-                    && Random.value < tier.obstacleChanceOnDecoy)
+                // Hazards (Iter 1 + Iter 4): só em DECOYS. Critical path sempre limpo.
+                // Ordem de rolagem: Lethal → (se não) Barrier → (se nada) PowerUp.
+                // Tile recebe NO MÁXIMO um desses três.
+                bool decoyHasHazard = false;
+                if (!tile.IsOnCriticalPath && tile.Obstacles != null)
                 {
-                    tile.Obstacles.Spawn(lethalObstaclePrefab);
+                    // Lethal
+                    if (lethalObstaclePrefab != null
+                        && tier.obstacleChanceOnDecoy > 0f
+                        && Random.value < tier.obstacleChanceOnDecoy)
+                    {
+                        tile.Obstacles.Spawn(lethalObstaclePrefab);
+                        decoyHasHazard = true;
+                    }
+                    // Barrier (MVP2 Iter 4) — só se não rolou Lethal
+                    else if (barrierObstaclePrefab != null
+                        && tier.barrierChanceOnDecoy > 0f
+                        && Random.value < tier.barrierChanceOnDecoy)
+                    {
+                        tile.Obstacles.Spawn(barrierObstaclePrefab);
+                        decoyHasHazard = true;
+                    }
+                }
+
+                // Power-ups (MVP2 Iter 4): em critical e decoy, com chances diferentes.
+                // Tile com hazard NÃO recebe power-up (regra de design).
+                if (!decoyHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
+                {
+                    float chance = tile.IsOnCriticalPath
+                        ? tier.powerUpChanceOnCritical
+                        : tier.powerUpChanceOnDecoy;
+                    if (chance > 0f && Random.value < chance)
+                    {
+                        int idx = Random.Range(0, powerUpPrefabs.Length);
+                        var prefab = powerUpPrefabs[idx];
+                        if (prefab != null) tile.PowerUps.Spawn(prefab);
+                    }
                 }
 
                 row.Tiles[L] = tile;
