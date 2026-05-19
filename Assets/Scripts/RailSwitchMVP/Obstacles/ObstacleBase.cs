@@ -1,18 +1,19 @@
 using UnityEngine;
-using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Obstacles
 {
     /// <summary>
     /// Base abstrata de qualquer obstáculo no tile. Provê o gancho de colisão
-    /// com o player (trigger). Subclasses decidem o efeito (matar, etc.).
+    /// com o player (trigger). Subclasses decidem TUDO sobre o efeito —
+    /// inclusive se Shield protege ou não.
     ///
-    /// Shield absorption: implementada AQUI na base. Se PowerUpManager tem
-    /// shield disponível, consome 1 carga, destrói o obstáculo e NÃO chama
-    /// OnPlayerHit. Tanto Lethal quanto Barrier herdam esse comportamento.
+    /// Decisão de design (pós-MVP2): Shield NÃO é universal. Cada subclasse
+    /// decide se aceita absorção:
+    /// - LethalObstacle: mata sempre. Shield não ajuda. Player tem que evitar.
+    /// - BarrierObstacle: Shield consome 1 carga e passa. Sem shield, mata.
     ///
-    /// Convenção: obstáculos têm Collider com IsTrigger=true e tag opcional.
-    /// O player tem tag "Player" (já configurada na Iter 2 do MVP1).
+    /// Convenção: obstáculos têm Collider com IsTrigger=true.
+    /// O player tem tag "Player".
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public abstract class ObstacleBase : MonoBehaviour
@@ -20,18 +21,10 @@ namespace RailSwitchMVP.Obstacles
         void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player")) return;
-
-            // Shield absorve qualquer obstáculo (Lethal e Barrier).
-            if (PowerUpManager.Instance != null && PowerUpManager.Instance.ConsumeShield())
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             OnPlayerHit(other);
         }
 
-        /// <summary>Implementação concreta do efeito no player (chamado se NÃO houver shield).</summary>
+        /// <summary>Implementação concreta do efeito no player.</summary>
         protected abstract void OnPlayerHit(Collider playerCollider);
     }
 }

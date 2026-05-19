@@ -158,12 +158,15 @@ No GameObject `_HUD` → componente **HUD Controller**:
 Salve a cena. **Play**.
 
 ### 6.1 Shield
-- Aperte `T` pra Tier 2 (decoys com obstáculos).
+- Aperte `T` pra Tier 2 (decoys com obstáculos e barreiras).
 - Pegue uma esfera azul (Shield).
 - HUD top-left mostra `Shield x1`.
-- Force entrar num decoy com cubo vermelho — Shield absorve, cubo some,
-  você continua vivo. `Shield x1` desaparece (= x0).
-- ✅ Validação.
+- **(Pós-MVP2)** Shield protege APENAS contra Barreira (faixa amarela), NÃO
+  contra Lethal (cubo vermelho). Force entrar numa BARREIRA — Shield absorve,
+  barreira some, você continua vivo. `Shield x1` desaparece.
+- Se entrar num cubo VERMELHO mesmo com Shield ativo: **MORRE** (Game Over).
+  Cubo vermelho = ameaça absoluta, tem que evitar via switch.
+- ✅ Validação: shield consome só em barreira.
 
 ### 6.2 SlowDown
 - Pegue esfera cyan (SlowDown).
@@ -200,7 +203,8 @@ Salve a cena. **Play**.
 - Em Tier 2+ (barrier chance > 0), procure faixa amarela em decoys.
 - SEM shield: entrar = Game Over `HitObstacle`.
 - COM shield: shield absorve, barreira some, continua vivo.
-- ✅ Validação.
+- ✅ Validação. (Diferença vs Lethal pós-MVP2: Lethal nunca aceita shield —
+  ver §6.1.)
 
 ### 6.7 Stress test ainda passa
 - Tools → RailSwitchMVP → Run Stress Test (10k rows).

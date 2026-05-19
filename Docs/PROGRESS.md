@@ -37,14 +37,20 @@ próxima sync do Desktop).
 
 ---
 
-## Pós-MVP2 — Opções de direção
+## Pós-MVP2 — Roadmap em andamento
 
-Roadmap a partir daqui — ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`:
+Ordem combinada com user:
+1. ✅ **Diferenciar Lethal vs Barrier** — implementado, falta play test.
+2. **UI warning sobre decoys perigosos** — próximo.
+3. **Pooling** — depois.
+4. **Mais power-ups/obstáculos** — brainstorm de ideias antes.
+
+Ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
 
 ### Polish de identidade
-- **Diferenciar Lethal vs Barrier mecanicamente** (hoje são idênticos):
-  opção A — Shield protege SÓ contra Barrier; Lethal mata mesmo com shield.
-  Dá identidade pro Shield e cria dois tipos de leitura visual.
+- ✅ **Lethal vs Barrier mecanicamente distintos**: Shield protege APENAS
+  contra Barrier. Lethal mata sempre — player tem que evitar via switch.
+  Dá identidade ao Shield (não é "free pass universal").
 - **UI warning** acima de decoys com hazard (ícone ⚠ flutuante).
 
 ### Apresentação

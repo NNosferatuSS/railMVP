@@ -4,8 +4,9 @@ using RailSwitchMVP.Core;
 namespace RailSwitchMVP.Obstacles
 {
     /// <summary>
-    /// Obstáculo letal: matar o player on contact.
-    /// Único tipo no MVP2 Iter 1. Barreira (segundo tipo) chega na Iter 4.
+    /// Obstáculo letal: mata o player no contato — SEMPRE.
+    /// Shield NÃO ajuda contra Lethal (diferenciação pós-MVP2: Shield protege
+    /// apenas contra Barrier). Player tem que EVITAR via switch.
     /// </summary>
     public class LethalObstacle : ObstacleBase
     {

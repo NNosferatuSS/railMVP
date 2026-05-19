@@ -4,17 +4,24 @@ using RailSwitchMVP.Core;
 namespace RailSwitchMVP.Obstacles
 {
     /// <summary>
-    /// Barreira: segundo tipo de obstáculo. Mecanicamente idêntica ao Lethal
-    /// (mata se não tem shield). O que distingue é o VISUAL (faixa amarela/preta)
-    /// e a curva de spawn separada (barrierChanceOnDecoy independente de
-    /// obstacleChanceOnDecoy).
+    /// Barreira: obstáculo BLOQUEANTE absorvível por Shield.
+    /// - Player COM shield: consome 1 carga, barreira destruída, player passa.
+    /// - Player SEM shield: Game Over com HitObstacle.
     ///
-    /// Shield absorption está no ObstacleBase — todos herdam.
+    /// Diferença vs LethalObstacle (que mata sempre, shield não ajuda):
+    /// Barrier é "obstáculo que demanda Shield". Lethal é "ameaça que demanda
+    /// evasão pelo switch". Dois tipos de leitura, Shield ganha identidade.
     /// </summary>
     public class BarrierObstacle : ObstacleBase
     {
         protected override void OnPlayerHit(Collider playerCollider)
         {
+            if (PowerUpManager.Instance != null && PowerUpManager.Instance.ConsumeShield())
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             if (GameManager.Instance != null)
                 GameManager.Instance.TriggerGameOver(GameOverReason.HitObstacle);
             else
