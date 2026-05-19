@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (MVP2 Iter 1 código pronto, falta setup Editor)
+**Última atualização:** 2026-05-19 (MVP2 Iter 2 código pronto, falta setup Editor)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`) — milestone MVP1 tag `v0.1.0-mvp`
 
@@ -13,32 +13,29 @@
 
 ## Estou aqui agora
 
-**MVP2 Iteração 1 — Obstáculos letais (código pronto, falta setup na Editor).**
+**MVP2 Iteração 2 — HUD básico (código pronto, falta setup na Editor).**
 
-Plano completo do MVP2 em `Docs/MVP2_Plan.md` (4 iterações). Iteração 1
-adiciona obstáculos letais que spawnam só em decoys, com probabilidade
-escalando por tier (0% → 55%).
+Adiciona feedback visual contínuo: tempo decorrido (mm:ss), distância
+percorrida (m), moedas coletadas e tier atual. UGUI overlay com TextMeshPro.
 
 ### Próximo passo concreto
 
-Seguir `Docs/MVP2_Iteracao1_Obstaculos.md`:
-1. Criar prefab `Obstacle_Lethal_Prefab` (cubo vermelho + BoxCollider trigger + LethalObstacle).
-2. Adicionar `ObstacleSpawner` ao `TrackTile_Prefab` (refs StartPoint/EndPoint).
-3. Atribuir o prefab no campo `Lethal Obstacle Prefab` do ProceduralRailGenerator.
-4. Play test: confirmar que cubos vermelhos só aparecem em decoys, colisão = Game Over com `HitObstacle`.
-5. Commit assets: `feat(mvp2-iter1): Obstacle_Lethal prefab + setup na cena`.
+Seguir `Docs/MVP2_Iteracao2_HUD.md`:
+1. Criar Canvas Screen Space Overlay + importar TMP Essentials (1-click prompt).
+2. 4 TextMeshProUGUI children no Canvas: TimeText, DistText, CoinsText, TierText.
+3. GameObject `_GameTimer` com componente GameTimer.
+4. GameObject `_HUD` com componente HUDController, atribuir 4 refs.
+5. Play test: tempo cresce, distância em metros, moedas atualizam ao coletar, tier muda com T.
+6. Commit: `feat(mvp2-iter2): HUD com tempo, distância, moedas e tier`.
 
-Checklist Iter 1:
+Checklist Iter 2:
 
-- [x] Folder `Obstacles/` + `ObstacleBase.cs` (abstract) + `LethalObstacle.cs`.
-- [x] `Track/ObstacleSpawner.cs` (paralelo ao CoinSpawner).
-- [x] `TrackTile.cs` com novo campo `Obstacles` + auto-resolve.
-- [x] `DifficultyTier.obstacleChanceOnDecoy` + 6 tiers populados.
-- [x] `ProceduralRailGenerator.lethalObstaclePrefab` + spawn em decoys.
-- [ ] **Prefab `Obstacle_Lethal_Prefab`** criado.
-- [ ] **`TrackTile_Prefab`** atualizado com ObstacleSpawner.
-- [ ] **`ProceduralRailGenerator`** com prefab atribuído.
-- [ ] **Play test** com critérios da seção 6 do guide.
+- [x] `Core/GameTimer.cs` — singleton, pausa em GameOver, FormatMMSS, Reset.
+- [x] `UI/HUDController.cs` — 4 TMP_Text refs, LateUpdate poll + eventos.
+- [ ] **Canvas + 4 TextMeshProUGUI** na cena.
+- [ ] **`_GameTimer`** GameObject na cena.
+- [ ] **`_HUD`** GameObject com HUDController + refs atribuídas.
+- [ ] **Play test** com critérios do guide.
 - [ ] Commit assets.
 
 ---
@@ -47,13 +44,23 @@ Checklist Iter 1:
 
 Plano e decisões de design em `Docs/MVP2_Plan.md`. Roadmap:
 
-- **Iter 1 — Obstáculos letais** (em andamento) — risco em decoys, critical
-  path 100% limpo.
-- **Iter 2 — HUD básico** — tempo, distância, moedas, tier (UGUI overlay).
+- **Iter 1 — Obstáculos letais** ✅ validada.
+- **Iter 2 — HUD básico** (em andamento) — tempo, distância, moedas, tier.
 - **Iter 3 — Tela de Game Over** — stats + botão Restart.
 - **Iter 4 — Power-ups + Barreira** — 4 tipos (Shield, SlowDown, Reset, Magnet),
   duração em tiles, stack permitido. Barreira = obstáculo não-letal consumida
   por shield.
+
+### MVP2 Iter 1 — Obstáculos letais
+Validada em 2026-05-19.
+- [x] Folder `Obstacles/` + ObstacleBase (abstract) + LethalObstacle.
+- [x] Track/ObstacleSpawner.
+- [x] TrackTile.Obstacles + auto-resolve.
+- [x] DifficultyTier.obstacleChanceOnDecoy + 6 tiers populados (0..0.55).
+- [x] Generator spawn em decoys, gate `!IsOnCriticalPath`.
+- [x] Prefab Obstacle_Lethal_Prefab, TrackTile_Prefab atualizado, generator com refs.
+- [x] Play test: spawn rate por tier OK, colisão dispara HitObstacle, critical limpo.
+- [x] Commit `e564323`.
 
 ---
 
