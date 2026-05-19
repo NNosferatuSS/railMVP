@@ -50,6 +50,7 @@ namespace RailSwitchMVP.Core
         void OnDestroy()
         {
             if (Instance == this) Instance = null;
+            if (difficulty != null) difficulty.OnDifficultyReset -= HandleDifficultyReset;
         }
 
         void Start()
@@ -60,11 +61,23 @@ namespace RailSwitchMVP.Core
                 return;
             }
 
+            difficulty.OnDifficultyReset += HandleDifficultyReset;
+
             // Bootstrap: gera as primeiras rowsAhead linhas a partir do índice 0.
             BootstrapInitialRows();
 
             // Se o Player ainda não tem startTile, dá um da linha 0 (centro do critical path).
             AssignPlayerStartTileIfNeeded();
+        }
+
+        /// <summary>
+        /// Reset de dificuldade: limpa o critical path acumulado do generator pra
+        /// que linhas geradas a partir de agora comecem com um critical path "limpo"
+        /// centrado no maxLanes do tier 0. Tiles e player permanecem onde estão.
+        /// </summary>
+        void HandleDifficultyReset()
+        {
+            if (generator != null) generator.ResetState();
         }
 
         void Update()

@@ -20,12 +20,18 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int currentTierIndex;
         [SerializeField] private DifficultyTier currentTier;
 
+        // Offset usado para que ResetDifficulty resete a distância LÓGICA
+        // mesmo que o player continue em uma posição Z mundial alta.
+        private float _distanceOffset;
+        private float _lastRawDistance;
+
         public DifficultyConfig Config => config;
         public DifficultyTier CurrentTier => currentTier;
         public int CurrentTierIndex => currentTierIndex;
         public float DistanceTraveled => distanceTraveled;
 
         public event System.Action<DifficultyTier> OnTierChanged;
+        public event System.Action OnDifficultyReset;
 
         void Awake()
         {
@@ -52,7 +58,9 @@ namespace RailSwitchMVP.Core
 
         /// <summary>
         /// Volta ao tier 0 imediatamente e zera a distância.
+        /// Disparável via Inspector (botão "Reset Difficulty" no menu de contexto do componente).
         /// </summary>
+        [ContextMenu("Reset Difficulty")]
         public void ResetDifficulty()
         {
             if (config == null || config.tiers == null || config.tiers.Count == 0)
@@ -61,9 +69,14 @@ namespace RailSwitchMVP.Core
                 return;
             }
 
+            // Re-âncora a distância lógica no Z atual do player.
+            // Sem isso, no próximo UpdateDistance(playerZ) o tier seria reanimado.
+            _distanceOffset = _lastRawDistance;
             distanceTraveled = 0f;
             currentTierIndex = 0;
             currentTier = config.tiers[0];
+            Debug.Log($"[DifficultyManager] RESET → Tier 0 (speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes})");
+            OnDifficultyReset?.Invoke();
             OnTierChanged?.Invoke(currentTier);
         }
 
@@ -73,7 +86,8 @@ namespace RailSwitchMVP.Core
         /// </summary>
         public void UpdateDistance(float distance)
         {
-            distanceTraveled = distance;
+            _lastRawDistance = distance;
+            distanceTraveled = distance - _distanceOffset;
 
             if (config == null || config.tiers == null) return;
 
@@ -82,8 +96,25 @@ namespace RailSwitchMVP.Core
             {
                 currentTierIndex++;
                 currentTier = config.tiers[currentTierIndex];
+                Debug.Log($"[DifficultyManager] ↑ Tier {currentTierIndex} @ {distanceTraveled:F1}m " +
+                    $"(speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes}, " +
+                    $"crit={currentTier.criticalPathsPerRow}, coins={currentTier.coinsPerCriticalTile})");
                 OnTierChanged?.Invoke(currentTier);
             }
+        }
+
+        /// <summary>
+        /// Avança 1 tier manualmente (debug). Não-op se já está no último.
+        /// </summary>
+        [ContextMenu("Force Next Tier")]
+        public void ForceNextTier()
+        {
+            if (config == null || config.tiers == null) return;
+            if (currentTierIndex + 1 >= config.tiers.Count) return;
+            currentTierIndex++;
+            currentTier = config.tiers[currentTierIndex];
+            Debug.Log($"[DifficultyManager] ⏭ FORCED Tier {currentTierIndex} (speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes})");
+            OnTierChanged?.Invoke(currentTier);
         }
     }
 }
