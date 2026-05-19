@@ -3,18 +3,24 @@ using UnityEngine;
 namespace RailSwitchMVP.Core
 {
     /// <summary>
-    /// Time Freeze active item: seta Time.timeScale = 0 por N segundos reais.
-    /// Mundo + player + animations pausam. Player ainda pode mudar switch
-    /// (input é unscaled). Útil pra "respirar" em tiers altos.
+    /// Time Freeze active item: seta Time.timeScale pra um valor BAIXO
+    /// (mas não zero) por N segundos reais. Mundo + player + animações
+    /// continuam se movendo, mas muito lentamente — player tem tempo
+    /// pra pensar sem parada total brusca.
     ///
-    /// Decrementa via unscaledDeltaTime (não afetado pelo próprio freeze).
+    /// Decrementa via unscaledDeltaTime (não afetado pelo próprio slow).
     /// </summary>
     public class TimeFreezeController : MonoBehaviour
     {
         public static TimeFreezeController Instance { get; private set; }
 
-        [Tooltip("Duração em SEGUNDOS REAIS (unscaled). Não é tile-based porque o jogo está pausado.")]
+        [Tooltip("Duração em SEGUNDOS REAIS (unscaled).")]
         [SerializeField] private float durationSeconds = 3f;
+
+        [Tooltip("Time scale aplicado durante o efeito. 0.15 = 15% da velocidade " +
+            "normal — quase parado mas ainda visível movendo. 0 seria parada total.")]
+        [Range(0.01f, 1f)]
+        [SerializeField] private float slowdownTimeScale = 0.15f;
 
         [SerializeField] private float remaining;
 
@@ -35,7 +41,7 @@ namespace RailSwitchMVP.Core
         void OnDestroy()
         {
             if (Instance == this) Instance = null;
-            // Safety: nunca deixa o jogo travado em timeScale=0 ao destruir.
+            // Safety: nunca deixa o jogo travado em timeScale baixo ao destruir.
             if (IsActive) Time.timeScale = 1f;
         }
 
@@ -50,15 +56,15 @@ namespace RailSwitchMVP.Core
             if (GameManager.Instance != null && !GameManager.Instance.IsPlaying) return false;
 
             remaining = durationSeconds;
-            Time.timeScale = 0f;
-            Debug.Log($"[TimeFreeze] Activated for {durationSeconds:F1}s");
+            Time.timeScale = slowdownTimeScale;
+            Debug.Log($"[TimeFreeze] Activated for {durationSeconds:F1}s (timeScale={slowdownTimeScale})");
             return true;
         }
 
         void Update()
         {
             if (remaining <= 0f) return;
-            // Usa unscaled pra continuar contando durante o próprio freeze.
+            // Usa unscaled pra continuar contando durante o próprio slow.
             remaining -= Time.unscaledDeltaTime;
             if (remaining <= 0f)
             {
