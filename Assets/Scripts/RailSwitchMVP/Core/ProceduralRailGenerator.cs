@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Track;
+using RailSwitchMVP.Obstacles;
 
 namespace RailSwitchMVP.Core
 {
@@ -51,6 +52,13 @@ namespace RailSwitchMVP.Core
             "(Shield, SlowDown, Magnet, DifficultyReset). Generator escolhe um random " +
             "uniformemente. Array vazio = no-op (power-ups não spawnam).")]
         [SerializeField] private GameObject[] powerUpPrefabs;
+
+        // Cores e símbolos dos warnings sobre hazards (pós-MVP2 UI hint).
+        // Centralizados aqui pra fácil tunar visual sem mexer em prefabs.
+        private static readonly Color _lethalWarningColor = new Color(1f, 0.2f, 0.2f); // vermelho saturado
+        private static readonly Color _barrierWarningColor = new Color(1f, 0.85f, 0f); // amarelo brilhante
+        private const string _lethalWarningSymbol = "X";
+        private const string _barrierWarningSymbol = "!";
 
         [Header("Runtime state (read-only)")]
         [SerializeField] private List<int> previousCriticalLanes = new List<int>();
@@ -311,20 +319,22 @@ namespace RailSwitchMVP.Core
                 bool decoyHasHazard = false;
                 if (!tile.IsOnCriticalPath && tile.Obstacles != null)
                 {
-                    // Lethal
+                    // Lethal — Shield NÃO ajuda, player tem que evitar.
                     if (lethalObstaclePrefab != null
                         && tier.obstacleChanceOnDecoy > 0f
                         && Random.value < tier.obstacleChanceOnDecoy)
                     {
-                        tile.Obstacles.Spawn(lethalObstaclePrefab);
+                        var hazardGo = tile.Obstacles.Spawn(lethalObstaclePrefab);
+                        AttachWarning(hazardGo, _lethalWarningColor, _lethalWarningSymbol);
                         decoyHasHazard = true;
                     }
-                    // Barrier (MVP2 Iter 4) — só se não rolou Lethal
+                    // Barrier (MVP2 Iter 4) — Shield absorve.
                     else if (barrierObstaclePrefab != null
                         && tier.barrierChanceOnDecoy > 0f
                         && Random.value < tier.barrierChanceOnDecoy)
                     {
-                        tile.Obstacles.Spawn(barrierObstaclePrefab);
+                        var hazardGo = tile.Obstacles.Spawn(barrierObstaclePrefab);
+                        AttachWarning(hazardGo, _barrierWarningColor, _barrierWarningSymbol);
                         decoyHasHazard = true;
                     }
                 }
@@ -348,6 +358,18 @@ namespace RailSwitchMVP.Core
             }
 
             return row;
+        }
+
+        /// <summary>
+        /// Adiciona um HazardWarning (ícone flutuante) num hazard spawnado.
+        /// Se o prefab já tem o componente, só faz Setup. Senão, AddComponent + Setup.
+        /// </summary>
+        static void AttachWarning(GameObject hazardGo, Color color, string symbol)
+        {
+            if (hazardGo == null) return;
+            var warning = hazardGo.GetComponent<HazardWarning>();
+            if (warning == null) warning = hazardGo.AddComponent<HazardWarning>();
+            warning.Setup(color, symbol);
         }
     }
 }

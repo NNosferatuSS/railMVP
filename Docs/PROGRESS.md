@@ -40,9 +40,11 @@ próxima sync do Desktop).
 ## Pós-MVP2 — Roadmap em andamento
 
 Ordem combinada com user:
-1. ✅ **Diferenciar Lethal vs Barrier** — implementado, falta play test.
-2. **UI warning sobre decoys perigosos** — próximo.
-3. **Pooling** — depois.
+1. ✅ **Diferenciar Lethal vs Barrier** — commit `7d010f7`. Validado pelo user.
+2. ✅ **UI warning sobre decoys perigosos** — commit `<próximo>`. Ícone "!"/"X"
+   3D billboard auto-adicionado pelo generator a cada hazard. Vermelho = Lethal,
+   amarelo = Barrier. Falta play test.
+3. **Pooling** — próximo.
 4. **Mais power-ups/obstáculos** — brainstorm de ideias antes.
 
 Ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
