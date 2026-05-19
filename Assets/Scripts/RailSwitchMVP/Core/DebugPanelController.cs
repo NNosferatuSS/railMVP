@@ -129,6 +129,8 @@ namespace RailSwitchMVP.Core
 
             DrawAutoTestSection();
             GUILayout.Space(6);
+            DrawActiveItemSection();
+            GUILayout.Space(6);
             DrawPowerUpSection();
             GUILayout.Space(6);
             DrawDifficultySection();
@@ -151,6 +153,21 @@ namespace RailSwitchMVP.Core
             _autoFollowCritical = GUILayout.Toggle(_autoFollowCritical, " Auto-follow critical path");
             if (_autoFollowCritical)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
+        }
+
+        void DrawActiveItemSection()
+        {
+            GUILayout.Label("Active item slot", _sectionStyle);
+            var slot = ActiveItemSlot.Instance;
+            if (slot == null)
+            {
+                GUILayout.Label("(ActiveItemSlot not in scene)", _hintStyle);
+                return;
+            }
+            GUILayout.Label($"Slot: {slot.HeldItem}", _hintStyle);
+            if (GUILayout.Button("Grant TimeFreeze")) slot.SetItem(ActiveItemType.TimeFreeze);
+            if (GUILayout.Button("Grant Teleport")) slot.SetItem(ActiveItemType.Teleport);
+            if (GUILayout.Button("Use (Space)")) slot.UseItem();
         }
 
         void DrawPowerUpSection()

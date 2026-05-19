@@ -43,6 +43,10 @@ namespace RailSwitchMVP.UI
         [SerializeField] private TMP_Text lanePreviewText;
         [SerializeField] private TMP_Text coinRadarText;
 
+        [Header("Active item slot (PostMVP2.3)")]
+        [Tooltip("Texto do active item no slot. 'Item: <none>' quando vazio.")]
+        [SerializeField] private TMP_Text activeItemText;
+
         [Header("References (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
         [SerializeField] private PlayerRailRider player;
@@ -84,6 +88,18 @@ namespace RailSwitchMVP.UI
             if (player != null)
                 player.OnTileEntered += HandlePlayerTileEntered;
 
+            // Active item slot events
+            if (ActiveItemSlot.Instance != null)
+            {
+                ActiveItemSlot.Instance.OnItemAcquired += HandleActiveItemChanged;
+                ActiveItemSlot.Instance.OnItemUsed += HandleActiveItemUsed;
+                UpdateActiveItemText(ActiveItemSlot.Instance.HeldItem);
+            }
+            else
+            {
+                UpdateActiveItemText(ActiveItemType.None);
+            }
+
             // Estado inicial: tudo escondido
             SetPowerUpText(shieldText, "", false);
             SetPowerUpText(slowDownText, "", false);
@@ -104,12 +120,31 @@ namespace RailSwitchMVP.UI
                 powerUpManager.OnPowerUpExpired -= HandlePowerUpExpired;
             }
             if (player != null) player.OnTileEntered -= HandlePlayerTileEntered;
+            if (ActiveItemSlot.Instance != null)
+            {
+                ActiveItemSlot.Instance.OnItemAcquired -= HandleActiveItemChanged;
+                ActiveItemSlot.Instance.OnItemUsed -= HandleActiveItemUsed;
+            }
         }
 
         void HandlePlayerTileEntered(TrackTile newTile)
         {
             // Lane preview precisa re-calcular direção quando o player muda de tile.
             UpdateLanePreviewText();
+        }
+
+        void HandleActiveItemChanged(ActiveItemType type) => UpdateActiveItemText(type);
+        void HandleActiveItemUsed(ActiveItemType type) => UpdateActiveItemText(ActiveItemType.None);
+
+        void UpdateActiveItemText(ActiveItemType type)
+        {
+            if (activeItemText == null) return;
+            if (type == ActiveItemType.None)
+            {
+                activeItemText.text = "Item: -";
+                return;
+            }
+            activeItemText.text = $"Item: {type} (Space)";
         }
 
         void LateUpdate()

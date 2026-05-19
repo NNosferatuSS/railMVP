@@ -57,15 +57,28 @@ Ordem combinada com user:
 ### Próximas iterações (ordem)
 - ✅ **PostMVP2.1:** UI Warning upgrade (3 rows à frente) — commit `269b947`.
 - ✅ **Debug.AutoFollow:** auto-follow critical path toggle — commit `ad60c0b`.
-- ✅ **PostMVP2.2:** Passive power-ups batch — commit `<próximo>`.
+- ✅ **PostMVP2.2:** Passive power-ups batch — commits `5152906` + Ghost fixes.
   - 2x Coins, Ghost, Lane Preview, Coin Radar.
   - CollectibleCoin aplica CoinMultiplier + scale pulse no Radar.
   - ObstacleBase skip se Ghost ativo.
   - HUDController com 4 indicadores novos + lógica de direção pro Lane Preview.
   - Debug panel com 4 grant buttons.
+  - **Ghost expandido** (commits `84972b5` + `ec3903e` + `53a24f9` + `88b0b95`):
+    - Atravessa OutOfBounds (clamp pra current lane = segue reto).
+    - Atravessa DeadEnd (voa sobre rows vazias até encontrar tile).
+    - Rescue land com lerp 0.2s se Ghost expira mid-flight.
   - Falta: criar 4 prefabs novos + 4 TMP_Texts no HUD (ver `Docs/PostMVP2_2_PassivePowerUps.md`).
-- **PostMVP2.3:** Active items system (inventário + slot + hotkey).
-- **PostMVP2.4:** Time Freeze + Teleport (precisam do active items).
+- ✅ **PostMVP2.3:** Active items system — commit `<próximo>`.
+  - ActiveItemSlot singleton (1 slot, substitui se pegar novo).
+  - TimeFreezeController (timeScale=0 por 3s unscaled).
+  - TeleportController (lateral ±1 lane via switch state).
+  - ActiveItemInputHandler (Space = use).
+  - PlayerRailRider.TeleportToAdjacent (preserva Z, muda só X).
+  - HUDController.activeItemText (mostra "Item: TimeFreeze (Space)" ou "-").
+  - DebugPanel seção "Active item slot" (Grant + Use buttons).
+  - Falha não consome: Teleport sem direção, lane vazia, slot vazio = no-op silencioso.
+  - Falta: setup na Editor (4 GameObjects + 1 TMP_Text). Ver `Docs/PostMVP2_3_ActiveItems.md`.
+- **PostMVP2.4:** Prefabs de pickup pros active items (TimeFreeze + Teleport) — coleta orgânica.
 - **PostMVP2.5:** New obstacles (SpeedUp, Lane Swap, Vortex safe).
 
 Ver follow-ups originais em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.

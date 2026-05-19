@@ -406,5 +406,30 @@ namespace RailSwitchMVP.Player
             else
                 Debug.LogWarning($"[PlayerRailRider] GAME OVER ({reason}) — no GameManager in scene.");
         }
+
+        /// <summary>
+        /// Teleporta INSTANTANEAMENTE pro tile adjacente. Chamado pelo
+        /// TeleportController (active item). Mantém Z atual do player,
+        /// muda X pra alinhar com o tile destino. Não funciona durante gap.
+        /// Retorna false se a teleportação não pode acontecer.
+        /// </summary>
+        public bool TeleportToAdjacent(TrackTile destinationTile)
+        {
+            if (destinationTile == null || destinationTile.StartPoint == null) return false;
+            if (inGap) return false; // mid-gap = não pode teleportar
+            if (currentTile == null) return false;
+
+            currentTile = destinationTile;
+
+            // Só muda X — mantém o Z onde o player estava no tile anterior.
+            Vector3 p = transform.position;
+            p.x = destinationTile.StartPoint.position.x;
+            p.y = _playerY;
+            transform.position = p;
+
+            // OnTileEntered notifica HUD/PowerUpManager (tile mudou).
+            OnTileEntered?.Invoke(currentTile);
+            return true;
+        }
     }
 }
