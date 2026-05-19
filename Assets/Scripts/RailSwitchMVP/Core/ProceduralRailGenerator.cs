@@ -6,6 +6,25 @@ using RailSwitchMVP.Track;
 namespace RailSwitchMVP.Core
 {
     /// <summary>
+    /// Resultado puro do planejamento de uma linha — sem GameObjects.
+    /// Usado pelo stress test (Iter 5) e internamente por GenerateRow antes
+    /// da instanciação.
+    /// </summary>
+    public struct RowPlan
+    {
+        public int RowIndex;
+        public int GlobalMax;
+        public int CanonLower;
+        public int CanonUpper;
+        public int ActiveLower;
+        public int ActiveUpper;
+        public bool[] LanePopulated;     // tamanho GlobalMax
+        public int[] CriticalLanes;
+        public int TotalTiles;
+        public bool WasInTransition;     // a row foi gerada em modo transição?
+    }
+
+    /// <summary>
     /// Algoritmo de geração procedural baseado em Critical Path (spec §4.2).
     /// Mantém o set de lanes do critical path da última linha gerada;
     /// a cada nova linha, avança cada path com offset ∈ {-1, 0, +1} com clamp
@@ -69,17 +88,16 @@ namespace RailSwitchMVP.Core
         }
 
         /// <summary>
-        /// Gera a próxima linha do grid. Instancia os tiles e popula a RowData.
+        /// PLANEJA uma linha sem instanciar nada (função pura sobre o estado interno).
+        /// Avança internamente <c>previousCriticalLanes</c> e <c>transitionAnchorLane</c>.
+        /// Usado por GenerateRow (que adiciona instanciação) e por testes headless.
         /// </summary>
-        /// <param name="rowIndex">Índice absoluto da linha (Z = row * (trackLength+rowGap) + ...).</param>
-        /// <param name="tier">Snapshot de configuração de dificuldade ativo no momento.</param>
-        /// <param name="parent">Parent opcional para os GameObjects spawnados (organização).</param>
-        public RowData GenerateRow(int rowIndex, DifficultyTier tier, Transform parent = null)
+        public RowPlan PlanRow(int rowIndex, DifficultyTier tier)
         {
-            if (config == null || tilePrefab == null)
+            if (config == null)
             {
-                Debug.LogError("[ProceduralRailGenerator] Config or TilePrefab not assigned.", this);
-                return null;
+                Debug.LogError("[ProceduralRailGenerator] Config not assigned.", this);
+                return default;
             }
 
             int globalMax = Mathf.Max(1, config.globalMaxLanes);
@@ -194,19 +212,57 @@ namespace RailSwitchMVP.Core
                 }
             }
 
-            // === Step 6: instanciar tiles + spawnar moedas ===
-            // RowData tem capacidade globalMax (X estável; lanes inativas ficam null).
-            var row = new RowData(rowIndex, globalMax);
+            // Atualiza estado para próxima chamada
+            previousCriticalLanes.Clear();
+            foreach (int L in nextCriticalLanes)
+                previousCriticalLanes.Add(L);
+
             var criticalLanesArr = new int[nextCriticalLanes.Count];
             int ci = 0;
             foreach (int L in nextCriticalLanes) criticalLanesArr[ci++] = L;
-            row.CriticalLanes = criticalLanesArr;
 
-            for (int L = 0; L < globalMax; L++)
+            return new RowPlan
             {
-                if (!lanePopulated[L]) continue;
+                RowIndex = rowIndex,
+                GlobalMax = globalMax,
+                CanonLower = canonLower,
+                CanonUpper = canonUpper,
+                ActiveLower = activeLower,
+                ActiveUpper = activeUpper,
+                LanePopulated = lanePopulated,
+                CriticalLanes = criticalLanesArr,
+                TotalTiles = totalCount,
+                WasInTransition = inTransition,
+            };
+        }
 
-                Vector3 worldPos = TrackTile.ComputeWorldPosition(rowIndex, L, globalMax, config);
+        /// <summary>
+        /// Gera a próxima linha do grid. Chama PlanRow internamente e materializa
+        /// o resultado instanciando tiles + chamando CoinSpawner.
+        /// </summary>
+        /// <param name="rowIndex">Índice absoluto da linha (Z = row * (trackLength+rowGap) + ...).</param>
+        /// <param name="tier">Snapshot de configuração de dificuldade ativo no momento.</param>
+        /// <param name="parent">Parent opcional para os GameObjects spawnados (organização).</param>
+        public RowData GenerateRow(int rowIndex, DifficultyTier tier, Transform parent = null)
+        {
+            if (config == null || tilePrefab == null)
+            {
+                Debug.LogError("[ProceduralRailGenerator] Config or TilePrefab not assigned.", this);
+                return null;
+            }
+
+            var plan = PlanRow(rowIndex, tier);
+            if (plan.LanePopulated == null) return null;
+
+            var row = new RowData(rowIndex, plan.GlobalMax);
+            row.CriticalLanes = plan.CriticalLanes;
+            var criticalSet = new HashSet<int>(plan.CriticalLanes);
+
+            for (int L = 0; L < plan.GlobalMax; L++)
+            {
+                if (!plan.LanePopulated[L]) continue;
+
+                Vector3 worldPos = TrackTile.ComputeWorldPosition(rowIndex, L, plan.GlobalMax, config);
                 var tileGo = Instantiate(tilePrefab, worldPos, Quaternion.identity, parent);
                 tileGo.name = $"Tile_R{rowIndex}_L{L}";
 
@@ -219,17 +275,15 @@ namespace RailSwitchMVP.Core
 
                 tile.Row = rowIndex;
                 tile.Lane = L;
-                tile.MaxLanesAtSpawn = globalMax;
-                tile.IsOnCriticalPath = nextCriticalLanes.Contains(L);
+                tile.MaxLanesAtSpawn = plan.GlobalMax;
+                tile.IsOnCriticalPath = criticalSet.Contains(L);
 
-                // Estado inicial aleatório do switch
                 if (tile.Switch != null)
                 {
                     var randomState = (SwitchState)Random.Range(-1, 2);
                     tile.Switch.SetState(randomState);
                 }
 
-                // Moedas conforme tier (critical → mais moedas; decoy → menos/zero)
                 if (tile.Coins != null)
                 {
                     int coinCount = tile.IsOnCriticalPath
@@ -241,11 +295,6 @@ namespace RailSwitchMVP.Core
 
                 row.Tiles[L] = tile;
             }
-
-            // Atualiza estado para próxima chamada
-            previousCriticalLanes.Clear();
-            foreach (int L in nextCriticalLanes)
-                previousCriticalLanes.Add(L);
 
             return row;
         }
