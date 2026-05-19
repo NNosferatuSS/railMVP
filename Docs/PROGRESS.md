@@ -5,70 +5,68 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-18
-**Engine:** Unity 6000.3.10f1 (6.3 LTS)
+**Última atualização:** 2026-05-18 (após validação Iter 1, código Iter 2 pronto)
+**Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 
 ---
 
 ## Estou aqui agora
 
-**Iteração 1 — Setup na Unity (código pronto, falta clicar na Editor).**
+**Iteração 2 — Switches + transição + moedas + Game Over (código pronto, falta setup na Editor).**
 
-O código C# da Iteração 1 já está commitado e pushado. Falta abrir
-o projeto na Unity e seguir o guia para criar os assets que dependem
-da Editor (ScriptableObjects, prefab, cena montada).
+Código C# da Iter 2 commitado. Falta:
+1. Atualizar o prefab `TrackTile_Prefab` (adicionar Arrow + SwitchController + CoinSpawner).
+2. Criar prefab `Coin_Prefab` (cylinder amarelo com trigger + CollectibleCoin).
+3. Adicionar managers de cena (`_RailManager`, `_GameManager`, `_CoinManager`, `_Input`).
+4. Refazer a cena com **3 linhas × 3 lanes**, omitindo `(Row=2, Lane=0)` pra demonstrar DeadEnd.
+5. Play test: setas ←/→ mudam o switch, transição entre tiles, DeadEnd e OutOfBounds disparam Game Over, moedas coletadas incrementam `CoinManager`.
 
 ### Próximo passo concreto
 
-Abrir `Docs/Iteracao1_Setup.md` e executar a partir da **Seção 2**
-(Seção 1 — estrutura de pastas — já está feita pelo commit inicial).
+Abrir `Docs/Iteracao2_Setup.md` e seguir do início.
 
-Checklist da Iteração 1:
+Checklist da Iteração 2:
 
-- [x] Estrutura de pastas em `Assets/Scripts/RailSwitchMVP/` criada e
-      populada com os 6 scripts.
-- [x] `Assets/Prefabs/RailSwitchMVP/` e `Assets/ScriptableObjects/RailSwitchMVP/`
-      criadas (vazias).
-- [ ] Criar `RailGenConfig_Default` (ScriptableObject) em
-      `Assets/ScriptableObjects/RailSwitchMVP/`.
-- [ ] Criar `DifficultyConfig_Default` com 1 tier (valores na tabela
-      do `Iteracao1_Setup.md` §2.2).
-- [ ] Montar prefab `TrackTile_Prefab` em `Assets/Prefabs/RailSwitchMVP/`
-      (Mesh cube 2×0.2×10, StartPoint Z=-5, EndPoint Z=+5).
-- [ ] Criar cena `Assets/Scenes/RailSwitchMVP_Scene.unity`.
-- [ ] Adicionar `_DifficultyManager` na cena com `DifficultyConfig_Default`.
-- [ ] Instanciar 3 `TrackTile_Prefab` em Z=5, 17, 29 (Row 0/1/2, Lane 1).
-- [ ] Adicionar Player (Capsule) com `PlayerRailRider` configurado.
-- [ ] Adicionar MainCamera com `PlayerCameraRig` configurado.
-- [ ] **Play test** — validar critérios da §5 do `Iteracao1_Setup.md`.
-- [ ] Commit + push dos assets gerados (`.unity`, `.prefab`, `.asset`,
-      `.meta`). Mensagem sugerida:
-      `feat(iter1): scene + prefab + SOs configurados`
+- [x] Scripts: `SwitchController`, `CoinSpawner`, `RowData`, `RailManager`,
+      `GameManager`, `CollectibleCoin`, `CoinManager`, `IDirectionalInput`,
+      `KeyboardDirectionalInput` criados.
+- [x] `TrackTile.cs` atualizado (refs Switch+Coins + auto-registro no RailManager).
+- [x] `PlayerRailRider.cs` reescrito (gap transition + game over + dispatch input).
+- [ ] Tag `Coin` criada (Project Settings → Tags and Layers).
+- [ ] Prefab `Coin_Prefab` (cylinder amarelo escala (0.3, 0.05, 0.3), `SphereCollider isTrigger`, `CollectibleCoin`).
+- [ ] Atualizar `TrackTile_Prefab`: adicionar `Arrow` (Cone/Cube fino em EndPoint), `SwitchController` na raiz, `CoinSpawner` na raiz com refs.
+- [ ] Adicionar `_RailManager`, `_GameManager`, `_CoinManager`, `_Input` na cena.
+- [ ] Refazer cena com 3×3 (omitir Row=2/Lane=0).
+- [ ] **Play test** — setas ←/→, DeadEnd, OutOfBounds, coleta moedas.
+- [ ] Commit assets: `feat(iter2): scene + prefabs com switches e moedas`.
 
-> **Atenção:** ao salvar a primeira vez na Unity, alguns arquivos em
-> `ProjectSettings/` (ex: `ShaderGraphSettings.asset`) podem aparecer
-> modificados — é esperado, pode commitar junto.
+---
+
+## Concluído
+
+### Iteração 1 — Cena estática + câmera + difficulty
+Validado em 2026-05-18.
+- [x] Estrutura de pastas + 6 scripts.
+- [x] `RailGenConfig_Default` SO.
+- [x] `DifficultyConfig_Default` SO com 1 tier.
+- [x] Prefab `TrackTile_Prefab` (Mesh 2×0.2×10, StartPoint Z=-5, EndPoint Z=+5).
+- [x] Cena `RailSwitchMVP_Scene.unity` com 3 tiles + Player + Camera.
+- [x] Play test: movimento forward, framing de câmera, zoom adaptativo OK.
+- [x] Commits `fe850b7` (setup) e `b73070d` (push test).
 
 ---
 
 ## Roadmap restante
 
-### Iteração 2 — Switches + transição + moedas
-- [ ] `SwitchController` (seta única rotacionada, estados Left/Middle/Right).
-- [ ] `IDirectionalInput` + `KeyboardDirectionalInput` (←/→).
-- [ ] Transição do player entre tiles via switch (lerp X durante `rowGap`).
-- [ ] `CoinSpawner` no `TrackTile`.
-- [ ] `CollectibleCoin` + `CoinManager` singleton.
-- [ ] `GameManager` com estados Playing/GameOver.
-- [ ] Game Over: `DeadEnd` e `OutOfBounds`.
-
 ### Iteração 3 — Geração procedural com Critical Path
-- [ ] `RowData` (POCO).
 - [ ] `ProceduralRailGenerator` com algoritmo da §4.2.
-- [ ] `RailManager` com spawn ahead / despawn behind.
+- [ ] Trocar `RailManager` minimalista por uma versão com spawn ahead / despawn behind.
 - [ ] Moedas distribuídas conforme `isCriticalPath`.
 - [ ] Gizmos coloridos para validação visual do critical path.
+
+> **Já feito antecipadamente na Iter 2 (pra evitar refactor):**
+> `RowData` (POCO) e `RailManager` mínimo com `Dictionary<row, RowData>` + auto-registro de tiles.
 
 ### Iteração 4 — Dificuldade dinâmica
 - [ ] `DifficultyConfig` populado com os 5–6 tiers da tabela §2.4.

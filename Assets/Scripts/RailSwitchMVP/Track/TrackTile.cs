@@ -1,12 +1,14 @@
 using UnityEngine;
 using RailSwitchMVP.Config;
+using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Track
 {
     /// <summary>
     /// Representa um trilho individual em uma posição (Row, Lane).
-    /// Na Iteração 1 contém apenas geometria e gizmos de debug.
-    /// Em iterações futuras receberá SwitchController, CoinSpawner, etc.
+    /// Iter 1: geometria + gizmos.
+    /// Iter 2: + SwitchController, + CoinSpawner, + auto-registro no RailManager.
+    /// Iter 3: instanciado pelo ProceduralRailGenerator (em vez de hardcoded na cena).
     /// </summary>
     public class TrackTile : MonoBehaviour
     {
@@ -28,27 +30,43 @@ namespace RailSwitchMVP.Track
         [Tooltip("Este tile faz parte do critical path?")]
         public bool IsOnCriticalPath;
 
+        [Header("Components")]
+        public SwitchController Switch;
+        public CoinSpawner Coins;
+
         [Header("Debug")]
         [SerializeField] private RailGenConfig debugConfig;
 
-        // Cached references — populadas em iterações futuras
-        // public SwitchController Switch;
-        // public CoinSpawner Coins;
+        void Awake()
+        {
+            // Auto-resolve componentes (caso o prefab já esteja completo)
+            if (Switch == null) Switch = GetComponentInChildren<SwitchController>();
+            if (Coins == null) Coins = GetComponentInChildren<CoinSpawner>();
+
+            // Backlink do switch para este tile (necessário para o TargetLane)
+            if (Switch != null) Switch.OwnerTile = this;
+        }
+
+        void Start()
+        {
+            // Registra no RailManager. Iter 2: cena hardcoded.
+            // Iter 3: o gerador procedural pode optar por registrar diretamente em vez disso.
+            if (RailManager.Instance != null)
+                RailManager.Instance.RegisterTile(this);
+        }
 
         void OnDrawGizmos()
         {
             if (debugConfig == null || !debugConfig.debugDrawCriticalPath) return;
 
-            // Cor baseada em critical path vs decoy
             Gizmos.color = IsOnCriticalPath
                 ? debugConfig.criticalPathGizmoColor
                 : debugConfig.decoyGizmoColor;
 
-            // Desenha um cubo wireframe acima do tile pra sinalização visível
             if (StartPoint != null && EndPoint != null)
             {
                 Vector3 center = (StartPoint.position + EndPoint.position) * 0.5f;
-                center.y += 1.5f; // eleva pra ficar visível em câmera inclinada
+                center.y += 1.5f;
                 Vector3 size = new Vector3(
                     0.8f,
                     0.2f,
@@ -56,11 +74,9 @@ namespace RailSwitchMVP.Track
                 );
                 Gizmos.DrawWireCube(center, size);
 
-                // Marcador no StartPoint (entrada) — esfera
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireSphere(StartPoint.position + Vector3.up * 0.5f, 0.2f);
 
-                // Marcador no EndPoint (saída/switch) — esfera
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawWireSphere(EndPoint.position + Vector3.up * 0.5f, 0.3f);
             }
@@ -68,7 +84,7 @@ namespace RailSwitchMVP.Track
 
         /// <summary>
         /// Helper: calcula a posição mundial do center do tile dado os parâmetros do grid.
-        /// Usado pelo gerador procedural.
+        /// Usado pelo gerador procedural (Iter 3).
         /// </summary>
         public static Vector3 ComputeWorldPosition(int row, int lane, int maxLanesAtSpawn, RailGenConfig config)
         {
