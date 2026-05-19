@@ -5,62 +5,94 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (MVP2 Iter 4 código pronto, falta setup Editor — última iteração do MVP2)
+**Última atualização:** 2026-05-19 (MVP2 fechado — tag `v0.2.0-mvp2`)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
-**Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`) — milestone MVP1 tag `v0.1.0-mvp`
+**Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
+**Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
 
 ---
 
-## Estou aqui agora
+## 🎉 MVP2 FECHADO
 
-**MVP2 Iteração 4 — Power-ups + Barreira (código pronto, falta setup na Editor).**
+Adicionou risco/recompensa (obstáculos + 4 power-ups) e feedback visual
+(HUD + Game Over). 4 iterações completas, todas validadas.
 
-Última iteração do MVP2. Adiciona 4 tipos de power-up (Shield, SlowDown,
-Magnet, DifficultyReset) com duração em tiles e stack permitido. Adiciona
-um segundo tipo de obstáculo (Barreira, absorvida por Shield). HUD ganha
-3 indicadores de power-up ativo.
+### O que ficou no jogo após MVP2
 
-### Próximo passo concreto
+- **2 tipos de obstáculo** (Lethal + Barrier) que só spawnam em decoys.
+- **4 power-ups** (Shield, SlowDown, Magnet, DifficultyReset) que spawnam
+  com chances diferentes em critical vs decoy.
+- **Shield absorve** qualquer obstáculo (no MVP2 implementado uniforme —
+  ver discussão pós-MVP2 se quiser diferenciação Lethal vs Barrier).
+- **HUD persistente**: tempo (mm:ss), distância (m), moedas, tier, +
+  indicadores Shield/Slow/Magnet quando ativos.
+- **Game Over screen** com razão, stats finais e botão Restart (também `R`).
+- **Sistema de pickups extensível** — `PowerUpBase` abstrato facilita
+  novos tipos sem mexer no manager.
 
-Seguir `Docs/MVP2_Iteracao4_PowerUps.md`:
-1. Criar 5 prefabs: Obstacle_Barrier (cubo amarelo+preto), PowerUp_Shield
-   (esfera azul), PowerUp_SlowDown (cyan), PowerUp_Magnet (roxo),
-   PowerUp_DifficultyReset (verde).
-2. Atualizar `TrackTile_Prefab` adicionando PowerUpSpawner.
-3. No `_RailManager → ProceduralRailGenerator`: atribuir os 5 novos prefabs.
-4. Adicionar `_PowerUpManager` GameObject na cena.
-5. Adicionar 3 TMP_Texts no HUD pra indicadores (Shield/Slow/Magnet) e atribuir refs no HUDController.
-6. Play test com critérios do guide.
-7. Commit final do MVP2.
+### Sugestão imediata
 
-Checklist Iter 4:
-
-- [x] `Core/PowerUpManager.cs` — singleton, contadores Shield/Slow/Magnet, eventos, scan de coins.
-- [x] `PowerUps/PowerUpBase.cs` + 4 pickups (Shield, SlowDown, Magnet, DifficultyReset).
-- [x] `Track/PowerUpSpawner.cs`.
-- [x] `Obstacles/BarrierObstacle.cs` + `ObstacleBase` consome shield no OnTriggerEnter.
-- [x] `PlayerRailRider.OnTileEntered` event + SpeedMultiplier.
-- [x] `DifficultyTier`: barrierChanceOnDecoy + powerUpChanceOnCritical/Decoy.
-- [x] Generator: spawn de barriers e power-ups (gate XOR com obstáculo).
-- [x] `HUDController`: 3 TMP_Text refs novos + events do PowerUpManager.
-- [ ] **5 prefabs novos** criados.
-- [ ] **`TrackTile_Prefab`** atualizado com PowerUpSpawner.
-- [ ] **`_RailManager`** com 5 prefabs atribuídos.
-- [ ] **`_PowerUpManager`** GameObject na cena.
-- [ ] **3 TMP_Texts** novos no HUD com refs atribuídas.
-- [ ] **Play test** com critérios do guide.
-- [ ] Commit final do MVP2.
+Push das tags via GitHub Desktop (`git push --tags` ou incluir tags na
+próxima sync do Desktop).
 
 ---
 
-## MVP Parte 2 (em andamento — última iteração)
+## Pós-MVP2 — Opções de direção
 
-Plano e decisões de design em `Docs/MVP2_Plan.md`. Roadmap:
+Roadmap a partir daqui — ver follow-ups em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`:
+
+### Polish de identidade
+- **Diferenciar Lethal vs Barrier mecanicamente** (hoje são idênticos):
+  opção A — Shield protege SÓ contra Barrier; Lethal mata mesmo com shield.
+  Dá identidade pro Shield e cria dois tipos de leitura visual.
+- **UI warning** acima de decoys com hazard (ícone ⚠ flutuante).
+
+### Apresentação
+- **Audio**: música ambiente + SFX (switch, coin, shield absorb, death, etc.).
+- **Modelos visuais**: trocar cubos/esferas por modelos de verdade.
+- **Animações de UI**: fade-in Game Over, pulse nos ícones de power-up.
+
+### Persistência
+- **High score** persistente via `PlayerPrefs`.
+- **Settings** (audio volume, key rebind).
+
+### Performance hardening
+- **Pooling** de tiles, obstáculos, power-ups e moedas (reduz GC alloc).
+- **Buffer reuse** no generator.
+
+### Mecânica nova
+- **Mais tipos de obstáculo**: móvel, oscilante.
+- **Mais power-ups**: 2x coins, ghost-mode, jump (esquiva vertical).
+- **Mobile / touch input**: `TouchDirectionalInput` (interface já existe).
+
+---
+
+## MVP Parte 2 (concluído)
+
+Plano e decisões em `Docs/MVP2_Plan.md`. Iterações:
 
 - **Iter 1 — Obstáculos letais** ✅ validada.
 - **Iter 2 — HUD básico** ✅ validada.
 - **Iter 3 — Tela de Game Over** ✅ validada.
-- **Iter 4 — Power-ups + Barreira** (em andamento, última).
+- **Iter 4 — Power-ups + Barreira** ✅ validada.
+
+### MVP2 Iter 4 — Power-ups + Barreira
+Validada em 2026-05-19.
+- [x] PowerUpManager singleton com Shield/SlowDown/Magnet, OverlapSphere
+      pra magnet, events pro HUD.
+- [x] PowerUpBase abstract + 4 pickups concretos.
+- [x] Track/PowerUpSpawner paralelo a Coin/ObstacleSpawner.
+- [x] BarrierObstacle + ObstacleBase consome shield no OnTriggerEnter.
+- [x] PlayerRailRider.OnTileEntered event + SpeedMultiplier.
+- [x] DifficultyTier: barrier + powerUp chances em todos 6 tiers.
+- [x] Generator: spawn ordem Lethal→Barrier→PowerUp (no máximo 1 por tile).
+- [x] HUDController: 3 indicadores Shield/SlowDown/Magnet.
+- [x] 5 prefabs novos (Barrier + 4 pickups) com materiais coloridos.
+- [x] _PowerUpManager + 3 TMP_Texts no HUD.
+- [x] Play test: cada power-up funciona, shield absorve, slow visível,
+      magnet coleta adjacentes, stack ok, stress test ainda passa.
+- [x] Commits `312f702` (código) + `380f8b5` (assets finais).
+- [x] Tag `v0.2.0-mvp2`.
 
 ### MVP2 Iter 3 — Tela de Game Over com Restart
 Validada em 2026-05-19.
