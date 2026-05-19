@@ -317,15 +317,14 @@ namespace RailSwitchMVP.Player
             bool stillGhost = PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost;
             if (!stillGhost || _ghostFlightSkips >= MaxGhostFlightSkips)
             {
-                // Ghost expirou mid-flight: força landing na lane mais próxima
-                // COM tile na row atual. Snap lateral (raro caso). Sem isso o
-                // player ficaria sem controle indefinidamente — pior UX que o
-                // snap rápido.
+                // Ghost expirou mid-flight: lerp suave (0.2s) até a lane mais
+                // próxima com tile na row atual. Sem isso o player ficaria
+                // sem controle indefinidamente.
                 int rescueLane = FindClosestPopulatedLane(landingRow, _ghostFlightLane);
                 if (rescueLane >= 0)
                 {
                     Debug.Log($"[PlayerRailRider] Ghost expirou em voo — rescue land row={landingRow.RowIndex} lane={rescueLane} (target era {_ghostFlightLane})");
-                    LandOnTile(landingRow.Tiles[rescueLane]);
+                    StartRescueGap(landingRow.Tiles[rescueLane]);
                     return;
                 }
                 // Row inteira vazia — fallback game over (extremamente raro com minLanesPerRow≥2).
@@ -337,6 +336,10 @@ namespace RailSwitchMVP.Player
             SetupGhostGap();
         }
 
+        /// <summary>
+        /// Aterriza imediatamente num tile (snap). Usado pra ghost flight
+        /// landing direta (mesma lane do target original).
+        /// </summary>
         void LandOnTile(TrackTile tile)
         {
             currentTile = tile;
@@ -350,6 +353,30 @@ namespace RailSwitchMVP.Player
                 p.y = _playerY;
                 transform.position = p;
             }
+        }
+
+        /// <summary>
+        /// Configura um gap rápido (~0.2s) da posição atual até o StartPoint
+        /// de um tile rescue. Usado quando Ghost expira mid-flight pra evitar
+        /// o snap lateral visualmente abrupto. Reusa o flow normal de ExitGap.
+        /// </summary>
+        void StartRescueGap(TrackTile rescueTile)
+        {
+            if (rescueTile == null || rescueTile.StartPoint == null) return;
+
+            targetTile = rescueTile;
+            _gapStartPos = transform.position;
+            _gapEndPos = rescueTile.StartPoint.position;
+            _gapStartPos.y = _playerY;
+            _gapEndPos.y = _playerY;
+
+            // _gapDistance dimensionado pra dar ~0.2s de lerp na speed atual.
+            // gapProgress += speed*dt/dist → reaches 1 em dist/speed = 0.2s. ✓
+            const float rescueDuration = 0.2f;
+            _gapDistance = Mathf.Max(0.01f, currentSpeed * rescueDuration);
+
+            gapProgress = 0f;
+            inGap = true;
         }
 
         // Encontra a lane com tile mais próxima de targetLane na row dada.
