@@ -39,6 +39,10 @@ namespace RailSwitchMVP.Player
 
         private Vector3 _gapStartPos;
         private Vector3 _gapEndPos;
+        // Distância Z do gap atual — varia entre normal (rowGap) e ghost (até trackLength+rowGap).
+        // gapProgress incrementa em (speed * dt / _gapDistance), garantindo velocidade
+        // forward consistente independente de quanto Z o gap cobre.
+        private float _gapDistance;
         private float _playerY;
 
         public float CurrentSpeed => currentSpeed;
@@ -140,7 +144,10 @@ namespace RailSwitchMVP.Player
         {
             if (config == null) { inGap = false; return; }
 
-            gapProgress += (currentSpeed * Time.deltaTime) / config.rowGap;
+            // Usa _gapDistance (Z forward) — varia entre rowGap (gap normal)
+            // e trackLength+rowGap (ghost flight continuando). Fallback safety.
+            float dist = _gapDistance > 0.01f ? _gapDistance : config.rowGap;
+            gapProgress += (currentSpeed * Time.deltaTime) / dist;
             Vector3 p = Vector3.Lerp(_gapStartPos, _gapEndPos, gapProgress);
             p.y = _playerY;
             transform.position = p;
@@ -211,6 +218,7 @@ namespace RailSwitchMVP.Player
             _gapEndPos = targetTile.StartPoint.position;
             _gapStartPos.y = _playerY;
             _gapEndPos.y = _playerY;
+            _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
             gapProgress = 0f;
             inGap = true;
         }
@@ -234,13 +242,19 @@ namespace RailSwitchMVP.Player
             Vector3 phantomStart = phantomCenter;
             phantomStart.z -= config.trackLength * 0.5f;
 
-            if (currentTile != null && currentTile.EndPoint != null)
-                _gapStartPos = currentTile.EndPoint.position;
-            else
-                _gapStartPos = transform.position;
+            // BUG FIX: usa transform.position (onde player REALMENTE está) em vez
+            // de currentTile.EndPoint (que pode estar várias rows atrás durante
+            // voos consecutivos). Garante lerp suave sem teleport pra trás.
+            _gapStartPos = transform.position;
             _gapEndPos = phantomStart;
             _gapStartPos.y = _playerY;
             _gapEndPos.y = _playerY;
+
+            // BUG FIX: distância forward varia. 1º voo = rowGap. Voos seguintes
+            // = trackLength + rowGap (atravessa uma row inteira vazia).
+            // gapProgress agora normaliza pela distância real → speed forward
+            // consistente independente do tipo de gap.
+            _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
 
             targetTile = null; // marca "ghost gap" pra ExitGap saber
             gapProgress = 0f;
