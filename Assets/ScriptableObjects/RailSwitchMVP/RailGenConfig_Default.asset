@@ -17,7 +17,7 @@ MonoBehaviour:
   rowGap: 2
   rowsAhead: 12
   rowsBehind: 2
-  cameraTilt: 35
+  cameraTilt: 60
   cameraDistance: 6
   cameraLookAhead: 4
   cameraZoomSpeed: 8
