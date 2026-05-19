@@ -70,14 +70,27 @@ namespace RailSwitchMVP.Core
             AssignPlayerStartTileIfNeeded();
         }
 
+        // Flag setada por HandleDifficultyReset. Quando a próxima linha NOVA for
+        // gerada (não as já bufferizadas), o RailManager semeia o generator com a
+        // lane atual do player. Atrasar a seed garante que o anchor reflita onde
+        // o player REALMENTE está no momento da geração, não a lane no instante do
+        // reset (que pode ser ~12 linhas atrás).
+        private bool _pendingTransitionSeed;
+
         /// <summary>
-        /// Reset de dificuldade: limpa o critical path acumulado do generator pra
-        /// que linhas geradas a partir de agora comecem com um critical path "limpo"
-        /// centrado no maxLanes do tier 0. Tiles e player permanecem onde estão.
+        /// Reset de dificuldade. Tiles e player permanecem onde estão. O generator
+        /// é colocado em modo "pending transition" — a primeira linha NOVA gerada
+        /// após este reset será semeada com a lane atual do player, iniciando uma
+        /// transição que drifta o critical path de 1 lane/row até o centro canônico
+        /// do tier 0. Isso evita DeadEnd injusto quando o player está longe do
+        /// centro no momento do reset.
         /// </summary>
         void HandleDifficultyReset()
         {
-            if (generator != null) generator.ResetState();
+            if (generator == null) return;
+
+            generator.ResetState();
+            _pendingTransitionSeed = true;
         }
 
         void Update()
@@ -141,6 +154,15 @@ namespace RailSwitchMVP.Core
 
         void SpawnRow(int rowIndex)
         {
+            // Se há uma transição pendente de reset, semeia com a lane ATUAL do player
+            // antes de gerar — assim o anchor reflete onde o player está agora, não onde
+            // ele estava ~12 rows atrás no instante do reset.
+            if (_pendingTransitionSeed && player != null && player.CurrentTile != null && generator != null)
+            {
+                generator.SeedTransitionFromLane(player.CurrentTile.Lane);
+                _pendingTransitionSeed = false;
+            }
+
             var tier = difficulty.CurrentTier;
             var row = generator.GenerateRow(rowIndex, tier, tilesParent);
             if (row == null) return;

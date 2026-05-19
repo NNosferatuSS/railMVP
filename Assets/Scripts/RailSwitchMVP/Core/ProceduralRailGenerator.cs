@@ -24,8 +24,14 @@ namespace RailSwitchMVP.Core
         [Header("Runtime state (read-only)")]
         [SerializeField] private List<int> previousCriticalLanes = new List<int>();
 
+        [Tooltip("≥ 0 quando o gerador está em modo TRANSIÇÃO de reset — o critical path " +
+            "drifta forçadamente 1 lane por linha em direção ao centro canônico do tier atual. " +
+            "Volta para -1 quando o anchor alcança o centro.")]
+        [SerializeField] private int transitionAnchorLane = -1;
+
         public RailGenConfig Config => config;
         public GameObject TilePrefab => tilePrefab;
+        public bool IsInTransition => transitionAnchorLane >= 0;
 
         public void Configure(RailGenConfig cfg, GameObject prefab)
         {
@@ -39,6 +45,27 @@ namespace RailSwitchMVP.Core
         public void ResetState()
         {
             previousCriticalLanes.Clear();
+            transitionAnchorLane = -1;
+        }
+
+        /// <summary>
+        /// Inicia uma transição de reset semeada na lane atual do player.
+        /// As próximas linhas terão o critical path drifting +1 lane/row em direção
+        /// ao centro canônico do tier atual, expandindo o range ativo de geração
+        /// conforme necessário para incluir o anchor (lane do player) e o drift.
+        ///
+        /// Útil quando ResetDifficulty é chamado mas o player está longe do centro:
+        /// sem isso, as primeiras linhas geradas com o tier reduzido teriam critical
+        /// path no centro canônico (longe do player), causando DeadEnd quase certo.
+        /// </summary>
+        public void SeedTransitionFromLane(int playerLane)
+        {
+            int globalMax = config != null ? Mathf.Max(1, config.globalMaxLanes) : 9;
+            int clamped = Mathf.Clamp(playerLane, 0, globalMax - 1);
+            transitionAnchorLane = clamped;
+            previousCriticalLanes.Clear();
+            previousCriticalLanes.Add(clamped);
+            Debug.Log($"[Generator] Seeded transition from player lane {clamped} → drift toward canonical center.");
         }
 
         /// <summary>
@@ -58,12 +85,19 @@ namespace RailSwitchMVP.Core
             int globalMax = Mathf.Max(1, config.globalMaxLanes);
             int tierMax = Mathf.Clamp(tier.maxLanes, 1, globalMax);
 
-            // Range fixo de lanes ATIVAS deste tier: subset centrado em globalMax.
-            // Ex: globalMax=9, tierMax=3 → lowerBound=3, upperBound=5 (lanes 3,4,5).
-            //     globalMax=9, tierMax=5 → lowerBound=2, upperBound=6.
-            //     globalMax=9, tierMax=9 → lowerBound=0, upperBound=8.
-            int lowerBound = (globalMax - tierMax) / 2;
-            int upperBound = lowerBound + tierMax - 1;
+            // Range CANÔNICO de lanes deste tier: subset centrado em globalMax.
+            // Ex: globalMax=9, tierMax=3 → canonLower=3, canonUpper=5 (lanes 3,4,5).
+            //     globalMax=9, tierMax=5 → canonLower=2, canonUpper=6.
+            //     globalMax=9, tierMax=9 → canonLower=0, canonUpper=8.
+            int canonLower = (globalMax - tierMax) / 2;
+            int canonUpper = canonLower + tierMax - 1;
+            int canonCenter = (canonLower + canonUpper) / 2;
+
+            // Range ATIVO desta linha. Em geração normal == canônico.
+            // Durante transição de reset, expande pra incluir o anchor (lane do
+            // player) e a posição drifted (próximo passo rumo ao centro).
+            int activeLower = canonLower;
+            int activeUpper = canonUpper;
 
             int minPerRow = Mathf.Clamp(tier.minLanesPerRow, 1, tierMax);
             int maxPerRow = Mathf.Clamp(tier.maxLanesPerRow, minPerRow, tierMax);
@@ -72,32 +106,60 @@ namespace RailSwitchMVP.Core
 
             // === Step 1 + 2: avançar critical paths da linha anterior ===
             var nextCriticalLanes = new HashSet<int>();
+            bool inTransition = transitionAnchorLane >= 0;
 
-            if (previousCriticalLanes.Count == 0)
+            if (inTransition)
+            {
+                // Modo TRANSIÇÃO: drift forçado de 1 lane/row em direção ao centro canônico.
+                // Garante uma rota viável do player (anchor) até o centro do novo tier.
+                int anchor = transitionAnchorLane;
+                int drifted = anchor;
+                if (anchor < canonCenter) drifted = anchor + 1;
+                else if (anchor > canonCenter) drifted = anchor - 1;
+
+                nextCriticalLanes.Add(drifted);
+
+                // Expande active range pra cobrir o "corredor" anchor→drifted (e canônico).
+                activeLower = Mathf.Min(activeLower, Mathf.Min(anchor, drifted));
+                activeUpper = Mathf.Max(activeUpper, Mathf.Max(anchor, drifted));
+
+                // Atualiza ou finaliza a transição.
+                if (drifted == canonCenter || drifted == anchor)
+                {
+                    transitionAnchorLane = -1;
+                    Debug.Log($"[Generator] Transition finished at lane {drifted} (= canonCenter {canonCenter}).");
+                }
+                else
+                {
+                    transitionAnchorLane = drifted;
+                }
+            }
+            else if (previousCriticalLanes.Count == 0)
             {
                 // Bootstrap (primeira linha): centro do grid global.
-                int seed = (lowerBound + upperBound) / 2;
-                nextCriticalLanes.Add(seed);
+                nextCriticalLanes.Add(canonCenter);
             }
             else
             {
                 foreach (int prevLane in previousCriticalLanes)
                 {
-                    // Clamp em [lowerBound, upperBound] — se o tier encolheu,
-                    // critical paths fora do range são puxados pra dentro.
-                    int clamped = Mathf.Clamp(prevLane, lowerBound, upperBound);
+                    int clamped = Mathf.Clamp(prevLane, canonLower, canonUpper);
                     int offset = Random.Range(-1, 2); // -1, 0, +1
-                    int newLane = Mathf.Clamp(clamped + offset, lowerBound, upperBound);
+                    int newLane = Mathf.Clamp(clamped + offset, canonLower, canonUpper);
                     nextCriticalLanes.Add(newLane);
                 }
             }
 
-            // Garante criticalPathsPerRow ativos
+            // Garante criticalPathsPerRow ativos — APENAS fora de transição.
+            // Em transição, só o critical drifting (1 path) até voltar pro normal.
             int safety = tierMax * 4;
-            while (nextCriticalLanes.Count < criticalPathsPerRow && safety-- > 0)
+            if (!inTransition)
             {
-                int addLane = Random.Range(lowerBound, upperBound + 1);
-                nextCriticalLanes.Add(addLane);
+                while (nextCriticalLanes.Count < criticalPathsPerRow && safety-- > 0)
+                {
+                    int addLane = Random.Range(canonLower, canonUpper + 1);
+                    nextCriticalLanes.Add(addLane);
+                }
             }
 
             // === Step 3: marcar lanes garantidas (em coordenadas globais) ===
@@ -107,8 +169,8 @@ namespace RailSwitchMVP.Core
 
             int totalCount = nextCriticalLanes.Count;
 
-            // === Step 4: popular decoys (apenas dentro do range ativo do tier) ===
-            for (int L = lowerBound; L <= upperBound; L++)
+            // === Step 4: popular decoys (dentro do range ATIVO) ===
+            for (int L = activeLower; L <= activeUpper; L++)
             {
                 if (lanePopulated[L]) continue;
                 if (totalCount >= maxPerRow) break;
@@ -119,11 +181,12 @@ namespace RailSwitchMVP.Core
                 }
             }
 
-            // === Step 5: enforçar mínimo (apenas dentro do range ativo) ===
-            safety = tierMax * 4;
+            // === Step 5: enforçar mínimo (dentro do range ATIVO) ===
+            int activeWidth = activeUpper - activeLower + 1;
+            safety = activeWidth * 4;
             while (totalCount < minPerRow && safety-- > 0)
             {
-                int L = Random.Range(lowerBound, upperBound + 1);
+                int L = Random.Range(activeLower, activeUpper + 1);
                 if (!lanePopulated[L])
                 {
                     lanePopulated[L] = true;

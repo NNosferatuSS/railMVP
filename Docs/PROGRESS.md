@@ -13,33 +13,34 @@
 
 ## Estou aqui agora
 
-**Iteração 4 — Dificuldade dinâmica (código pronto, falta popular tiers no SO).**
+**Iteração 5 — Stress test (última do MVP).**
 
-O grosso do trabalho desta iteração é **tunar valores no Editor**, não codar —
-o código de progressão de tier já existe desde a Iter 1 (`DifficultyManager`
-avança via `UpdateDistance`). Falta:
-1. Popular `DifficultyConfig_Default` com 5 tiers adicionais (tabela §2.4 da spec).
-2. Adicionar `_DebugController` na cena pra ResetDifficulty via tecla R.
-3. Play test: confirmar que ao passar de 100m vê maxLanes=3→5, 500m vê 5→7, etc.,
-   que speed e zoom escalam, e que tecla R volta tudo ao tier 0.
+A última iteração do plano original. Stress test do gerador procedural pra
+validar que:
+1. **Headless test**: gerar ~10 000 linhas (sem cena, em Edit Mode) e verificar
+   que critical path nunca fica vazio, sempre tem rota viável, e o algoritmo
+   nunca trava (mesmo com tier changes simulados no meio).
+2. **Profiler**: 60 fps mantidos em Play normal com 12 rows × 9 lanes ativas
+   (Tier 5), incluindo despawn/spawn em loop.
 
 ### Próximo passo concreto
 
-Abrir `Docs/Iteracao4_Setup.md` e seguir do início.
-
-Checklist da Iteração 4:
-
-- [x] `DifficultyManager`: log de mudança de tier + [ContextMenu] em ResetDifficulty.
-- [x] Script `DifficultyDebugController` (tecla R reseta, tecla T força próximo tier).
-- [x] `ProceduralRailGenerator.ResetState` chamado em mudança de tier (limpa critical path acumulado).
-- [ ] **Popular tiers** no `DifficultyConfig_Default` — 5 novos tiers (1 a 5) seguindo tabela §2.4.
-- [ ] **Adicionar `_DebugController`** na cena com componente DifficultyDebugController.
-- [ ] **Play test**: andar até 100m, ver tier subir; tecla R volta ao tier 0.
-- [ ] Commit assets: `feat(iter4): tiers populados + debug controller`.
+(A criar: `Docs/Iteracao5_StressTest.md` — guia da última iteração.)
 
 ---
 
 ## Concluído
+
+### Iteração 4 — Dificuldade dinâmica
+Validado em 2026-05-19.
+- [x] DifficultyDebugController + ContextMenus + logs de tier.
+- [x] DifficultyConfig_Default populado com 6 tiers (0 a 5).
+- [x] Bug fix: ResetDifficulty com offset (não reanima tier no próximo frame).
+- [x] Fix A: globalMaxLanes — X stable across tiers, no lateral skip on tier change.
+- [x] Option B: seeded transition após reset — critical path drifta 1 lane/row pro
+      centro canônico depois de R, evitando DeadEnd injusto quando o player
+      reseta longe do centro.
+- [x] Commits `e7ec487` (debug controller), `548457c` (Fix A), `<próximo>` (Option B).
 
 ### Iteração 3 — Geração procedural com Critical Path
 Validado em 2026-05-19.
