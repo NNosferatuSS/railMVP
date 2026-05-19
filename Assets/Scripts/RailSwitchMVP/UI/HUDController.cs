@@ -144,7 +144,10 @@ namespace RailSwitchMVP.UI
                 activeItemText.text = "Item: -";
                 return;
             }
-            activeItemText.text = $"Item: {type} (Space)";
+            string hint = type == ActiveItemType.Teleport
+                ? "Shift+←/→"
+                : "Space";
+            activeItemText.text = $"Item: {type} ({hint})";
         }
 
         void LateUpdate()

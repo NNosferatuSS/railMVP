@@ -6,15 +6,15 @@ namespace RailSwitchMVP.Core
 {
     /// <summary>
     /// Teleport active item: ao usar, player pula INSTANTANEAMENTE pra a
-    /// lane adjacente na mesma row, direção pelo switch state atual.
+    /// lane adjacente na mesma row.
     ///
-    /// Switch Left → teleporta pra lane -1 da current.
-    /// Switch Right → teleporta pra lane +1.
-    /// Switch Middle → use falha (sem direção definida). Item não é consumido.
-    /// Lane destino sem tile → use falha (sem destino válido).
+    /// Input scheme (Option B): Shift + ← / → diretamente teleporta naquela
+    /// direção. Não usa o switch state — direção vem do input. Switch normal
+    /// continua funcionando (setas sem Shift).
     ///
-    /// Diferença vs switch normal: switch + atravessar gap é DELAYED.
-    /// Teleport é INSTANTÂNEO — Z preserve, X muda. Panic button.
+    /// Lane destino sem tile → use falha (item não é consumido).
+    /// Diferença vs switch normal: switch + gap é DELAYED. Teleport é
+    /// INSTANTÂNEO — Z preserve, X muda. Panic button.
     /// </summary>
     public class TeleportController : MonoBehaviour
     {
@@ -36,25 +36,17 @@ namespace RailSwitchMVP.Core
         }
 
         /// <summary>
-        /// Tenta teleportar. Retorna false se a use falha (sem direção válida
-        /// ou lane destino sem tile). Nesses casos, o item NÃO é consumido.
+        /// Tenta teleportar na direção indicada (-1 = left, +1 = right).
+        /// Retorna false se a use falha (direção 0, lane destino sem tile,
+        /// player em gap). Nesses casos, o item NÃO é consumido.
         /// </summary>
-        public bool TryTrigger()
+        public bool TryTrigger(int direction)
         {
+            if (direction == 0) return false;
             var player = GetPlayer();
             if (player == null || player.CurrentTile == null) return false;
 
-            var sw = player.CurrentTile.Switch;
-            if (sw == null) return false;
-
-            int dir = (int)sw.State; // -1, 0, +1
-            if (dir == 0)
-            {
-                Debug.Log("[Teleport] Switch em Middle — use cancelada (sem direção).");
-                return false;
-            }
-
-            int targetLane = player.CurrentTile.Lane + dir;
+            int targetLane = player.CurrentTile.Lane + direction;
             var row = RailManager.Instance != null
                 ? RailManager.Instance.GetRow(player.CurrentTile.Row)
                 : null;
@@ -65,8 +57,7 @@ namespace RailSwitchMVP.Core
                 return false;
             }
 
-            var targetTile = row.Tiles[targetLane];
-            return player.TeleportToAdjacent(targetTile);
+            return player.TeleportToAdjacent(row.Tiles[targetLane]);
         }
 
         static PlayerRailRider _cachedPlayer;

@@ -168,6 +168,8 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Grant TimeFreeze")) slot.SetItem(ActiveItemType.TimeFreeze);
             if (GUILayout.Button("Grant Teleport")) slot.SetItem(ActiveItemType.Teleport);
             if (GUILayout.Button("Use (Space)")) slot.UseItem();
+            if (GUILayout.Button("Teleport Left (Shift+←)")) slot.UseItemWithDirection(-1);
+            if (GUILayout.Button("Teleport Right (Shift+→)")) slot.UseItemWithDirection(+1);
         }
 
         void DrawPowerUpSection()

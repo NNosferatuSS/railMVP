@@ -61,13 +61,36 @@ namespace RailSwitchMVP.Core
         }
 
         /// <summary>
-        /// Usa o item do slot. Se o use falhar (ex: Teleport sem direção válida),
-        /// o item NÃO é consumido — player pode tentar de novo.
+        /// Usa o item do slot (não-direcional: TimeFreeze, etc.). Items
+        /// direcionais como Teleport NÃO são disparados por aqui — usam
+        /// UseItemWithDirection. Se o use falhar, item preservado.
         /// </summary>
         public void UseItem()
         {
             if (heldItem == ActiveItemType.None) return;
             bool consumed = ExecuteUse(heldItem);
+            if (consumed)
+            {
+                var used = heldItem;
+                heldItem = ActiveItemType.None;
+                OnItemUsed?.Invoke(used);
+            }
+            else
+            {
+                if (heldItem == ActiveItemType.Teleport)
+                    Debug.Log("[ActiveItemSlot] Teleport requer Shift + ← / → (direção). Space não dispara.");
+                OnItemUseFailed?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Usa item DIRECIONAL (Teleport). direction: -1 = left, +1 = right.
+        /// Falha se item no slot não é direcional ou se a direção é inválida.
+        /// </summary>
+        public void UseItemWithDirection(int direction)
+        {
+            if (heldItem == ActiveItemType.None) return;
+            bool consumed = ExecuteUseDirectional(heldItem, direction);
             if (consumed)
             {
                 var used = heldItem;
@@ -86,8 +109,18 @@ namespace RailSwitchMVP.Core
             {
                 case ActiveItemType.TimeFreeze:
                     return TimeFreezeController.Instance != null && TimeFreezeController.Instance.TryActivate();
+                // Teleport NÃO entra aqui — exige direção, vai por UseItemWithDirection.
+                default:
+                    return false;
+            }
+        }
+
+        bool ExecuteUseDirectional(ActiveItemType type, int direction)
+        {
+            switch (type)
+            {
                 case ActiveItemType.Teleport:
-                    return TeleportController.Instance != null && TeleportController.Instance.TryTrigger();
+                    return TeleportController.Instance != null && TeleportController.Instance.TryTrigger(direction);
                 default:
                     return false;
             }

@@ -16,11 +16,11 @@ Pré-requisitos: PostMVP2.2 validada.
 | Aspecto | Detalhe |
 |---|---|
 | **Slots** | 1 (substitui se pegar outro item ativo) |
-| **Hotkey** | `Space` (configurável em `ActiveItemInputHandler`) |
-| **Tipos no MVP** | TimeFreeze + Teleport |
-| **TimeFreeze** | `Time.timeScale = 0` por 3s reais. Player vê o board congelado, pode ajustar switch sem pressão |
-| **Teleport** | Pulo lateral instantâneo de ±1 lane. Direção definida pelo **switch state atual** (Left/Right). Switch Middle = use cancelada |
-| **Falha não consome** | Se use falha (Teleport sem direção, lane destino vazia, slot vazio), o item fica no slot — player pode tentar de novo |
+| **Hotkeys** | `Space` (non-direcional) + `Shift + ←/→` (direcional) |
+| **Tipos no MVP** | TimeFreeze (não-direcional) + Teleport (direcional) |
+| **TimeFreeze** | Slowdown (`Time.timeScale = 0.15` configurável) por 3s reais. Mundo move LENTÍSSIMO — player vê o board com tempo, sem parada total. **Ativa com Space.** |
+| **Teleport** | Pulo lateral instantâneo de ±1 lane. **`Shift + ←` = esquerda, `Shift + →` = direita.** Direção vem do input direto, não do switch state. Switch normal continua funcionando (setas sem Shift). |
+| **Falha não consome** | Se use falha (slot vazio, lane destino vazia, Teleport com Space), o item fica no slot. |
 
 ---
 
@@ -75,11 +75,12 @@ Sem precisar criar prefabs de pickup ativo:
    - **Grant TimeFreeze** → HUD mostra `Item: TimeFreeze (Space)`.
    - Aperta `Space` → tudo congela por 3s, player pode pensar/ajustar switch.
    - Depois de 3s, retoma.
-3. **Grant Teleport** → HUD mostra `Item: Teleport (Space)`.
-   - Aperta → (Right) pra setar direção.
-   - Aperta `Space` → player teleporta INSTANTANEAMENTE pra lane à direita (mesma row, Z preservado).
-   - Se Switch em Middle quando aperta Space → "use cancelada" no console, item fica no slot.
-   - Se lane destino vazia → "use cancelada" no console, item fica.
+3. **Grant Teleport** → HUD mostra `Item: Teleport (Shift+←/→)`.
+   - **Aperta `Shift + →`** → player teleporta INSTANTANEAMENTE 1 lane pra direita (mesma row, Z preservado).
+   - **Aperta `Shift + ←`** → 1 lane pra esquerda.
+   - Se lane destino vazia → "use cancelada" no console, item fica no slot.
+   - Aperta `Space` com Teleport no slot → log explicativo, sem efeito.
+   - Setas SEM Shift continuam controlando o switch normal.
 
 ---
 
