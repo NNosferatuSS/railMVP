@@ -30,6 +30,12 @@ namespace RailSwitchMVP.Track
         /// <summary>Lane absoluta para a qual o switch aponta na próxima linha.</summary>
         public int TargetLane => (OwnerTile != null ? OwnerTile.Lane : 0) + (int)state;
 
+        /// <summary>
+        /// Disparado quando o state muda (via Nudge ou SetState). Usado pelo
+        /// TrackTile pra atualizar a cor do connector em tempo real.
+        /// </summary>
+        public event System.Action<SwitchState> OnStateChanged;
+
         void Start()
         {
             UpdateArrowRotation();
@@ -41,12 +47,15 @@ namespace RailSwitchMVP.Track
             if (next == (int)state) return;
             state = (SwitchState)next;
             UpdateArrowRotation();
+            OnStateChanged?.Invoke(state);
         }
 
         public void SetState(SwitchState s)
         {
+            if (state == s) return;
             state = s;
             UpdateArrowRotation();
+            OnStateChanged?.Invoke(state);
         }
 
         void UpdateArrowRotation()

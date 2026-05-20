@@ -75,8 +75,13 @@ namespace RailSwitchMVP.Track
             if (Obstacles == null) Obstacles = GetComponentInChildren<ObstacleSpawner>();
             if (PowerUps == null) PowerUps = GetComponentInChildren<PowerUpSpawner>();
 
-            // Backlink do switch para este tile (necessário para o TargetLane)
-            if (Switch != null) Switch.OwnerTile = this;
+            // Backlink do switch para este tile + subscribe pra atualizar
+            // a cor de conectividade em tempo real quando o switch muda.
+            if (Switch != null)
+            {
+                Switch.OwnerTile = this;
+                Switch.OnStateChanged += HandleSwitchStateChanged;
+            }
 
             // Snapshot dos children do prefab antes de qualquer spawn dinâmico.
             // Awake roda uma vez por instância — esse snapshot persiste entre
@@ -86,23 +91,63 @@ namespace RailSwitchMVP.Track
                 _initialChildren[i] = transform.GetChild(i);
         }
 
-        /// <summary>
-        /// Atualiza a flag IsConnected + troca o material do trilho.
-        /// Chamado pelo RailManager quando a row N+1 é gerada (atualiza
-        /// row N) e quando este tile é spawnado (default true até prova
-        /// em contrário).
-        /// </summary>
-        public void SetConnected(bool connected)
+        void OnDestroy()
         {
-            IsConnected = connected;
+            if (Switch != null) Switch.OnStateChanged -= HandleSwitchStateChanged;
+        }
 
+        void HandleSwitchStateChanged(SwitchState _) => UpdateConnectivityVisual();
+
+        /// <summary>
+        /// Re-avalia conectividade DESTE tile baseado no estado atual do
+        /// Switch: o tile é "conectado" (verde) se Switch.TargetLane (lane
+        /// pra qual o switch aponta) tem tile na próxima row. Senão, vermelho.
+        ///
+        /// Chamado quando:
+        /// - Switch state muda (via OnStateChanged).
+        /// - Próxima row spawna (RailManager.UpdateConnectivityForPreviousRow).
+        /// - Tile é spawnado (após ResetForReuse + setup do switch).
+        /// </summary>
+        public void UpdateConnectivityVisual()
+        {
+            // Durante warmup, força verde (switch lockado em Middle, próxima row
+            // sempre tem center tile, então conectado por design).
+            if (GameManager.Instance != null && GameManager.Instance.IsWarmup)
+            {
+                ApplyConnectivityMaterial(true);
+                IsConnected = true;
+                return;
+            }
+
+            bool connected = ComputeConnectedFromSwitch();
+            IsConnected = connected;
+            ApplyConnectivityMaterial(connected);
+        }
+
+        bool ComputeConnectedFromSwitch()
+        {
+            if (Switch == null) return true; // sem switch = sempre verde
+            var rm = RailManager.Instance;
+            if (rm == null) return true; // sem manager = não sabemos, default true
+            var nextRow = rm.GetRow(Row + 1);
+            if (nextRow == null) return true; // sem next row spawnada = default true
+
+            int targetLane = Switch.TargetLane;
+            // OutOfBounds = nunca conectado.
+            if (targetLane < 0 || targetLane >= nextRow.MaxLanesAtSpawn) return false;
+            // Tile vazio na lane destino = vermelho.
+            return nextRow.HasTile(targetLane);
+        }
+
+        void ApplyConnectivityMaterial(bool connected)
+        {
             if (connectivityRenderer == null)
             {
                 if (!_warnedRendererNull)
                 {
                     Debug.LogWarning("[TrackTile] connectivityRenderer NÃO atribuído no TrackTile_Prefab. " +
                         "Trilhos coloridos (Idea 2) não vão mudar de cor. " +
-                        "Atribua o MeshRenderer do Arrow (ou outro visual) no Inspector → Track Tile → Connectivity Renderer.", this);
+                        "Atribua o MeshRenderer do Arrow no Inspector → Track Tile → Connectivity Renderer.", this);
                     _warnedRendererNull = true;
                 }
                 return;
@@ -123,6 +168,14 @@ namespace RailSwitchMVP.Track
             connectivityRenderer.sharedMaterial = mat;
         }
 
+        // Mantido por compat — chama UpdateConnectivityVisual.
+        [System.Obsolete("Use UpdateConnectivityVisual() — lógica nova baseada na switch state.")]
+        public void SetConnected(bool connected)
+        {
+            IsConnected = connected;
+            ApplyConnectivityMaterial(connected);
+        }
+
         /// <summary>
         /// Limpa estado dinâmico antes de reutilizar o tile do pool. Destrói
         /// todos os children que NÃO vieram do prefab original (coins,
@@ -134,9 +187,14 @@ namespace RailSwitchMVP.Track
             // Switch volta pro centro
             if (Switch != null) Switch.SetState(SwitchState.Middle);
 
-            // Reset flags + connectivity default
+            // Reset flags
             IsOnCriticalPath = false;
+            // Connectivity visual atualiza via UpdateConnectivityVisual quando
+            // switch state ou next row mudarem. Por ora deixa verde (default)
+            // até o generator setar tudo.
+            #pragma warning disable CS0618
             SetConnected(true);
+            #pragma warning restore CS0618
 
             // Destroi children dinâmicos. Se _initialChildren é null (primeira
             // ativação, Awake ainda não rodou), nada a fazer.

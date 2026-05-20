@@ -385,6 +385,11 @@ namespace RailSwitchMVP.Core
                 }
 
                 row.Tiles[L] = tile;
+
+                // Força atualização da cor de conectividade (Idea 2).
+                // Switch.SetState pode não ter mudado state (já era Middle, etc),
+                // então não dispararia o evento. Mas tile.Row é novo agora.
+                tile.UpdateConnectivityVisual();
             }
 
             return row;

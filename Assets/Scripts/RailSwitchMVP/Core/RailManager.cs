@@ -177,28 +177,20 @@ namespace RailSwitchMVP.Core
         }
 
         /// <summary>
-        /// Para cada tile da row (rowIndex - 1), checa se ao menos 1 das lanes
-        /// vizinhas (±1) tem tile na newRow. Atualiza tile.SetConnected(...).
-        /// Player vê de longe quais decoys são dead-end garantido.
+        /// Quando uma nova row spawna, pede pros tiles da row anterior
+        /// re-avaliarem suas conectividades (cor verde/vermelho do Arrow).
+        /// Cada tile checa baseado na sua própria switch state — apontando
+        /// pra lane vazia = vermelho, pra lane com tile = verde.
         /// </summary>
         void UpdateConnectivityForPreviousRow(int newRowIndex, RowData newRow)
         {
             var prevRow = GetRow(newRowIndex - 1);
-            if (prevRow == null || newRow == null) return;
+            if (prevRow == null) return;
 
             for (int L = 0; L < prevRow.Tiles.Length; L++)
             {
                 var tile = prevRow.Tiles[L];
-                if (tile == null) continue;
-
-                bool connected = false;
-                for (int off = -1; off <= 1; off++)
-                {
-                    int target = L + off;
-                    if (target < 0 || target >= newRow.Tiles.Length) continue;
-                    if (newRow.Tiles[target] != null) { connected = true; break; }
-                }
-                tile.SetConnected(connected);
+                if (tile != null) tile.UpdateConnectivityVisual();
             }
         }
 
