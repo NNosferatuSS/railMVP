@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-19 (fim de sessão — Teleport tile-based pronto, falta setup HUD)
+**Última atualização:** 2026-05-20 (3 ideas implementadas: Auto-follow PU, trilhos coloridos, warmup + countdown)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -14,41 +14,36 @@
 
 ## 🟢 Próxima sessão: começe AQUI
 
-**Estado:** PostMVP2.3 (Active Items) refatorada — Teleport virou passive
-tile-based, slot só guarda TimeFreeze. Todo o código está commitado e
-pushado. Falta validação na Editor.
+**Estado:** 3 ideas novas (Auto-follow PU + Trilhos coloridos + Warmup) implementadas.
+Setup pendente na Editor. Pendências da sessão anterior (PostMVP2.3 setup
+HUD) ainda valem.
 
-### Passos da próxima sessão (na ordem)
+### Passos da próxima sessão
 
-**1. Setup pendente na Editor (5-10 min):**
-   - Adicionar 1 TMP_Text novo no `_HUD_Canvas`: `TeleportText` (posicionar
-     onde fizer sentido, abaixo dos outros indicadores tipo `CoinRadarText`).
-   - Atribuir o ref `Teleport Text` no `_HUD → HUD Controller`.
-   - Verificar que os 4 GameObjects da PostMVP2.3 estão na cena:
-     `_ActiveItemSlot`, `_TimeFreezeController`, `_TeleportController`, `_ActiveItemInput`.
-   - Adicionar `ActiveItemText` (também faltava) no HUD se ainda não fez.
+**1. Setup pendente — junte tudo (~15-20 min):**
 
-**2. Validação dos features atuais (10 min):**
-   Detalhes em `Docs/PostMVP2_3_ActiveItems.md`.
-   - Play → F1 → painel debug.
-   - **TimeFreeze**: Grant TimeFreeze → Space → mundo slowdown ~0.15x por 3s.
-   - **Teleport (novo modelo)**: Grant Teleport (na seção Power-ups, não
-     mais Active Items) → HUD mostra `Teleport 8 (Shift+←/→)` →
-     `Shift+→` várias vezes — teleporta toda vez sem consumir window.
-     Window decrementa só em transição de tile (cada gap).
-   - **Setas normais (sem Shift)** continuam controlando o switch.
+Detalhes em `Docs/PostMVP2_4_3Ideas.md`. Resumo:
 
-**3. Próximo trabalho — PostMVP2.4 (não iniciado):**
-   Criar prefabs de pickup pros active/passive items que ainda não têm:
-   - `PowerUp_TimeFreeze_Prefab` (script `TimeFreezePickup` — adiciona ao slot).
-   - `PowerUp_Teleport_Prefab` (script `TeleportPickup` — chama `PowerUpManager.GrantTeleport`).
-   - Atualizar `_RailManager → ProceduralRailGenerator → PowerUpPrefabs`
-     pra incluir os 2 novos prefabs.
-   - Eu preciso criar os 2 scripts de pickup primeiro (você cria os prefabs depois).
+| Componente | Setup mínimo |
+|---|---|
+| AutoFollow PU | `_AutoCriticalFollower` GameObject + `AutoFollowText` TMP_Text + ref no HUD |
+| Trilhos coloridos | 2 materiais (verde, vermelho) + atribuir no `TrackTile_Prefab` (Mesh ref + 2 materials) |
+| Warmup + countdown | `_WarmupController` GameObject + `CountdownText` TMP_Text (font ~160pt, centro) |
+| **Pendente PostMVP2.3** | `TeleportText` + `ActiveItemText` se ainda faltavam |
 
-**4. Roadmap pendente após PostMVP2.4:**
-   - **PostMVP2.5**: 3 obstáculos novos (SpeedUp zone, Lane Swap, Vortex safe).
-   - Audio + polish visual + mobile input (TouchDirectionalInput) — pós-PostMVP2.x.
+**2. Validar (~15 min):**
+- Play. Player deve estar em warmup: 5 rows single-center em 0.5x speed.
+- Setas/Space não funcionam. Distance "0 m". Time fixo.
+- Última warmup row → countdown "3" "2" "1" "GO!" no centro.
+- Após GO, geração procedural normal. Trilhos coloridos (verde/vermelho).
+- F1 → Grant AutoFollow → 5 tiles auto-pilot.
+- Tudo da PostMVP2.3 também (TimeFreeze Space, Teleport Shift+arrow).
+
+**3. Próximo trabalho — discutir:**
+   - Validar 3 ideas + ajustar tunables.
+   - PostMVP2.5 backlog: SpeedUp zone, Lane Swap, Vortex safe (obstáculos novos).
+   - PostMVP2.4 ainda em backlog: prefabs de pickup organicamente coletáveis pros active/passive items.
+   - Polish: audio, modelos visuais, mobile input.
 
 ---
 
