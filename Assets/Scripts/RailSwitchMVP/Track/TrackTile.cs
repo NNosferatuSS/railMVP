@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
 
@@ -37,12 +38,20 @@ namespace RailSwitchMVP.Track
         public bool IsConnected = true;
 
         [Header("Connectivity visuals (Idea 2)")]
-        [Tooltip("MeshRenderer do trilho (Mesh child) cujo material é trocado conforme conectividade.")]
-        [SerializeField] private MeshRenderer trackRenderer;
-        [Tooltip("Material aplicado quando IsConnected = true. Sugerido verde.")]
+        [Tooltip("Renderer do visual que indica conectividade. Recomendação: " +
+            "arrastar o MeshRenderer do ARROW (= switch/connector), não do " +
+            "Mesh inteiro do trilho. Assim só o connector muda de cor.\n" +
+            "Pode aceitar QUALQUER Renderer (MeshRenderer, SkinnedMeshRenderer, etc.).")]
+        [FormerlySerializedAs("trackRenderer")]
+        [SerializeField] private Renderer connectivityRenderer;
+        [Tooltip("Material aplicado quando IsConnected = true (verde sugerido).")]
         [SerializeField] private Material connectedMaterial;
-        [Tooltip("Material aplicado quando IsConnected = false (dead-end garantido). Sugerido vermelho.")]
+        [Tooltip("Material aplicado quando IsConnected = false (vermelho sugerido).")]
         [SerializeField] private Material disconnectedMaterial;
+
+        // Logs ONCE de configuração faltando (evita spam no console).
+        private static bool _warnedRendererNull;
+        private static bool _warnedMaterialNull;
 
         [Header("Components")]
         public SwitchController Switch;
@@ -86,9 +95,32 @@ namespace RailSwitchMVP.Track
         public void SetConnected(bool connected)
         {
             IsConnected = connected;
-            if (trackRenderer == null) return;
+
+            if (connectivityRenderer == null)
+            {
+                if (!_warnedRendererNull)
+                {
+                    Debug.LogWarning("[TrackTile] connectivityRenderer NÃO atribuído no TrackTile_Prefab. " +
+                        "Trilhos coloridos (Idea 2) não vão mudar de cor. " +
+                        "Atribua o MeshRenderer do Arrow (ou outro visual) no Inspector → Track Tile → Connectivity Renderer.", this);
+                    _warnedRendererNull = true;
+                }
+                return;
+            }
+
             var mat = connected ? connectedMaterial : disconnectedMaterial;
-            if (mat != null) trackRenderer.sharedMaterial = mat;
+            if (mat == null)
+            {
+                if (!_warnedMaterialNull)
+                {
+                    Debug.LogWarning($"[TrackTile] {(connected ? "connectedMaterial" : "disconnectedMaterial")} " +
+                        "NÃO atribuído no TrackTile_Prefab. Atribua materials verde/vermelho no Inspector.", this);
+                    _warnedMaterialNull = true;
+                }
+                return;
+            }
+
+            connectivityRenderer.sharedMaterial = mat;
         }
 
         /// <summary>

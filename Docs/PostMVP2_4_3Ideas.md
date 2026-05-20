@@ -53,12 +53,23 @@ tile na próxima row. VERMELHO se todas estão vazias (= dead-end garantido).
 
 2. Abrir `TrackTile_Prefab` em modo edição:
    - Selecionar a raiz do prefab.
-   - No componente **Track Tile**, novos campos visíveis:
-     - `Track Renderer` → arrastar o `MeshRenderer` do filho `Mesh` (ou
-       qualquer outro nome do mesh do trilho).
+   - No componente **Track Tile** → seção "Connectivity visuals":
+     - **`Connectivity Renderer`** → arrastar o `MeshRenderer` **do Arrow**
+       (filho do prefab — é o cubo/cone que rotaciona indicando o switch).
+       **NÃO** arraste do Mesh do trilho — assim só o connector muda
+       de cor, não o trilho inteiro.
      - `Connected Material` → arrastar `TrackConnected.mat`.
      - `Disconnected Material` → arrastar `TrackDisconnected.mat`.
    - Salvar prefab.
+
+> **Por que o Arrow e não o Mesh do trilho?** O Arrow já representa o
+> SWITCH/CONNECTOR. Pintar ele combina temática ("este switch leva a
+> algum lugar / não leva") + mantém o visual do trilho consistente.
+
+> **Refs faltando = warning no console:** se você esquecer de atribuir,
+> o console mostra `[TrackTile] connectivityRenderer NÃO atribuído...`
+> ou `[TrackTile] connectedMaterial NÃO atribuído...`. Aparece UMA vez
+> por session pra não spammar.
 
 ### Testar
 
