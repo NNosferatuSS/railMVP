@@ -24,11 +24,22 @@ namespace RailSwitchMVP.Obstacles
     {
         void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag("Player")) return;
+            // Log diagnóstico: dispara em TODO trigger pra ajudar debugar prefabs
+            // que "não fazem nada" (Trigger missing, tag errada, etc.).
+            Debug.Log($"[Obstacle/{gameObject.name}] OnTriggerEnter with '{other.name}' (tag={other.tag})");
+
+            if (!other.CompareTag("Player"))
+            {
+                Debug.Log($"[Obstacle/{gameObject.name}] Other is not Player. Ignored.");
+                return;
+            }
 
             // Ghost = atravessa qualquer obstáculo sem efeito.
             if (PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost)
+            {
+                Debug.Log($"[Obstacle/{gameObject.name}] Ghost active — pass-through.");
                 return;
+            }
 
             OnPlayerHit(other);
         }

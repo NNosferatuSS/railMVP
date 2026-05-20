@@ -19,11 +19,18 @@ namespace RailSwitchMVP.Core
         [Tooltip("Quando true, só funciona em Editor ou Debug Build (recomendado).")]
         public bool restrictToDebugBuilds = true;
 
+        public enum PanelAnchor { Left, Right }
+
+        [Tooltip("Lado da tela onde o painel ancora. Default Right pra não tampar HUD top-left.")]
+        public PanelAnchor anchor = PanelAnchor.Right;
+
         [Tooltip("Tamanho do painel em pixels.")]
         public Vector2 panelSize = new Vector2(280f, 600f);
 
-        [Tooltip("Posição (top-left corner) do painel na tela.")]
-        public Vector2 panelPosition = new Vector2(10f, 200f);
+        [Tooltip("Offset do painel a partir do anchor. " +
+            "Left anchor: x = panelPosition.x. " +
+            "Right anchor: x = Screen.width - panelSize.x - panelPosition.x.")]
+        public Vector2 panelPosition = new Vector2(10f, 50f);
 
         private bool _show;
         private Vector2 _scroll;
@@ -47,7 +54,10 @@ namespace RailSwitchMVP.Core
 
             EnsureStyles();
 
-            var rect = new Rect(panelPosition.x, panelPosition.y, panelSize.x, panelSize.y);
+            float x = anchor == PanelAnchor.Left
+                ? panelPosition.x
+                : Screen.width - panelSize.x - panelPosition.x;
+            var rect = new Rect(x, panelPosition.y, panelSize.x, panelSize.y);
             GUI.Box(rect, "DEBUG (F1 toggle)");
 
             GUILayout.BeginArea(new Rect(rect.x + 6, rect.y + 22, rect.width - 12, rect.height - 28));

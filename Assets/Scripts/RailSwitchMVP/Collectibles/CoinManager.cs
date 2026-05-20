@@ -34,7 +34,8 @@ namespace RailSwitchMVP.Collectibles
         {
             total += amount;
             OnCoinsChanged?.Invoke(total);
-            Debug.Log($"[CoinManager] +{amount} → {total}");
+            // Log removido — spammava com 10+ moedas por tile crítico.
+            // HUD coin counter já dá feedback visual contínuo.
         }
 
         public void ResetTotal()

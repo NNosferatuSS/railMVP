@@ -23,6 +23,7 @@ namespace RailSwitchMVP.PowerUps
 
         void OnTriggerEnter(Collider other)
         {
+            Debug.Log($"[PowerUp/{gameObject.name}] OnTriggerEnter with '{other.name}' (tag={other.tag})");
             if (!other.CompareTag("Player")) return;
             Activate();
             Destroy(gameObject);
