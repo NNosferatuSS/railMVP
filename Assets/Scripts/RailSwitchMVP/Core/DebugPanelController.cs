@@ -55,6 +55,8 @@ namespace RailSwitchMVP.Core
 
             DrawAutoTestSection();
             GUILayout.Space(6);
+            DrawHighScoreSection();
+            GUILayout.Space(6);
             DrawActiveItemSection();
             GUILayout.Space(6);
             DrawPowerUpSection();
@@ -85,6 +87,21 @@ namespace RailSwitchMVP.Core
             auto.DebugForceActive = GUILayout.Toggle(auto.DebugForceActive, " Auto-follow critical path (debug)");
             if (auto.IsActive)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
+        }
+
+        void DrawHighScoreSection()
+        {
+            GUILayout.Label("High score", _sectionStyle);
+            var hsm = HighScoreManager.Instance;
+            if (hsm == null)
+            {
+                GUILayout.Label("(HighScoreManager not in scene)", _hintStyle);
+                return;
+            }
+            int min = Mathf.FloorToInt(hsm.BestTime) / 60;
+            int sec = Mathf.FloorToInt(hsm.BestTime) % 60;
+            GUILayout.Label($"Dist {hsm.BestDistance}m | Coins {hsm.BestCoins} | Tier {hsm.BestTier} | Time {min:D2}:{sec:D2}", _hintStyle);
+            if (GUILayout.Button("Reset Best Scores")) hsm.ResetAll();
         }
 
         void DrawActiveItemSection()
