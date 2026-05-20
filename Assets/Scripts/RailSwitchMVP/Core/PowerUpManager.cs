@@ -18,6 +18,8 @@ namespace RailSwitchMVP.Core
         CoinRadar,
         // PostMVP2.3:
         Teleport,
+        // PostMVP2.4 — Idea 3:
+        AutoCriticalFollow,
     }
 
     /// <summary>
@@ -63,6 +65,11 @@ namespace RailSwitchMVP.Core
             "Não conta cada teleport — só transições de tile. Stack estende.")]
         [SerializeField] private int teleportDefaultTiles = 8;
 
+        [Header("Auto-pilot passive (Idea 3)")]
+        [Tooltip("Tiles em que o jogo segue o critical path sozinho. " +
+            "Manual input ainda funciona mas é sobrescrito por tile.")]
+        [SerializeField] private int autoCriticalFollowDefaultTiles = 5;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private int shieldCharges;
         [SerializeField] private int slowDownTilesRemaining;
@@ -72,6 +79,7 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int lanePreviewTilesRemaining;
         [SerializeField] private int coinRadarTilesRemaining;
         [SerializeField] private int teleportTilesRemaining;
+        [SerializeField] private int autoCriticalFollowTilesRemaining;
 
         public int ShieldCharges => shieldCharges;
         public int SlowDownTilesRemaining => slowDownTilesRemaining;
@@ -81,6 +89,7 @@ namespace RailSwitchMVP.Core
         public int LanePreviewTilesRemaining => lanePreviewTilesRemaining;
         public int CoinRadarTilesRemaining => coinRadarTilesRemaining;
         public int TeleportTilesRemaining => teleportTilesRemaining;
+        public int AutoCriticalFollowTilesRemaining => autoCriticalFollowTilesRemaining;
 
         public bool HasShield => shieldCharges > 0;
         public bool HasSlowDown => slowDownTilesRemaining > 0;
@@ -90,6 +99,7 @@ namespace RailSwitchMVP.Core
         public bool HasLanePreview => lanePreviewTilesRemaining > 0;
         public bool HasCoinRadar => coinRadarTilesRemaining > 0;
         public bool HasTeleport => teleportTilesRemaining > 0;
+        public bool HasAutoCriticalFollow => autoCriticalFollowTilesRemaining > 0;
 
         public float SpeedMultiplier => HasSlowDown ? slowDownSpeedMultiplier : 1f;
         public int CoinMultiplier => HasDoubleCoins ? 2 : 1;
@@ -100,6 +110,7 @@ namespace RailSwitchMVP.Core
         public int LanePreviewDefaultTiles => lanePreviewDefaultTiles;
         public int CoinRadarDefaultTiles => coinRadarDefaultTiles;
         public int TeleportDefaultTiles => teleportDefaultTiles;
+        public int AutoCriticalFollowDefaultTiles => autoCriticalFollowDefaultTiles;
 
         public event System.Action<PowerUpType> OnPowerUpActivated;
         public event System.Action<PowerUpType> OnPowerUpExpired;
@@ -207,6 +218,14 @@ namespace RailSwitchMVP.Core
             OnPowerUpTick?.Invoke(PowerUpType.Teleport, teleportTilesRemaining);
         }
 
+        public void GrantAutoCriticalFollow(int tiles)
+        {
+            autoCriticalFollowTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +AutoCriticalFollow (tiles={autoCriticalFollowTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.AutoCriticalFollow);
+            OnPowerUpTick?.Invoke(PowerUpType.AutoCriticalFollow, autoCriticalFollowTilesRemaining);
+        }
+
         /// <summary>
         /// Consome 1 shield. Retorna true se havia shield (ataque absorvido).
         /// </summary>
@@ -233,6 +252,7 @@ namespace RailSwitchMVP.Core
             Tick(ref lanePreviewTilesRemaining, PowerUpType.LanePreview);
             Tick(ref coinRadarTilesRemaining, PowerUpType.CoinRadar);
             Tick(ref teleportTilesRemaining, PowerUpType.Teleport);
+            Tick(ref autoCriticalFollowTilesRemaining, PowerUpType.AutoCriticalFollow);
         }
 
         void Tick(ref int counter, PowerUpType type)
@@ -274,6 +294,7 @@ namespace RailSwitchMVP.Core
             lanePreviewTilesRemaining = 0;
             coinRadarTilesRemaining = 0;
             teleportTilesRemaining = 0;
+            autoCriticalFollowTilesRemaining = 0;
         }
     }
 }

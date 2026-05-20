@@ -49,6 +49,10 @@ namespace RailSwitchMVP.UI
         [Tooltip("Teleport (tile-based window). Mostra 'Teleport N (Shift+←/→)' quando ativo.")]
         [SerializeField] private TMP_Text teleportText;
 
+        [Header("PostMVP2.4 — Idea 3")]
+        [Tooltip("Auto-follow critical path power-up. Mostra 'AutoFollow N' quando ativo.")]
+        [SerializeField] private TMP_Text autoFollowText;
+
         [Header("References (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
         [SerializeField] private PlayerRailRider player;
@@ -111,6 +115,7 @@ namespace RailSwitchMVP.UI
             SetPowerUpText(lanePreviewText, "", false);
             SetPowerUpText(coinRadarText, "", false);
             SetPowerUpText(teleportText, "", false);
+            SetPowerUpText(autoFollowText, "", false);
         }
 
         void OnDestroy()
@@ -208,6 +213,9 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.Teleport:
                     SetPowerUpText(teleportText, $"Teleport {value} (Shift+←/→)", true);
                     break;
+                case PowerUpType.AutoCriticalFollow:
+                    SetPowerUpText(autoFollowText, $"AutoFollow {value}", true);
+                    break;
                 // DifficultyReset é instantâneo — não tem indicador.
             }
         }
@@ -224,6 +232,7 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.LanePreview: SetPowerUpText(lanePreviewText, "", false); break;
                 case PowerUpType.CoinRadar: SetPowerUpText(coinRadarText, "", false); break;
                 case PowerUpType.Teleport: SetPowerUpText(teleportText, "", false); break;
+                case PowerUpType.AutoCriticalFollow: SetPowerUpText(autoFollowText, "", false); break;
             }
         }
 

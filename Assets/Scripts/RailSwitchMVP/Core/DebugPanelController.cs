@@ -26,14 +26,9 @@ namespace RailSwitchMVP.Core
         public Vector2 panelPosition = new Vector2(10f, 200f);
 
         private bool _show;
-        private bool _autoFollowCritical;
         private Vector2 _scroll;
         private GUIStyle _sectionStyle;
         private GUIStyle _hintStyle;
-
-        private PlayerRailRider _player;
-        private bool _subscribedToPlayer;
-        private bool _initialAutoApplied;
 
         bool ShouldRespond => !restrictToDebugBuilds || Application.isEditor || Debug.isDebugBuild;
 
@@ -44,75 +39,6 @@ namespace RailSwitchMVP.Core
             var kb = Keyboard.current;
             if (kb != null && kb.f1Key.wasPressedThisFrame)
                 _show = !_show;
-
-            // Lazy-subscribe ao player (caso o componente exista antes do player Start)
-            if (!_subscribedToPlayer)
-            {
-                _player = FindFirstObjectByType<PlayerRailRider>();
-                if (_player != null)
-                {
-                    _player.OnTileEntered += HandleTileEntered;
-                    _subscribedToPlayer = true;
-                }
-            }
-
-            // Aplica auto-follow no tile inicial (OnTileEntered não dispara pra ele).
-            if (_autoFollowCritical && !_initialAutoApplied && _player != null && _player.CurrentTile != null)
-            {
-                AutoFollowCritical(_player.CurrentTile);
-                _initialAutoApplied = true;
-            }
-            if (!_autoFollowCritical) _initialAutoApplied = false;
-        }
-
-        void OnDestroy()
-        {
-            if (_player != null) _player.OnTileEntered -= HandleTileEntered;
-        }
-
-        void HandleTileEntered(TrackTile newTile)
-        {
-            if (_autoFollowCritical) AutoFollowCritical(newTile);
-        }
-
-        /// <summary>
-        /// Ajusta o switch do tile atual pra apontar à lane do critical path
-        /// alcançável na próxima row. Preferência: critical lane via offset
-        /// {0, -1, +1}. Fallback: qualquer tile populado em {0, -1, +1}.
-        /// </summary>
-        void AutoFollowCritical(TrackTile currentTile)
-        {
-            if (currentTile == null || currentTile.Switch == null) return;
-            var rm = RailManager.Instance;
-            if (rm == null) return;
-            var nextRow = rm.GetRow(currentTile.Row + 1);
-            if (nextRow == null) return;
-
-            int chosenOffset = FindBestOffset(nextRow, currentTile.Lane);
-            currentTile.Switch.SetState((SwitchState)chosenOffset);
-        }
-
-        static int FindBestOffset(RowData nextRow, int currentLane)
-        {
-            // Preferência: Middle, depois Left, depois Right.
-            int[] offsets = { 0, -1, 1 };
-
-            // 1ª passada: critical path (sem hazard por design).
-            foreach (var off in offsets)
-            {
-                int target = currentLane + off;
-                if (nextRow.HasTile(target) && nextRow.IsCriticalLane(target))
-                    return off;
-            }
-
-            // 2ª passada: qualquer tile populado (decoy — pode ter hazard, paciência).
-            foreach (var off in offsets)
-            {
-                int target = currentLane + off;
-                if (nextRow.HasTile(target)) return off;
-            }
-
-            return 0; // desiste (player provavelmente dead-end)
         }
 
         void OnGUI()
@@ -150,8 +76,14 @@ namespace RailSwitchMVP.Core
         void DrawAutoTestSection()
         {
             GUILayout.Label("Auto-test", _sectionStyle);
-            _autoFollowCritical = GUILayout.Toggle(_autoFollowCritical, " Auto-follow critical path");
-            if (_autoFollowCritical)
+            var auto = AutoCriticalFollower.Instance;
+            if (auto == null)
+            {
+                GUILayout.Label("(AutoCriticalFollower not in scene)", _hintStyle);
+                return;
+            }
+            auto.DebugForceActive = GUILayout.Toggle(auto.DebugForceActive, " Auto-follow critical path (debug)");
+            if (auto.IsActive)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
         }
 
@@ -187,6 +119,7 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Grant Lane Preview")) pum.GrantLanePreview(pum.LanePreviewDefaultTiles);
             if (GUILayout.Button("Grant Coin Radar")) pum.GrantCoinRadar(pum.CoinRadarDefaultTiles);
             if (GUILayout.Button("Grant Teleport")) pum.GrantTeleport(pum.TeleportDefaultTiles);
+            if (GUILayout.Button("Grant AutoFollow")) pum.GrantAutoCriticalFollow(pum.AutoCriticalFollowDefaultTiles);
 
             GUILayout.Label(
                 $"Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
@@ -195,7 +128,7 @@ namespace RailSwitchMVP.Core
                 $"2xCoins {pum.DoubleCoinsTilesRemaining} | Ghost {pum.GhostTilesRemaining} | Preview {pum.LanePreviewTilesRemaining}",
                 _hintStyle);
             GUILayout.Label(
-                $"Radar {pum.CoinRadarTilesRemaining} | Teleport {pum.TeleportTilesRemaining}",
+                $"Radar {pum.CoinRadarTilesRemaining} | Teleport {pum.TeleportTilesRemaining} | AutoFollow {pum.AutoCriticalFollowTilesRemaining}",
                 _hintStyle);
         }
 
