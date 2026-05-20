@@ -170,6 +170,36 @@ namespace RailSwitchMVP.Core
             _rows[rowIndex] = row;
             highestSpawnedRow = Mathf.Max(highestSpawnedRow, rowIndex);
             if (rowIndex < lowestSpawnedRow) lowestSpawnedRow = rowIndex;
+
+            // Atualiza conectividade da row anterior (agora que sabemos
+            // quais lanes estão populadas na row N+1).
+            UpdateConnectivityForPreviousRow(rowIndex, row);
+        }
+
+        /// <summary>
+        /// Para cada tile da row (rowIndex - 1), checa se ao menos 1 das lanes
+        /// vizinhas (±1) tem tile na newRow. Atualiza tile.SetConnected(...).
+        /// Player vê de longe quais decoys são dead-end garantido.
+        /// </summary>
+        void UpdateConnectivityForPreviousRow(int newRowIndex, RowData newRow)
+        {
+            var prevRow = GetRow(newRowIndex - 1);
+            if (prevRow == null || newRow == null) return;
+
+            for (int L = 0; L < prevRow.Tiles.Length; L++)
+            {
+                var tile = prevRow.Tiles[L];
+                if (tile == null) continue;
+
+                bool connected = false;
+                for (int off = -1; off <= 1; off++)
+                {
+                    int target = L + off;
+                    if (target < 0 || target >= newRow.Tiles.Length) continue;
+                    if (newRow.Tiles[target] != null) { connected = true; break; }
+                }
+                tile.SetConnected(connected);
+            }
         }
 
         void DespawnRow(int rowIndex)

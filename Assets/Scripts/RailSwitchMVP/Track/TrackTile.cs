@@ -31,6 +31,19 @@ namespace RailSwitchMVP.Track
         [Tooltip("Este tile faz parte do critical path?")]
         public bool IsOnCriticalPath;
 
+        [Tooltip("Há ao menos 1 lane vizinha (±1) com tile na próxima row?\n" +
+            "Setado pelo RailManager quando a row N+1 é gerada.\n" +
+            "Default true (assume conectado até ser provado o contrário).")]
+        public bool IsConnected = true;
+
+        [Header("Connectivity visuals (Idea 2)")]
+        [Tooltip("MeshRenderer do trilho (Mesh child) cujo material é trocado conforme conectividade.")]
+        [SerializeField] private MeshRenderer trackRenderer;
+        [Tooltip("Material aplicado quando IsConnected = true. Sugerido verde.")]
+        [SerializeField] private Material connectedMaterial;
+        [Tooltip("Material aplicado quando IsConnected = false (dead-end garantido). Sugerido vermelho.")]
+        [SerializeField] private Material disconnectedMaterial;
+
         [Header("Components")]
         public SwitchController Switch;
         public CoinSpawner Coins;
@@ -65,6 +78,20 @@ namespace RailSwitchMVP.Track
         }
 
         /// <summary>
+        /// Atualiza a flag IsConnected + troca o material do trilho.
+        /// Chamado pelo RailManager quando a row N+1 é gerada (atualiza
+        /// row N) e quando este tile é spawnado (default true até prova
+        /// em contrário).
+        /// </summary>
+        public void SetConnected(bool connected)
+        {
+            IsConnected = connected;
+            if (trackRenderer == null) return;
+            var mat = connected ? connectedMaterial : disconnectedMaterial;
+            if (mat != null) trackRenderer.sharedMaterial = mat;
+        }
+
+        /// <summary>
         /// Limpa estado dinâmico antes de reutilizar o tile do pool. Destrói
         /// todos os children que NÃO vieram do prefab original (coins,
         /// obstáculos, power-ups, warning icons), reseta o switch pro Middle,
@@ -75,8 +102,9 @@ namespace RailSwitchMVP.Track
             // Switch volta pro centro
             if (Switch != null) Switch.SetState(SwitchState.Middle);
 
-            // Reset flags
+            // Reset flags + connectivity default
             IsOnCriticalPath = false;
+            SetConnected(true);
 
             // Destroi children dinâmicos. Se _initialChildren é null (primeira
             // ativação, Awake ainda não rodou), nada a fazer.
