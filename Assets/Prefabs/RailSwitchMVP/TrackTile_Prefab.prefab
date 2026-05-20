@@ -232,6 +232,10 @@ MonoBehaviour:
   StartPoint: {fileID: 2323621104240423797}
   EndPoint: {fileID: 1920192248283590359}
   IsOnCriticalPath: 1
+  IsConnected: 1
+  connectivityRenderer: {fileID: 7137797340100869329}
+  connectedMaterial: {fileID: 2100000, guid: f2d018e3e41580940b7b605259f1da57, type: 2}
+  disconnectedMaterial: {fileID: 2100000, guid: 33954b63cd7af7a4eb94faf67854b27d, type: 2}
   Switch: {fileID: 5560036018871329764}
   Coins: {fileID: 4301760965809135803}
   Obstacles: {fileID: 0}
