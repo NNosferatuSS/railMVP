@@ -15,6 +15,9 @@ MonoBehaviour:
   laneSpacing: 2.5
   trackLength: 10
   rowGap: 2
+  globalMaxLanes: 9
+  warmupRowCount: 2
+  warmupSpeedMultiplier: 0.5
   rowsAhead: 12
   rowsBehind: 2
   cameraTilt: 60

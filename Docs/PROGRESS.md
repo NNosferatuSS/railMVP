@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-20 (3 ideas implementadas: Auto-follow PU, trilhos coloridos, warmup + countdown)
+**Última atualização:** 2026-05-20 (sessão grande — 3 ideas + PostMVP2.5 obstáculos + PostMVP2.4 pickups + D high score, tudo commitado e pushado)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -39,11 +39,10 @@ Detalhes em `Docs/PostMVP2_4_3Ideas.md`. Resumo:
 - F1 → Grant AutoFollow → 5 tiles auto-pilot.
 - Tudo da PostMVP2.3 também (TimeFreeze Space, Teleport Shift+arrow).
 
-**3. Próximo trabalho — discutir:**
-   - Validar 3 ideas + ajustar tunables.
-   - PostMVP2.5 backlog: SpeedUp zone, Lane Swap, Vortex safe (obstáculos novos).
-   - PostMVP2.4 ainda em backlog: prefabs de pickup organicamente coletáveis pros active/passive items.
-   - Polish: audio, modelos visuais, mobile input.
+**3. Próximo trabalho — sugestões pra escolher:**
+   Roadmap restante (já tudo na lista descartado pelo user): audio (C),
+   polish visual (E), mobile (F), animações UI (G). Nada urgente.
+   Pode parar aqui e jogar pra ver feel, ou pegar algum desses.
 
 ---
 
@@ -113,34 +112,41 @@ Ordem combinada com user:
   - DebugPanel seção "Active item slot" (Grant + Use buttons).
   - Falha não consome: Teleport sem direção, lane vazia, slot vazio = no-op silencioso.
   - Falta: setup na Editor (4 GameObjects + 1 TMP_Text). Ver `Docs/PostMVP2_3_ActiveItems.md`.
-- **PostMVP2.4:** Prefabs de pickup pros active items (TimeFreeze + Teleport) — coleta orgânica.
-- **PostMVP2.5:** New obstacles (SpeedUp, Lane Swap, Vortex safe).
+- ✅ **PostMVP2.4:** Prefabs scripts pra TimeFreeze + Teleport — commit `a4956a4`.
+  - `PowerUps/TimeFreezePickup.cs` (coloca no slot).
+  - `PowerUps/TeleportPickup.cs` (chama GrantTeleport tile-based).
+  - Prefabs `PowerUp_TimeFreeze` + `PowerUp_Teleport` criados pelo user.
+- ✅ **PostMVP2.5:** Novos obstáculos — commit `fd37105`.
+  - SpeedUp Zone (debuff: +50% speed por 6 tiles, stack adiciona).
+  - Lane Swap (debuff: inverte ←/→ por 2 tiles, stack reseta).
+  - Vortex (instant: redireciona switch pra direção válida, modes
+    OppositeOfSwitch ou PureRandom).
+  - DifficultyConfig populado com curva escalada (Tier 0 = 0%, Tier 5 = 20/15/15%).
+  - Scripts + prefabs + spawn paths no generator. HUD com indicadores.
+- ✅ **Idea 1, 2, 3 (3 ideas):** commits `0ac24a2`, `3f63cb8` + fixes `dbbb78f` + `12a0ad1`, `922fdf2`.
+  - Idea 3: Auto-follow critical path como power-up tile-based (default 5 tiles).
+  - Idea 2: Trilhos coloridos por switch state (Arrow verde/vermelho em
+    tempo real conforme switch aponta pra tile/vazio na próxima row).
+  - Idea 1: Warmup 5 rows single-center em 0.5x speed + countdown
+    "3-2-1-GO!" + input liberado pra player errar/aprender. Commit
+    `1ab5ce0` removeu o input lock após primeiro feedback.
+- ✅ **D — High Score persistente:** commit `a060d64`.
+  - `HighScoreManager` singleton, 4 bests salvos via PlayerPrefs
+    (dist/coins/tier/time).
+  - `GameOverController` mostra "Current ★ (Best: X)" inline + opcional
+    NewRecordText overlay "★ NEW RECORD! Distance Coins...".
+  - DebugPanel button "Reset Best Scores".
 
 Ver follow-ups originais em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
 
-### Polish de identidade
-- ✅ **Lethal vs Barrier mecanicamente distintos**: Shield protege APENAS
-  contra Barrier. Lethal mata sempre — player tem que evitar via switch.
-  Dá identidade ao Shield (não é "free pass universal").
-- **UI warning** acima de decoys com hazard (ícone ⚠ flutuante).
+### Pendências descartadas pelo user (não fazer agora)
+- **C — Audio**: música + SFX.
+- **E — Polish visual**: modelos no lugar de primitivos.
+- **F — Mobile**: TouchDirectionalInput.
+- **G — Animações UI**: fade-in Game Over, pulse nos ícones.
 
-### Apresentação
-- **Audio**: música ambiente + SFX (switch, coin, shield absorb, death, etc.).
-- **Modelos visuais**: trocar cubos/esferas por modelos de verdade.
-- **Animações de UI**: fade-in Game Over, pulse nos ícones de power-up.
-
-### Persistência
-- **High score** persistente via `PlayerPrefs`.
-- **Settings** (audio volume, key rebind).
-
-### Performance hardening
-- **Pooling** de tiles, obstáculos, power-ups e moedas (reduz GC alloc).
-- **Buffer reuse** no generator.
-
-### Mecânica nova
-- **Mais tipos de obstáculo**: móvel, oscilante.
-- **Mais power-ups**: 2x coins, ghost-mode, jump (esquiva vertical).
-- **Mobile / touch input**: `TouchDirectionalInput` (interface já existe).
+User pode pegar qualquer um se quiser depois. Mas próximo passo provavelmente
+é **playtesting puro** (jogar bastante) pra calibrar tunables.
 
 ---
 
