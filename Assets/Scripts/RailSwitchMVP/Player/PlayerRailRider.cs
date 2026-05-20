@@ -99,8 +99,9 @@ namespace RailSwitchMVP.Player
 
         void Update()
         {
-            // Game Over → trava o player.
-            if (GameManager.Instance != null && !GameManager.Instance.IsPlaying)
+            // Game Over → trava o player. Warmup permite movimento (player anda
+            // através dos warmup tiles), só GameOver trava.
+            if (GameManager.Instance != null && !GameManager.Instance.IsActive)
                 return;
 
             if (difficulty != null)
@@ -109,6 +110,10 @@ namespace RailSwitchMVP.Player
                 float multiplier = PowerUpManager.Instance != null
                     ? PowerUpManager.Instance.SpeedMultiplier
                     : 1f;
+                // Warmup speed reduction (Idea 1): 0.5x por default. Configurável em
+                // RailGenConfig.warmupSpeedMultiplier.
+                if (GameManager.Instance != null && GameManager.Instance.IsWarmup && config != null)
+                    multiplier *= config.warmupSpeedMultiplier;
                 currentSpeed = baseSpeed * multiplier;
             }
 

@@ -17,6 +17,10 @@ namespace RailSwitchMVP.InputSys
             var kb = Keyboard.current;
             if (kb == null) return 0;
 
+            // Durante warmup, input desabilitado (switch lockado em Middle).
+            if (RailSwitchMVP.Core.GameManager.Instance != null && RailSwitchMVP.Core.GameManager.Instance.IsWarmup)
+                return 0;
+
             // Quando Shift é segurado, as arrows são RESERVADAS pra active items
             // (Teleport direcional via ActiveItemInputHandler). Não nudga switch.
             if (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed) return 0;

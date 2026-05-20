@@ -44,6 +44,8 @@ namespace RailSwitchMVP.Core
         void Update()
         {
             if (!isRunning) return;
+            // Não conta tempo durante warmup (jogo não começou ainda).
+            if (GameManager.Instance != null && GameManager.Instance.IsWarmup) return;
             elapsedSeconds += Time.deltaTime;
         }
 

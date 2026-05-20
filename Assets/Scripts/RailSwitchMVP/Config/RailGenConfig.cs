@@ -25,6 +25,16 @@ namespace RailSwitchMVP.Config
             "Deve ser >= o maxLanes do tier mais alto.")]
         public int globalMaxLanes = 9;
 
+        [Header("Warmup (Idea 1)")]
+        [Tooltip("Quantas rows iniciais são warmup (single lane, sem hazards/coins/power-ups). " +
+            "Player atravessa elas em modo \"calmaria\" antes do jogo real começar.")]
+        [Range(0, 20)]
+        public int warmupRowCount = 5;
+
+        [Tooltip("Multiplicador de velocidade durante o warmup. 0.5 = metade do tier 0 — calmo.")]
+        [Range(0.1f, 1f)]
+        public float warmupSpeedMultiplier = 0.5f;
+
         [Header("Streaming")]
         [Tooltip("Quantas linhas spawnar à frente do player")]
         public int rowsAhead = 12;

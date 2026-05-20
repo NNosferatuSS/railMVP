@@ -89,6 +89,15 @@ namespace RailSwitchMVP.Core
             _lastRawDistance = distance;
             distanceTraveled = distance - _distanceOffset;
 
+            // Durante warmup, distância NÃO avança tiers — re-âncora offset
+            // pra que distance "lógica" comece em 0 quando o jogo iniciar.
+            if (GameManager.Instance != null && GameManager.Instance.IsWarmup)
+            {
+                _distanceOffset = distance;
+                distanceTraveled = 0f;
+                return;
+            }
+
             if (config == null || config.tiers == null) return;
 
             while (currentTierIndex + 1 < config.tiers.Count

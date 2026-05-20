@@ -163,14 +163,23 @@ namespace RailSwitchMVP.UI
 
             if (player != null && distanceText != null)
             {
-                float raw = player.DistanceTraveled;
-                if (!_distanceBaselineSet)
+                bool inWarmup = GameManager.Instance != null && GameManager.Instance.IsWarmup;
+                if (inWarmup)
                 {
-                    _distanceBaseline = raw;
-                    _distanceBaselineSet = true;
+                    distanceText.text = "Dist 0 m";
+                    // Não captura baseline ainda — espera warmup terminar.
                 }
-                int meters = Mathf.Max(0, Mathf.FloorToInt(raw - _distanceBaseline));
-                distanceText.text = $"Dist {meters} m";
+                else
+                {
+                    float raw = player.DistanceTraveled;
+                    if (!_distanceBaselineSet)
+                    {
+                        _distanceBaseline = raw;
+                        _distanceBaselineSet = true;
+                    }
+                    int meters = Mathf.Max(0, Mathf.FloorToInt(raw - _distanceBaseline));
+                    distanceText.text = $"Dist {meters} m";
+                }
             }
         }
 

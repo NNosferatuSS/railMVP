@@ -18,7 +18,8 @@ namespace RailSwitchMVP.InputSys
     {
         void Update()
         {
-            if (GameManager.Instance != null && !GameManager.Instance.IsPlaying) return;
+            // Disable durante warmup (no items, no teleport ainda) e durante Game Over.
+            if (GameManager.Instance != null && !GameManager.Instance.IsScoring) return;
 
             var kb = Keyboard.current;
             if (kb == null) return;

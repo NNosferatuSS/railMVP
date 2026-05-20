@@ -125,6 +125,12 @@ namespace RailSwitchMVP.Core
             }
 
             int globalMax = Mathf.Max(1, config.globalMaxLanes);
+
+            // Idea 1 — Warmup rows: primeiras N rows são single-lane center, sem
+            // drift, sem decoys. Resto da lógica é skip.
+            if (rowIndex < config.warmupRowCount)
+                return PlanWarmupRow(rowIndex, globalMax);
+
             int tierMax = Mathf.Clamp(tier.maxLanes, 1, globalMax);
 
             // Range CANÔNICO de lanes deste tier: subset centrado em globalMax.
@@ -316,13 +322,19 @@ namespace RailSwitchMVP.Core
                 tile.MaxLanesAtSpawn = plan.GlobalMax;
                 tile.IsOnCriticalPath = criticalSet.Contains(L);
 
+                // Idea 1 — warmup row: tile center sem switch state aleatório
+                // (mantém Middle), sem coins/hazards/power-ups.
+                bool isWarmupRow = rowIndex < config.warmupRowCount;
+
                 if (tile.Switch != null)
                 {
-                    var randomState = (SwitchState)Random.Range(-1, 2);
-                    tile.Switch.SetState(randomState);
+                    var initialState = isWarmupRow
+                        ? SwitchState.Middle
+                        : (SwitchState)Random.Range(-1, 2);
+                    tile.Switch.SetState(initialState);
                 }
 
-                if (tile.Coins != null)
+                if (!isWarmupRow && tile.Coins != null)
                 {
                     int coinCount = tile.IsOnCriticalPath
                         ? tier.coinsPerCriticalTile
@@ -332,10 +344,9 @@ namespace RailSwitchMVP.Core
                 }
 
                 // Hazards (Iter 1 + Iter 4): só em DECOYS. Critical path sempre limpo.
-                // Ordem de rolagem: Lethal → (se não) Barrier → (se nada) PowerUp.
-                // Tile recebe NO MÁXIMO um desses três.
+                // Warmup rows pulam tudo (early return abaixo).
                 bool decoyHasHazard = false;
-                if (!tile.IsOnCriticalPath && tile.Obstacles != null)
+                if (!isWarmupRow && !tile.IsOnCriticalPath && tile.Obstacles != null)
                 {
                     // Lethal — Shield NÃO ajuda, player tem que evitar.
                     if (lethalObstaclePrefab != null
@@ -359,7 +370,8 @@ namespace RailSwitchMVP.Core
 
                 // Power-ups (MVP2 Iter 4): em critical e decoy, com chances diferentes.
                 // Tile com hazard NÃO recebe power-up (regra de design).
-                if (!decoyHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
+                // Warmup rows nunca recebem.
+                if (!isWarmupRow && !decoyHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
                 {
                     float chance = tile.IsOnCriticalPath
                         ? tier.powerUpChanceOnCritical
@@ -376,6 +388,40 @@ namespace RailSwitchMVP.Core
             }
 
             return row;
+        }
+
+        /// <summary>
+        /// Planeja uma row de WARMUP: single tile no centro do grid, sem
+        /// hazards/coins/power-ups. Usado pelas primeiras N rows do jogo
+        /// pra dar tempo do player se orientar.
+        /// Atualiza previousCriticalLanes pro centro pra que a primeira row
+        /// procedural depois do warmup drifte coerentemente.
+        /// </summary>
+        RowPlan PlanWarmupRow(int rowIndex, int globalMax)
+        {
+            int centerLane = globalMax / 2;
+            var lanePopulated = new bool[globalMax];
+            lanePopulated[centerLane] = true;
+
+            // Anchor critical no centro pra continuidade pós-warmup.
+            previousCriticalLanes.Clear();
+            previousCriticalLanes.Add(centerLane);
+            // Reset transição (se acaso o reset rolou durante warmup).
+            transitionAnchorLane = -1;
+
+            return new RowPlan
+            {
+                RowIndex = rowIndex,
+                GlobalMax = globalMax,
+                CanonLower = centerLane,
+                CanonUpper = centerLane,
+                ActiveLower = centerLane,
+                ActiveUpper = centerLane,
+                LanePopulated = lanePopulated,
+                CriticalLanes = new[] { centerLane },
+                TotalTiles = 1,
+                WasInTransition = false,
+            };
         }
 
         /// <summary>

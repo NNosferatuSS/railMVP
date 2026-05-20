@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace RailSwitchMVP.Core
 {
-    public enum GameState { Playing, GameOver }
+    public enum GameState { Warmup, Playing, GameOver }
 
     public enum GameOverReason
     {
@@ -24,9 +24,18 @@ namespace RailSwitchMVP.Core
 
         public GameState State => state;
         public GameOverReason LastReason => lastReason;
+
+        /// <summary>True quando state == Playing (gameplay normal).</summary>
         public bool IsPlaying => state == GameState.Playing;
+        /// <summary>True em Warmup OU Playing (= NÃO game over). Use pra "player ainda controla?".</summary>
+        public bool IsActive => state != GameState.GameOver;
+        /// <summary>True só quando state == Playing (= scoring/progression contam).</summary>
+        public bool IsScoring => state == GameState.Playing;
+        /// <summary>True durante a sequência de warmup do início.</summary>
+        public bool IsWarmup => state == GameState.Warmup;
 
         public event System.Action<GameOverReason> OnGameOver;
+        public event System.Action OnWarmupEnded;
 
         void Awake()
         {
@@ -36,7 +45,19 @@ namespace RailSwitchMVP.Core
                 return;
             }
             Instance = this;
+            state = GameState.Warmup; // jogo começa em Warmup; transita pra Playing após countdown.
+        }
+
+        /// <summary>
+        /// Termina a fase de Warmup. Chamado pelo WarmupController quando o
+        /// countdown acaba (GO!). State vira Playing.
+        /// </summary>
+        public void EndWarmup()
+        {
+            if (state != GameState.Warmup) return;
             state = GameState.Playing;
+            Debug.Log("[GameManager] Warmup ended — GO!");
+            OnWarmupEnded?.Invoke();
         }
 
         void OnDestroy()
