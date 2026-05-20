@@ -110,15 +110,10 @@ namespace RailSwitchMVP.Track
         /// </summary>
         public void UpdateConnectivityVisual()
         {
-            // Durante warmup, força verde (switch lockado em Middle, próxima row
-            // sempre tem center tile, então conectado por design).
-            if (GameManager.Instance != null && GameManager.Instance.IsWarmup)
-            {
-                ApplyConnectivityMaterial(true);
-                IsConnected = true;
-                return;
-            }
-
+            // Agora que warmup permite input livre, cor reflete a switch state
+            // real (player aperta Left em warmup → próxima warmup tem só center →
+            // Arrow fica VERMELHO avisando "vai dar dead-end aí"). Aprendizado
+            // por tentativa-e-erro.
             bool connected = ComputeConnectedFromSwitch();
             IsConnected = connected;
             ApplyConnectivityMaterial(connected);
