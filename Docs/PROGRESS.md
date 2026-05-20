@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-20 (sessão grande — 3 ideas + PostMVP2.5 obstáculos + PostMVP2.4 pickups + D high score, tudo commitado e pushado)
+**Última atualização:** 2026-05-20 (final do dia — sessão grande: 3 ideas + PostMVP2.5 + PostMVP2.4 + D high score + debug spawn buttons + prefab rename)
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -14,35 +14,40 @@
 
 ## 🟢 Próxima sessão: começe AQUI
 
-**Estado:** 3 ideas novas (Auto-follow PU + Trilhos coloridos + Warmup) implementadas.
-Setup pendente na Editor. Pendências da sessão anterior (PostMVP2.3 setup
-HUD) ainda valem.
+**Estado: TUDO implementado, prefabs criados e organizados, debug spawn buttons
+no painel pra testar tudo facilmente. Falta apenas playtesting pra calibrar
+feel e descobrir bugs sutis.**
 
-### Passos da próxima sessão
+### Resumo do que está pronto
 
-**1. Setup pendente — junte tudo (~15-20 min):**
-
-Detalhes em `Docs/PostMVP2_4_3Ideas.md`. Resumo:
-
-| Componente | Setup mínimo |
+| Sistema | Status |
 |---|---|
-| AutoFollow PU | `_AutoCriticalFollower` GameObject + `AutoFollowText` TMP_Text + ref no HUD |
-| Trilhos coloridos | 2 materiais (verde, vermelho) + atribuir no `TrackTile_Prefab` (Mesh ref + 2 materials) |
-| Warmup + countdown | `_WarmupController` GameObject + `CountdownText` TMP_Text (font ~160pt, centro) |
-| **Pendente PostMVP2.3** | `TeleportText` + `ActiveItemText` se ainda faltavam |
+| MVP1 core + MVP2 (obstacles/power-ups/HUD/Game Over) | ✅ Validado (tags) |
+| Post-MVP2 polish (UI warning, pooling, debug tool, idea 1/2/3, ghost flyover) | ✅ Validado pelo user |
+| PostMVP2.5 obstáculos (SpeedUp, LaneSwap, Vortex) | ⏳ Implementado, falta playtest |
+| PostMVP2.4 pickup scripts (TimeFreeze, Teleport, AutoFollow) | ⏳ Implementado + prefabs criados |
+| D — High score persistente | ⏳ Implementado, falta validar persistência entre sessões |
+| Debug spawn buttons (botão Spawn ao lado de cada Grant) | ✅ Implementado, user atribuiu prefabs |
+| Debug panel posição (lado direito) | ✅ |
 
-**2. Validar (~15 min):**
-- Play. Player deve estar em warmup: 5 rows single-center em 0.5x speed.
-- Setas/Space não funcionam. Distance "0 m". Time fixo.
-- Última warmup row → countdown "3" "2" "1" "GO!" no centro.
-- Após GO, geração procedural normal. Trilhos coloridos (verde/vermelho).
-- F1 → Grant AutoFollow → 5 tiles auto-pilot.
-- Tudo da PostMVP2.3 também (TimeFreeze Space, Teleport Shift+arrow).
+### Prefabs no repo (organizados PowerUp_/Debuff_)
 
-**3. Próximo trabalho — sugestões pra escolher:**
-   Roadmap restante (já tudo na lista descartado pelo user): audio (C),
-   polish visual (E), mobile (F), animações UI (G). Nada urgente.
-   Pode parar aqui e jogar pra ver feel, ou pegar algum desses.
+- PowerUp_Shield, PowerUp_SlowDown (era "SlowDown"), PowerUp_Magnet, PowerUp_DifficultyReset
+- PowerUp_DoubleCoins (era "2XCoins"), PowerUp_Ghost, PowerUp_LanePreview, PowerUp_CoinRadar
+- PowerUp_Teleport, PowerUp_TimeFreeze, PowerUp_AutoFollow (novo)
+- Obstacle_Lethal, Obstacle_Barrier (era "Barrier")
+- Debuff_SpeedUp_Zone, Debuff_LaneSwap (era "LaneSwap"), Debuff_Vortex
+
+Atribuídos nos slots do `_DebugPanel` pra os botões Spawn funcionarem.
+
+### Próximas direções (descartadas pelo user agora, podem voltar)
+
+- **C** — Audio (música + SFX).
+- **E** — Polish visual (modelos vs primitives).
+- **F** — Mobile / TouchDirectionalInput.
+- **G** — Animações UI (fade-in, pulse).
+
+Nenhuma feature nova pendente. Decide na próxima sessão.
 
 ---
 

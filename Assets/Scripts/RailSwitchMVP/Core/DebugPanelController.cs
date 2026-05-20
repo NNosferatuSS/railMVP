@@ -32,6 +32,29 @@ namespace RailSwitchMVP.Core
             "Right anchor: x = Screen.width - panelSize.x - panelPosition.x.")]
         public Vector2 panelPosition = new Vector2(10f, 50f);
 
+        [Header("Debug spawn — pickup prefabs (arraste pro botão Spawn funcionar)")]
+        [SerializeField] private GameObject shieldPickupPrefab;
+        [SerializeField] private GameObject slowDownPickupPrefab;
+        [SerializeField] private GameObject magnetPickupPrefab;
+        [SerializeField] private GameObject difficultyResetPickupPrefab;
+        [SerializeField] private GameObject doubleCoinsPickupPrefab;
+        [SerializeField] private GameObject ghostPickupPrefab;
+        [SerializeField] private GameObject lanePreviewPickupPrefab;
+        [SerializeField] private GameObject coinRadarPickupPrefab;
+        [SerializeField] private GameObject teleportPickupPrefab;
+        [SerializeField] private GameObject autoFollowPickupPrefab;
+        [SerializeField] private GameObject timeFreezePickupPrefab;
+
+        [Header("Debug spawn — hazard prefabs")]
+        [SerializeField] private GameObject lethalObstaclePrefab;
+        [SerializeField] private GameObject barrierObstaclePrefab;
+        [SerializeField] private GameObject speedUpZonePrefab;
+        [SerializeField] private GameObject laneSwapObstaclePrefab;
+        [SerializeField] private GameObject vortexObstaclePrefab;
+
+        [Tooltip("Quantas rows à frente do player o prefab é spawnado nos botões Spawn.")]
+        [SerializeField] private int debugSpawnRowsAhead = 2;
+
         private bool _show;
         private Vector2 _scroll;
         private GUIStyle _sectionStyle;
@@ -137,20 +160,24 @@ namespace RailSwitchMVP.Core
                 GUILayout.Label("(PowerUpManager not in scene)", _hintStyle);
                 return;
             }
-            if (GUILayout.Button("Grant Shield (+1)")) pum.GrantShield();
-            if (GUILayout.Button("Grant SlowDown")) pum.GrantSlowDown(pum.SlowDownDefaultTiles);
-            if (GUILayout.Button("Grant Magnet")) pum.GrantMagnet(pum.MagnetDefaultTiles);
-            if (GUILayout.Button("Grant Difficulty Reset")) pum.GrantDifficultyReset();
-            if (GUILayout.Button("Grant 2x Coins")) pum.GrantDoubleCoins(pum.DoubleCoinsDefaultTiles);
-            if (GUILayout.Button("Grant Ghost")) pum.GrantGhost(pum.GhostDefaultTiles);
-            if (GUILayout.Button("Grant Lane Preview")) pum.GrantLanePreview(pum.LanePreviewDefaultTiles);
-            if (GUILayout.Button("Grant Coin Radar")) pum.GrantCoinRadar(pum.CoinRadarDefaultTiles);
-            if (GUILayout.Button("Grant Teleport")) pum.GrantTeleport(pum.TeleportDefaultTiles);
-            if (GUILayout.Button("Grant AutoFollow")) pum.GrantAutoCriticalFollow(pum.AutoCriticalFollowDefaultTiles);
+            GrantSpawnRow("Shield (+1)",       () => pum.GrantShield(), shieldPickupPrefab, null);
+            GrantSpawnRow("SlowDown",          () => pum.GrantSlowDown(pum.SlowDownDefaultTiles), slowDownPickupPrefab, null);
+            GrantSpawnRow("Magnet",            () => pum.GrantMagnet(pum.MagnetDefaultTiles), magnetPickupPrefab, null);
+            GrantSpawnRow("Difficulty Reset",  () => pum.GrantDifficultyReset(), difficultyResetPickupPrefab, null);
+            GrantSpawnRow("2x Coins",          () => pum.GrantDoubleCoins(pum.DoubleCoinsDefaultTiles), doubleCoinsPickupPrefab, null);
+            GrantSpawnRow("Ghost",             () => pum.GrantGhost(pum.GhostDefaultTiles), ghostPickupPrefab, null);
+            GrantSpawnRow("Lane Preview",      () => pum.GrantLanePreview(pum.LanePreviewDefaultTiles), lanePreviewPickupPrefab, null);
+            GrantSpawnRow("Coin Radar",        () => pum.GrantCoinRadar(pum.CoinRadarDefaultTiles), coinRadarPickupPrefab, null);
+            GrantSpawnRow("Teleport",          () => pum.GrantTeleport(pum.TeleportDefaultTiles), teleportPickupPrefab, null);
+            GrantSpawnRow("AutoFollow",        () => pum.GrantAutoCriticalFollow(pum.AutoCriticalFollowDefaultTiles), autoFollowPickupPrefab, null);
+            GrantSpawnRow("TimeFreeze",        () => {
+                if (ActiveItemSlot.Instance != null)
+                    ActiveItemSlot.Instance.SetItem(ActiveItemType.TimeFreeze);
+            }, timeFreezePickupPrefab, null);
             GUILayout.Space(4);
             GUILayout.Label("Debuffs (PostMVP2.5)", _hintStyle);
-            if (GUILayout.Button("Grant SpeedUp Debuff")) pum.GrantSpeedUpDebuff(pum.SpeedUpDebuffDefaultTiles);
-            if (GUILayout.Button("Grant LaneSwap Debuff")) pum.GrantLaneSwapDebuff(pum.LaneSwapDebuffDefaultTiles);
+            GrantSpawnRow("SpeedUp Debuff",    () => pum.GrantSpeedUpDebuff(pum.SpeedUpDebuffDefaultTiles), speedUpZonePrefab, null);
+            GrantSpawnRow("LaneSwap Debuff",   () => pum.GrantLaneSwapDebuff(pum.LaneSwapDebuffDefaultTiles), laneSwapObstaclePrefab, null);
 
             GUILayout.Label(
                 $"Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
@@ -212,19 +239,92 @@ namespace RailSwitchMVP.Core
 
         void DrawSpawnSection()
         {
-            GUILayout.Label("Spawn in player's tile", _sectionStyle);
+            GUILayout.Label("Spawn hazards ahead", _sectionStyle);
+            GrantSpawnRow("Lethal", null, lethalObstaclePrefab, null);
+            GrantSpawnRow("Barrier", null, barrierObstaclePrefab, null);
+            GrantSpawnRow("SpeedUp", null, speedUpZonePrefab, null);
+            GrantSpawnRow("LaneSwap", null, laneSwapObstaclePrefab, null);
+            GrantSpawnRow("Vortex", null, vortexObstaclePrefab, null);
+        }
+
+        // Renderiza linha [Grant?] [Spawn]. Se grantAction == null, mostra
+        // só Spawn (caso de hazards sem Grant direto). Se prefab == null,
+        // botão Spawn fica desabilitado.
+        void GrantSpawnRow(string label, System.Action grantAction, GameObject prefab, string spawnLabel)
+        {
+            GUILayout.BeginHorizontal();
+            if (grantAction != null)
+            {
+                if (GUILayout.Button($"Grant {label}", GUILayout.MaxWidth(140)))
+                    grantAction();
+            }
+            else
+            {
+                GUILayout.Label(label, GUILayout.MaxWidth(140));
+            }
+            GUI.enabled = prefab != null;
+            if (GUILayout.Button(spawnLabel ?? "Spawn", GUILayout.MaxWidth(80)))
+                SpawnPrefabAhead(prefab);
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Instancia o prefab em N rows à frente do player (default 2),
+        /// na lane do player se houver tile, senão na lane vizinha mais próxima.
+        /// Posicionado em altura padrão (0.8 — mesmo do PowerUpSpawner).
+        /// </summary>
+        void SpawnPrefabAhead(GameObject prefab)
+        {
+            if (prefab == null) return;
             var player = FindFirstObjectByType<PlayerRailRider>();
             if (player == null || player.CurrentTile == null)
             {
-                GUILayout.Label("(no player or current tile)", _hintStyle);
+                Debug.LogWarning("[DebugPanel] Player ou CurrentTile null — spawn cancelado.");
                 return;
             }
-            var tile = player.CurrentTile;
-            GUILayout.Label($"Current tile: R{tile.Row} L{tile.Lane}", _hintStyle);
 
-            // Spawn manual via Generator's prefab list. Hook detalhado vem depois.
-            // Por enquanto, instrução rápida: você pode arrastar prefabs no
-            // Inspector deste componente pra spawnar via dropdown (futuro).
+            int targetRow = player.CurrentTile.Row + debugSpawnRowsAhead;
+            int targetLane = player.CurrentTile.Lane;
+
+            var rm = RailManager.Instance;
+            if (rm == null) { Debug.LogWarning("[DebugPanel] RailManager null"); return; }
+            var row = rm.GetRow(targetRow);
+            if (row == null)
+            {
+                Debug.LogWarning($"[DebugPanel] Row {targetRow} ainda não spawnada — tente menos rows ahead.");
+                return;
+            }
+
+            // Tenta lane do player primeiro, depois ±1, ±2...
+            TrackTile target = null;
+            for (int dist = 0; dist <= row.Tiles.Length; dist++)
+            {
+                for (int sign = -1; sign <= 1; sign += 2)
+                {
+                    int lane = targetLane + dist * sign;
+                    if (lane < 0 || lane >= row.Tiles.Length) continue;
+                    if (row.Tiles[lane] != null)
+                    {
+                        target = row.Tiles[lane];
+                        targetLane = lane;
+                        break;
+                    }
+                    if (dist == 0) break; // não duplicar lane do meio
+                }
+                if (target != null) break;
+            }
+
+            if (target == null || target.StartPoint == null || target.EndPoint == null)
+            {
+                Debug.LogWarning($"[DebugPanel] Sem tile disponível em R{targetRow} pra spawnar {prefab.name}.");
+                return;
+            }
+
+            Vector3 pos = (target.StartPoint.position + target.EndPoint.position) * 0.5f;
+            pos.y += 0.8f;
+            var spawned = Instantiate(prefab, pos, Quaternion.identity, target.transform);
+            Debug.Log($"[DebugPanel] Spawned {prefab.name} → '{spawned.name}' at R{targetRow} L{targetLane}");
         }
 
         // ============ Styles ============

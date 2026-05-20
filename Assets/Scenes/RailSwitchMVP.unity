@@ -2586,6 +2586,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1836057079}
   - {fileID: 931559465}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5274,8 +5275,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Core.DebugPanelController
   restrictToDebugBuilds: 1
+  anchor: 1
   panelSize: {x: 280, y: 600}
   panelPosition: {x: 10, y: 200}
+  shieldPickupPrefab: {fileID: 9067721033018715970, guid: c01c83651abef7b4f8045617808d1ac1, type: 3}
+  slowDownPickupPrefab: {fileID: 8479788649590680788, guid: 6eb7c3e7230f61f44a0c2388653019c8, type: 3}
+  magnetPickupPrefab: {fileID: 3931090600671693706, guid: bf9fe9785e7b2f94f858c2689f5eeed5, type: 3}
+  difficultyResetPickupPrefab: {fileID: 4229083727844615000, guid: 3a91b72b08960484197b3ff0228f01a4, type: 3}
+  doubleCoinsPickupPrefab: {fileID: 9067721033018715970, guid: b296f25586137c348a2ccdc2d4818cbf, type: 3}
+  ghostPickupPrefab: {fileID: 9067721033018715970, guid: 506d4b1035bcbbf43b90802ffcfb3c40, type: 3}
+  lanePreviewPickupPrefab: {fileID: 9067721033018715970, guid: 0ade5c3822af2814ab308e569817dbc3, type: 3}
+  coinRadarPickupPrefab: {fileID: 9067721033018715970, guid: 544f96d7fd976e9428152807cb4e97e5, type: 3}
+  teleportPickupPrefab: {fileID: 7804696284932687773, guid: dc871c3f0e8a6c0438c4e7a8ad37450c, type: 3}
+  autoFollowPickupPrefab: {fileID: 8896053711572574333, guid: 7c2c1df33425d06478fc79ea0a166d86, type: 3}
+  timeFreezePickupPrefab: {fileID: 8896053711572574333, guid: d8a2f7d54589dbf4584c6d20fddb5c68, type: 3}
+  lethalObstaclePrefab: {fileID: 7361413902271656149, guid: e5110fb5a248d1046b4007f11b1f5784, type: 3}
+  barrierObstaclePrefab: {fileID: 2412918916562019646, guid: cde16ae043a3421408d1ea95cf3ebf80, type: 3}
+  speedUpZonePrefab: {fileID: 4899526961279192106, guid: c8164e03b2f46184d940487ce9880a92, type: 3}
+  laneSwapObstaclePrefab: {fileID: 5967835679655963916, guid: b32cb7e4b386f5b4c90eac90daf61acd, type: 3}
+  vortexObstaclePrefab: {fileID: 3750205584937179755, guid: d11021a80437f4d49a09f43c298e3921, type: 3}
+  debugSpawnRowsAhead: 2
 --- !u!4 &1836057079
 Transform:
   m_ObjectHideFlags: 0
@@ -5284,12 +5303,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1836057077}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 147.95638, y: 323.51523, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 871652453}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1903520834
 GameObject:
@@ -5762,7 +5781,6 @@ SceneRoots:
   - {fileID: 1690743696}
   - {fileID: 189190715}
   - {fileID: 1400017693}
-  - {fileID: 1836057079}
   - {fileID: 896137626}
   - {fileID: 232945865}
   - {fileID: 413901032}
