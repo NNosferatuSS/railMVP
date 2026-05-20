@@ -107,11 +107,13 @@ namespace RailSwitchMVP.Player
             if (difficulty != null)
             {
                 float baseSpeed = difficulty.CurrentTier.playerSpeed;
-                float multiplier = PowerUpManager.Instance != null
-                    ? PowerUpManager.Instance.SpeedMultiplier
-                    : 1f;
-                // Warmup speed reduction (Idea 1): 0.5x por default. Configurável em
-                // RailGenConfig.warmupSpeedMultiplier.
+                float multiplier = 1f;
+                if (PowerUpManager.Instance != null)
+                {
+                    multiplier *= PowerUpManager.Instance.SpeedMultiplier; // SlowDown (≤1)
+                    multiplier *= PowerUpManager.Instance.SpeedUpMultiplier; // SpeedUp debuff (≥1)
+                }
+                // Warmup speed reduction (Idea 1).
                 if (GameManager.Instance != null && GameManager.Instance.IsWarmup && config != null)
                     multiplier *= config.warmupSpeedMultiplier;
                 currentSpeed = baseSpeed * multiplier;

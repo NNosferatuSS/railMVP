@@ -67,6 +67,19 @@ namespace RailSwitchMVP.Config
         [Tooltip("Probabilidade de um tile DECOY receber um power-up. " +
             "Tile com obstáculo OU barreira não recebe power-up.")]
         public float powerUpChanceOnDecoy;
+
+        [Header("Hazards (PostMVP2.5)")]
+        [Range(0f, 1f)]
+        [Tooltip("Chance de SpeedUp zone (acelera player por N tiles, não mata).")]
+        public float speedUpZoneChanceOnDecoy;
+
+        [Range(0f, 1f)]
+        [Tooltip("Chance de Lane Swap (inverte inputs ←/→ por N tiles).")]
+        public float laneSwapChanceOnDecoy;
+
+        [Range(0f, 1f)]
+        [Tooltip("Chance de Vortex (rouba escolha de switch — push pra outra lane válida).")]
+        public float vortexChanceOnDecoy;
     }
 
     /// <summary>

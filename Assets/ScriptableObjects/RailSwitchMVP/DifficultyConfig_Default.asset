@@ -28,6 +28,9 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0
+    laneSwapChanceOnDecoy: 0
+    vortexChanceOnDecoy: 0
   - triggerAtDistance: 100
     maxLanes: 5
     minLanesPerRow: 2
@@ -43,6 +46,9 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0.08
+    laneSwapChanceOnDecoy: 0
+    vortexChanceOnDecoy: 0
   - triggerAtDistance: 250
     maxLanes: 5
     minLanesPerRow: 3
@@ -58,6 +64,9 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0.1
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0.12
+    laneSwapChanceOnDecoy: 0.05
+    vortexChanceOnDecoy: 0
   - triggerAtDistance: 500
     maxLanes: 7
     minLanesPerRow: 3
@@ -73,6 +82,9 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0.2
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0.15
+    laneSwapChanceOnDecoy: 0.10
+    vortexChanceOnDecoy: 0.08
   - triggerAtDistance: 800
     maxLanes: 7
     minLanesPerRow: 4
@@ -88,6 +100,9 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0.25
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0.18
+    laneSwapChanceOnDecoy: 0.12
+    vortexChanceOnDecoy: 0.12
   - triggerAtDistance: 1200
     maxLanes: 9
     minLanesPerRow: 4
@@ -103,3 +118,6 @@ MonoBehaviour:
     barrierChanceOnDecoy: 0.3
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
+    speedUpZoneChanceOnDecoy: 0.2
+    laneSwapChanceOnDecoy: 0.15
+    vortexChanceOnDecoy: 0.15

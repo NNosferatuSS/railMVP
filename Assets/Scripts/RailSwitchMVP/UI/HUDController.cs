@@ -53,6 +53,12 @@ namespace RailSwitchMVP.UI
         [Tooltip("Auto-follow critical path power-up. Mostra 'AutoFollow N' quando ativo.")]
         [SerializeField] private TMP_Text autoFollowText;
 
+        [Header("PostMVP2.5 — Debuffs")]
+        [Tooltip("SpeedUp debuff (obstacle). Mostra '⚡ Fast N' quando ativo.")]
+        [SerializeField] private TMP_Text speedUpDebuffText;
+        [Tooltip("Lane Swap debuff (inputs invertidos). Mostra '↔ Swap N' quando ativo.")]
+        [SerializeField] private TMP_Text laneSwapDebuffText;
+
         [Header("References (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
         [SerializeField] private PlayerRailRider player;
@@ -116,6 +122,8 @@ namespace RailSwitchMVP.UI
             SetPowerUpText(coinRadarText, "", false);
             SetPowerUpText(teleportText, "", false);
             SetPowerUpText(autoFollowText, "", false);
+            SetPowerUpText(speedUpDebuffText, "", false);
+            SetPowerUpText(laneSwapDebuffText, "", false);
         }
 
         void OnDestroy()
@@ -225,6 +233,12 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.AutoCriticalFollow:
                     SetPowerUpText(autoFollowText, $"AutoFollow {value}", true);
                     break;
+                case PowerUpType.SpeedUpDebuff:
+                    SetPowerUpText(speedUpDebuffText, $"⚡ Fast {value}", true);
+                    break;
+                case PowerUpType.LaneSwapDebuff:
+                    SetPowerUpText(laneSwapDebuffText, $"↔ Swap {value}", true);
+                    break;
                 // DifficultyReset é instantâneo — não tem indicador.
             }
         }
@@ -242,6 +256,8 @@ namespace RailSwitchMVP.UI
                 case PowerUpType.CoinRadar: SetPowerUpText(coinRadarText, "", false); break;
                 case PowerUpType.Teleport: SetPowerUpText(teleportText, "", false); break;
                 case PowerUpType.AutoCriticalFollow: SetPowerUpText(autoFollowText, "", false); break;
+                case PowerUpType.SpeedUpDebuff: SetPowerUpText(speedUpDebuffText, "", false); break;
+                case PowerUpType.LaneSwapDebuff: SetPowerUpText(laneSwapDebuffText, "", false); break;
             }
         }
 

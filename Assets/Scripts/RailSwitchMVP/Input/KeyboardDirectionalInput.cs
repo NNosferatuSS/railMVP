@@ -21,14 +21,19 @@ namespace RailSwitchMVP.InputSys
             // (Teleport direcional via ActiveItemInputHandler). Não nudga switch.
             if (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed) return 0;
 
-            // Nota: durante warmup, input é PERMITIDO. Player pode errar no
-            // warmup e morrer — vira micro-tutorial pela tentativa-e-erro.
-
+            int dir = 0;
             if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame)
-                return -1;
-            if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame)
-                return 1;
-            return 0;
+                dir = -1;
+            else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame)
+                dir = 1;
+
+            // LaneSwap debuff: inverte ← / → por N tiles (PostMVP2.5).
+            if (dir != 0 && RailSwitchMVP.Core.PowerUpManager.Instance != null
+                && RailSwitchMVP.Core.PowerUpManager.Instance.HasLaneSwapDebuff)
+            {
+                dir = -dir;
+            }
+            return dir;
         }
     }
 }

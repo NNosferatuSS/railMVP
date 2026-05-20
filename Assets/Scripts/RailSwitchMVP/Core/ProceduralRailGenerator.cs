@@ -48,6 +48,15 @@ namespace RailSwitchMVP.Core
         [Tooltip("Prefab da barreira (MVP2 Iter 4). Absorvida por shield. Se vazio, no-op.")]
         [SerializeField] private GameObject barrierObstaclePrefab;
 
+        [Tooltip("Prefab da SpeedUp zone (PostMVP2.5). Acelera o player por N tiles.")]
+        [SerializeField] private GameObject speedUpZonePrefab;
+
+        [Tooltip("Prefab do Lane Swap (PostMVP2.5). Inverte ←/→ por N tiles.")]
+        [SerializeField] private GameObject laneSwapObstaclePrefab;
+
+        [Tooltip("Prefab do Vortex (PostMVP2.5). Rouba escolha de switch (push pra outra lane).")]
+        [SerializeField] private GameObject vortexObstaclePrefab;
+
         [Tooltip("Array de prefabs de power-up (MVP2 Iter 4). Sugestão: 4 elementos " +
             "(Shield, SlowDown, Magnet, DifficultyReset). Generator escolhe um random " +
             "uniformemente. Array vazio = no-op (power-ups não spawnam).")]
@@ -364,6 +373,30 @@ namespace RailSwitchMVP.Core
                     {
                         var hazardGo = tile.Obstacles.Spawn(barrierObstaclePrefab);
                         AttachWarning(hazardGo, _barrierWarningColor, _barrierWarningSymbol);
+                        decoyHasHazard = true;
+                    }
+                    // SpeedUp zone (PostMVP2.5) — não mata, debuff de velocidade.
+                    else if (speedUpZonePrefab != null
+                        && tier.speedUpZoneChanceOnDecoy > 0f
+                        && Random.value < tier.speedUpZoneChanceOnDecoy)
+                    {
+                        tile.Obstacles.Spawn(speedUpZonePrefab);
+                        decoyHasHazard = true;
+                    }
+                    // Lane Swap (PostMVP2.5) — inverte inputs por N tiles.
+                    else if (laneSwapObstaclePrefab != null
+                        && tier.laneSwapChanceOnDecoy > 0f
+                        && Random.value < tier.laneSwapChanceOnDecoy)
+                    {
+                        tile.Obstacles.Spawn(laneSwapObstaclePrefab);
+                        decoyHasHazard = true;
+                    }
+                    // Vortex (PostMVP2.5) — rouba escolha de switch.
+                    else if (vortexObstaclePrefab != null
+                        && tier.vortexChanceOnDecoy > 0f
+                        && Random.value < tier.vortexChanceOnDecoy)
+                    {
+                        tile.Obstacles.Spawn(vortexObstaclePrefab);
                         decoyHasHazard = true;
                     }
                 }

@@ -20,6 +20,9 @@ namespace RailSwitchMVP.Core
         Teleport,
         // PostMVP2.4 — Idea 3:
         AutoCriticalFollow,
+        // PostMVP2.5 — debuffs (obstáculos não-letais):
+        SpeedUpDebuff,
+        LaneSwapDebuff,
     }
 
     /// <summary>
@@ -70,6 +73,18 @@ namespace RailSwitchMVP.Core
             "Manual input ainda funciona mas é sobrescrito por tile.")]
         [SerializeField] private int autoCriticalFollowDefaultTiles = 5;
 
+        [Header("Debuffs (PostMVP2.5)")]
+        [Tooltip("Tiles padrão do SpeedUp debuff. Stack ADICIONA duração.")]
+        [SerializeField] private int speedUpDebuffDefaultTiles = 6;
+
+        [Tooltip("Multiplier de speed quando SpeedUp debuff ativo. 1.5 = +50%.")]
+        [Range(1f, 3f)]
+        [SerializeField] private float speedUpMultiplier = 1.5f;
+
+        [Tooltip("Tiles padrão do LaneSwap debuff (inverte ←/→ no input). " +
+            "Stack RESETA duração (volta pro default).")]
+        [SerializeField] private int laneSwapDebuffDefaultTiles = 2;
+
         [Header("Runtime state (read-only)")]
         [SerializeField] private int shieldCharges;
         [SerializeField] private int slowDownTilesRemaining;
@@ -80,6 +95,8 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int coinRadarTilesRemaining;
         [SerializeField] private int teleportTilesRemaining;
         [SerializeField] private int autoCriticalFollowTilesRemaining;
+        [SerializeField] private int speedUpDebuffTilesRemaining;
+        [SerializeField] private int laneSwapDebuffTilesRemaining;
 
         public int ShieldCharges => shieldCharges;
         public int SlowDownTilesRemaining => slowDownTilesRemaining;
@@ -90,6 +107,8 @@ namespace RailSwitchMVP.Core
         public int CoinRadarTilesRemaining => coinRadarTilesRemaining;
         public int TeleportTilesRemaining => teleportTilesRemaining;
         public int AutoCriticalFollowTilesRemaining => autoCriticalFollowTilesRemaining;
+        public int SpeedUpDebuffTilesRemaining => speedUpDebuffTilesRemaining;
+        public int LaneSwapDebuffTilesRemaining => laneSwapDebuffTilesRemaining;
 
         public bool HasShield => shieldCharges > 0;
         public bool HasSlowDown => slowDownTilesRemaining > 0;
@@ -100,6 +119,9 @@ namespace RailSwitchMVP.Core
         public bool HasCoinRadar => coinRadarTilesRemaining > 0;
         public bool HasTeleport => teleportTilesRemaining > 0;
         public bool HasAutoCriticalFollow => autoCriticalFollowTilesRemaining > 0;
+        public bool HasSpeedUpDebuff => speedUpDebuffTilesRemaining > 0;
+        public bool HasLaneSwapDebuff => laneSwapDebuffTilesRemaining > 0;
+        public float SpeedUpMultiplier => HasSpeedUpDebuff ? speedUpMultiplier : 1f;
 
         public float SpeedMultiplier => HasSlowDown ? slowDownSpeedMultiplier : 1f;
         public int CoinMultiplier => HasDoubleCoins ? 2 : 1;
@@ -111,6 +133,8 @@ namespace RailSwitchMVP.Core
         public int CoinRadarDefaultTiles => coinRadarDefaultTiles;
         public int TeleportDefaultTiles => teleportDefaultTiles;
         public int AutoCriticalFollowDefaultTiles => autoCriticalFollowDefaultTiles;
+        public int SpeedUpDebuffDefaultTiles => speedUpDebuffDefaultTiles;
+        public int LaneSwapDebuffDefaultTiles => laneSwapDebuffDefaultTiles;
 
         public event System.Action<PowerUpType> OnPowerUpActivated;
         public event System.Action<PowerUpType> OnPowerUpExpired;
@@ -226,6 +250,24 @@ namespace RailSwitchMVP.Core
             OnPowerUpTick?.Invoke(PowerUpType.AutoCriticalFollow, autoCriticalFollowTilesRemaining);
         }
 
+        /// <summary>SpeedUp debuff: stack ADICIONA duração.</summary>
+        public void GrantSpeedUpDebuff(int tiles)
+        {
+            speedUpDebuffTilesRemaining += tiles;
+            Debug.Log($"[PowerUpManager] +SpeedUpDebuff (tiles={speedUpDebuffTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.SpeedUpDebuff);
+            OnPowerUpTick?.Invoke(PowerUpType.SpeedUpDebuff, speedUpDebuffTilesRemaining);
+        }
+
+        /// <summary>LaneSwap debuff: stack RESETA duração (volta pro N passado).</summary>
+        public void GrantLaneSwapDebuff(int tiles)
+        {
+            laneSwapDebuffTilesRemaining = tiles;
+            Debug.Log($"[PowerUpManager] +LaneSwapDebuff (tiles={laneSwapDebuffTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.LaneSwapDebuff);
+            OnPowerUpTick?.Invoke(PowerUpType.LaneSwapDebuff, laneSwapDebuffTilesRemaining);
+        }
+
         /// <summary>
         /// Consome 1 shield. Retorna true se havia shield (ataque absorvido).
         /// </summary>
@@ -253,6 +295,8 @@ namespace RailSwitchMVP.Core
             Tick(ref coinRadarTilesRemaining, PowerUpType.CoinRadar);
             Tick(ref teleportTilesRemaining, PowerUpType.Teleport);
             Tick(ref autoCriticalFollowTilesRemaining, PowerUpType.AutoCriticalFollow);
+            Tick(ref speedUpDebuffTilesRemaining, PowerUpType.SpeedUpDebuff);
+            Tick(ref laneSwapDebuffTilesRemaining, PowerUpType.LaneSwapDebuff);
         }
 
         void Tick(ref int counter, PowerUpType type)
@@ -295,6 +339,8 @@ namespace RailSwitchMVP.Core
             coinRadarTilesRemaining = 0;
             teleportTilesRemaining = 0;
             autoCriticalFollowTilesRemaining = 0;
+            speedUpDebuffTilesRemaining = 0;
+            laneSwapDebuffTilesRemaining = 0;
         }
     }
 }

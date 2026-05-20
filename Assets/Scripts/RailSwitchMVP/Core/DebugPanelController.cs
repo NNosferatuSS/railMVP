@@ -120,6 +120,10 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Grant Coin Radar")) pum.GrantCoinRadar(pum.CoinRadarDefaultTiles);
             if (GUILayout.Button("Grant Teleport")) pum.GrantTeleport(pum.TeleportDefaultTiles);
             if (GUILayout.Button("Grant AutoFollow")) pum.GrantAutoCriticalFollow(pum.AutoCriticalFollowDefaultTiles);
+            GUILayout.Space(4);
+            GUILayout.Label("Debuffs (PostMVP2.5)", _hintStyle);
+            if (GUILayout.Button("Grant SpeedUp Debuff")) pum.GrantSpeedUpDebuff(pum.SpeedUpDebuffDefaultTiles);
+            if (GUILayout.Button("Grant LaneSwap Debuff")) pum.GrantLaneSwapDebuff(pum.LaneSwapDebuffDefaultTiles);
 
             GUILayout.Label(
                 $"Shield x{pum.ShieldCharges} | Slow {pum.SlowDownTilesRemaining} | Magnet {pum.MagnetTilesRemaining}",
@@ -129,6 +133,9 @@ namespace RailSwitchMVP.Core
                 _hintStyle);
             GUILayout.Label(
                 $"Radar {pum.CoinRadarTilesRemaining} | Teleport {pum.TeleportTilesRemaining} | AutoFollow {pum.AutoCriticalFollowTilesRemaining}",
+                _hintStyle);
+            GUILayout.Label(
+                $"⚡SpeedUp {pum.SpeedUpDebuffTilesRemaining} | ↔LaneSwap {pum.LaneSwapDebuffTilesRemaining}",
                 _hintStyle);
         }
 
