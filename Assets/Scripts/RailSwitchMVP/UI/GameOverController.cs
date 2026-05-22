@@ -17,8 +17,6 @@ namespace RailSwitchMVP.UI
     /// </summary>
     public class GameOverController : MonoBehaviour
     {
-        public const string HomeSceneName = "HomeScene";
-
         [Header("Panel & UI refs")]
         [SerializeField] private GameObject panel;
         [SerializeField] private TMP_Text reasonText;
@@ -219,7 +217,7 @@ namespace RailSwitchMVP.UI
         {
             CommitRunToPlayerData();
             Time.timeScale = 1f;
-            SceneManager.LoadScene(HomeSceneName);
+            SceneManager.LoadScene(SceneNames.Home);
         }
 
         // Idempotente — só roda uma vez por GameOver (Restart e Home não

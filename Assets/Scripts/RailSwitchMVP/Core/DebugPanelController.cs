@@ -91,6 +91,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawPlayerDataSection();
             GUILayout.Space(6);
+            DrawMissionsSection();
+            GUILayout.Space(6);
             DrawActiveItemSection();
             GUILayout.Space(6);
             DrawPowerUpSection();
@@ -121,6 +123,53 @@ namespace RailSwitchMVP.Core
             auto.DebugForceActive = GUILayout.Toggle(auto.DebugForceActive, " Auto-follow critical path (debug)");
             if (auto.IsActive)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
+        }
+
+        void DrawMissionsSection()
+        {
+            GUILayout.Label("Missions", _sectionStyle);
+            var mt = MissionTracker.Instance;
+            if (mt == null)
+            {
+                GUILayout.Label("(MissionTracker not in scene)", _hintStyle);
+                return;
+            }
+
+            GUILayout.Label("Daily:", _hintStyle);
+            for (int i = 0; i < MissionTracker.DailySlots; i++)
+            {
+                var entry = mt.GetDailyMission(i);
+                string status = entry.IsClaimed ? "✓" : (entry.IsComplete ? "★" : " ");
+                GUILayout.Label($"  [{status}] {Trunc(entry.Description, 30)} {entry.Progress:0}/{entry.Target:0}", _hintStyle);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button($"Force D{i}", GUILayout.MaxWidth(100))) mt.DebugForceCompleteDaily(i);
+                if (GUILayout.Button($"Claim D{i}", GUILayout.MaxWidth(100))) mt.ClaimDaily(i);
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.Label("Weekly:", _hintStyle);
+            for (int i = 0; i < MissionTracker.WeeklySlots; i++)
+            {
+                var entry = mt.GetWeeklyMission(i);
+                string status = entry.IsClaimed ? "✓" : (entry.IsComplete ? "★" : " ");
+                GUILayout.Label($"  [{status}] {Trunc(entry.Description, 30)} {entry.Progress:0}/{entry.Target:0}", _hintStyle);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button($"Force W{i}", GUILayout.MaxWidth(100))) mt.DebugForceCompleteWeekly(i);
+                if (GUILayout.Button($"Claim W{i}", GUILayout.MaxWidth(100))) mt.ClaimWeekly(i);
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Cycle Daily", GUILayout.MaxWidth(120))) mt.DebugCycleDaily();
+            if (GUILayout.Button("Cycle Weekly", GUILayout.MaxWidth(120))) mt.DebugCycleWeekly();
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Reset All Missions")) mt.DebugResetAll();
+        }
+
+        static string Trunc(string s, int max)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            return s.Length > max ? s.Substring(0, max - 1) + "…" : s;
         }
 
         void DrawPlayerDataSection()

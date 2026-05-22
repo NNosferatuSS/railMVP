@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/HomeScene.unity
+    guid: 5175ec4c5be75974085490f3786e3bcc
+  - enabled: 1
     path: Assets/Scenes/RailSwitchMVP.unity
     guid: 7e99cab43146f0e42b5626616e817b6f
   m_configObjects:

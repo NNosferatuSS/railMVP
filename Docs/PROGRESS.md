@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-22 — **Fatia 1 (Fundação meta-game) ✅ validada.** `PlayerDataManager`, `HomeScreenController`, `GameOverController` migrado, `HighScoreManager.cs` deletado. Próxima: Fatia 2 (MissionTracker).
+**Última atualização:** 2026-05-22 — **Fatia 2 (MissionTracker) código pronto.** Falta setup Editor pra UI das 6 missões. Ver `Docs/Progression_Fatia2_Setup.md`.
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)

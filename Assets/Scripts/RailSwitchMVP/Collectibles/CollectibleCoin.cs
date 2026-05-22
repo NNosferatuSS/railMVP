@@ -1,5 +1,7 @@
 using UnityEngine;
 using RailSwitchMVP.Core;
+using RailSwitchMVP.Meta;
+using RailSwitchMVP.Player;
 
 namespace RailSwitchMVP.Collectibles
 {
@@ -70,6 +72,12 @@ namespace RailSwitchMVP.Collectibles
             {
                 int multiplier = PowerUpManager.Instance != null ? PowerUpManager.Instance.CoinMultiplier : 1;
                 CoinManager.Instance.AddCoins(value * multiplier);
+            }
+            if (MissionTracker.Instance != null)
+            {
+                var player = Object.FindFirstObjectByType<PlayerRailRider>();
+                if (player != null && player.CurrentTile != null)
+                    MissionTracker.Instance.OnTileWithCoin(player.CurrentTile.GetInstanceID());
             }
             Destroy(gameObject);
         }
