@@ -1,5 +1,6 @@
 using UnityEngine;
 using RailSwitchMVP.Core;
+using RailSwitchMVP.Player;
 
 namespace RailSwitchMVP.Obstacles
 {
@@ -20,6 +21,7 @@ namespace RailSwitchMVP.Obstacles
             if (PowerUpManager.Instance == null) return;
             int tiles = durationTiles > 0 ? durationTiles : PowerUpManager.Instance.LaneSwapDebuffDefaultTiles;
             PowerUpManager.Instance.GrantLaneSwapDebuff(tiles);
+            if (PlayerCameraRig.Instance != null) PlayerCameraRig.Instance.ShakeMedium();
             Destroy(gameObject);
         }
     }

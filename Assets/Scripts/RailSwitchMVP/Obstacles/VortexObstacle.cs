@@ -4,6 +4,8 @@ using RailSwitchMVP.Core;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
 
+// PlayerCameraRig lives in Player namespace; using already imported.
+
 namespace RailSwitchMVP.Obstacles
 {
     /// <summary>
@@ -44,6 +46,7 @@ namespace RailSwitchMVP.Obstacles
                 Debug.Log($"[Vortex] Player switch redirected to offset {newOffset.Value}");
             }
 
+            if (PlayerCameraRig.Instance != null) PlayerCameraRig.Instance.ShakeMedium();
             Destroy(gameObject);
         }
 

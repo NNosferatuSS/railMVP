@@ -43,8 +43,8 @@ namespace RailSwitchMVP.Config
         public int rowsBehind = 2;
 
         [Header("Camera")]
-        [Tooltip("Inclinação da câmera em graus (0 = top-down puro, 35 = recomendado)")]
-        [Range(0f, 60f)]
+        [Tooltip("Inclinação da câmera em graus (0 = top-down puro, 35 = recomendado, 90 = perfil lateral)")]
+        [Range(0f, 90f)]
         public float cameraTilt = 35f;
 
         [Tooltip("Offset Z (quão atrás do player a câmera fica)")]
@@ -55,6 +55,39 @@ namespace RailSwitchMVP.Config
 
         [Tooltip("Velocidade de transição do zoom adaptativo")]
         public float cameraZoomSpeed = 8f;
+
+        [Header("Camera — Smoothing")]
+        [Tooltip("Suavização da posição da câmera (Lerp factor). " +
+            "Alto = quase teleporta (responsivo), baixo = mais suave (cinematic). " +
+            "0 = teleporta sem smoothing.")]
+        [Range(0f, 30f)]
+        public float cameraPositionSmoothing = 12f;
+
+        [Header("Camera — Shake presets")]
+        [Tooltip("Intensidade do shake leve (tier change, debuffs leves).")]
+        [Range(0f, 1f)] public float shakeLightIntensity = 0.15f;
+        [Tooltip("Duração do shake leve em segundos.")]
+        public float shakeLightDuration = 0.15f;
+
+        [Range(0f, 1f)] public float shakeMediumIntensity = 0.3f;
+        public float shakeMediumDuration = 0.25f;
+
+        [Range(0f, 2f)] public float shakeHeavyIntensity = 0.6f;
+        public float shakeHeavyDuration = 0.5f;
+
+        [Header("Camera — Death sequence (Game Over)")]
+        [Tooltip("Duração da sequência de morte (slow-mo + zoom) antes do painel aparecer. Unscaled.")]
+        public float deathCamDuration = 1.0f;
+
+        [Tooltip("Time.timeScale durante a sequência. 0.3 = câmera lenta dramática.")]
+        [Range(0.05f, 1f)] public float deathCamSlowMo = 0.3f;
+
+        [Tooltip("Quanto a câmera se aproxima no death cam (subtrai do cameraDistance).")]
+        public float deathCamZoomDelta = 1.5f;
+
+        [Tooltip("Quanto o tilt da câmera aumenta no death cam.")]
+        [Range(-30f, 30f)]
+        public float deathCamTiltDelta = 5f;
 
         [Header("Debug")]
         [Tooltip("Desenhar Gizmos do critical path no editor")]

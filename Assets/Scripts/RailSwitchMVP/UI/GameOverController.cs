@@ -1,8 +1,10 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
+using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
 using RailSwitchMVP.Collectibles;
 using RailSwitchMVP.Meta;
@@ -37,6 +39,7 @@ namespace RailSwitchMVP.UI
         [SerializeField] private PlayerRailRider player;
         [SerializeField] private DifficultyManager difficulty;
         [SerializeField] private CoinManager coinManager;
+        [SerializeField] private RailGenConfig railConfig;
 
         private bool _isShowing;
         private bool _runCommitted;
@@ -63,6 +66,13 @@ namespace RailSwitchMVP.UI
 
             if (panel != null) panel.SetActive(false);
             if (newRecordText != null) newRecordText.gameObject.SetActive(false);
+
+            if (railConfig == null && difficulty != null && difficulty.Config != null)
+            {
+                // Fallback: tenta resolver via PlayerCameraRig (que serializa RailGenConfig).
+                var rig = PlayerCameraRig.Instance;
+                if (rig != null) railConfig = ResolveConfigFromRig(rig);
+            }
 
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameOver += HandleGameOver;
@@ -103,8 +113,7 @@ namespace RailSwitchMVP.UI
             if (_isShowing) return;
             _isShowing = true;
 
-            if (panel != null) panel.SetActive(true);
-
+            // Não mostra painel ainda — aguarda death sequence pra impacto.
             if (reasonText != null)
                 reasonText.text = FormatReason(reason);
 
@@ -176,7 +185,30 @@ namespace RailSwitchMVP.UI
                 }
             }
 
+            // Death sequence: slow-mo enquanto a PlayerCameraRig zooma + shake.
+            // Após deathCamDuration, congela e mostra o painel.
+            StartCoroutine(DeathSequence());
+        }
+
+        IEnumerator DeathSequence()
+        {
+            float duration = railConfig != null ? railConfig.deathCamDuration : 1f;
+            float slowMo = railConfig != null ? railConfig.deathCamSlowMo : 0.3f;
+
+            Time.timeScale = slowMo;
+            yield return new WaitForSecondsRealtime(duration);
             Time.timeScale = 0f;
+
+            if (panel != null) panel.SetActive(true);
+        }
+
+        // Reflete a ref de RailGenConfig serializada no PlayerCameraRig — pra evitar
+        // dois lugares com a mesma ref atribuída manualmente.
+        static RailGenConfig ResolveConfigFromRig(PlayerCameraRig rig)
+        {
+            var field = typeof(PlayerCameraRig).GetField("config",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            return field != null ? field.GetValue(rig) as RailGenConfig : null;
         }
 
         static string FormatTime(float seconds)

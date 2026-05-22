@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-22 — **Fatia 3 (Daily Login + Chest stub) ✅ commitada** (`02f5920`). **Fatia 4 (Personagens/Loja) código pronto.** Falta setup Editor pra ShopPanel + 3 cards + Player applier. Ver `Docs/Progression_Fatia4_Setup.md`.
+**Última atualização:** 2026-05-22 — **Camera Polish implementado** (tilt até 90°, smoothing, shake, death cam). Pronto pra testar na segunda. Detalhes em `Docs/CameraPolish_Setup.md`. **Fatias 1-4 já commitadas.** Próxima sessão: testar polish da câmera, depois decidir entre Fatia 5 (Rewarded Ads) ou skip pra Daily Challenge/Supabase.
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -19,15 +19,72 @@ camada de PROGRESSÃO (meta-game) — fundação + missões + login + loja + ads
 Ordem em 5 fatias verticais. Detalhes em
 `Docs/Progression_Implementation_Plan.md`.**
 
-### Fatia atual: 2 — MissionTracker
+### Próxima sessão (segunda 2026-05-25): decidir caminho
 
-3 missões diárias + 3 semanais com 9 tipos de tracking. Pool de 20
-diárias + 10 semanais (spec §3.2/§4.2). Rotação determinística por
-`DayOfYear % 20`. Hooks em `CoinManager`, `PowerUpManager`,
-`DifficultyManager`, `CollectibleCoin`, `GameManager`. UI na Home com
-botão Reclamar. Detalhes em `Docs/Progression_Implementation_Plan.md`.
+Duas opções:
+- **Fatia 5 — Rewarded Ads (Unity Ads SDK).** Substitui o chest stub
+  e o "2x coins" do GameOver por ads reais. Requer conta Unity Ads +
+  Package + build mobile pra testar de verdade (Editor só dá test ads).
+- **Skip pra spec §11.** Daily Challenge → Supabase backend → Leaderboard.
+  Chest stub continua funcionando localmente; ads ficam pra depois.
 
-### Fatia 1 — Fundação ✅ (2026-05-22)
+### Camera Polish ✅ implementado 2026-05-22 (pendente testar)
+
+- Tilt range subiu 60° → 90° (`RailGenConfig.cs`).
+- `cameraPositionSmoothing` tunável (default 12, separa base pos do shake).
+- `PlayerCameraRig.Instance` agora singleton com `Shake(intensity, duration)`
+  + presets `ShakeLight/Medium/Heavy`. Perlin noise + falloff.
+- Death cam em `OnGameOver`: slow-mo `0.3x` por 1s + zoom-in com
+  SmoothStep. Painel só aparece após. Shake heavy se reason == HitObstacle.
+- Shake auto em tier change (light), Vortex/LaneSwap (medium),
+  HitObstacle (heavy via death cam).
+- Tunables todos no `RailGenConfig_Default.asset` — editáveis live.
+
+**Setup pendente segunda:** atribuir `Rail Config` no `_GameOver` na
+cena (opcional, tem fallback por reflection). Detalhes + critérios de
+teste em `Docs/CameraPolish_Setup.md`.
+
+### Backlog futuro de câmera (ainda não implementado)
+
+- FOV dinâmico (sensação de velocidade).
+- Side-bias antecipando switch.
+- Warmup cam dedicada.
+- Roll em lane change.
+
+User pretende migrar pra Cinemachine eventualmente — esses ficam pra lá.
+
+### Fatias anteriores (✅ commitadas)
+
+### Fatia 4 — Personagens / Loja ✅ commit `125ece8` (2026-05-22)
+
+- `CharacterCatalog` hardcoded com 3 personagens (Runner free, Neon 2500,
+  Ember 5000). Spec §6.1.
+- `ShopController` panel sobreposto na Home com 3 cards + popup confirma.
+- `PlayerCharacterApplier` aplica cor via MaterialPropertyBlock no
+  Renderer do Player (URP `_BaseColor` + Built-in `_Color`).
+- `HomeScreenController.OpenShop()` + botão Loja agora ativo.
+- DebugPanel: seção Characters + botões `+100`/`+1000 coins` na Player
+  data (funcionam em qualquer cena).
+
+### Fatia 3 — Daily Login + Chest stub ✅ commit `02f5920` (2026-05-22)
+
+- `DailyLoginManager` com login (7 dias, 50→500 coins, sem streak
+  penalizado) + Daily Ad Chest stub (+150/dia, ad real fica pra Fatia 5).
+- Lógica de data UTC. Keys `RailMVP.DailyLogin.*` e `RailMVP.AdChest.LastDate`.
+- HomeScreenController: popup automático no OnEnable se ShouldShowPopup,
+  botão chest com label dinâmico.
+- DebugPanel: seção Daily Login + Chest.
+
+### Fatia 2 — MissionTracker ✅ commit `8eacb16` (2026-05-22)
+
+- Pool de 20 daily + 10 weekly hardcoded. Rotação determinística
+  `DayOfYear%20` e `ISOWeek%10`.
+- 12 tipos de tracking. Auto-StartRun via SceneManager.sceneLoaded.
+- Persistência via PlayerPrefs (`RailMVP.Missions.*`).
+- `MissionEntryUI` + arrays no HomeScreenController.
+- DebugPanel: Force/Claim, Cycle Daily/Weekly, Reset.
+
+### Fatia 1 — Fundação ✅ commit `415656a` (2026-05-22)
 
 - `PlayerDataManager` singleton DontDestroyOnLoad com coins, bests, runs,
   personagens. Reusa keys `RailMVP.BestX` do HighScoreManager.

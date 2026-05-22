@@ -5,7 +5,9 @@
 > camada meta sem virar refactor de tudo. Cada fatia é jogável/testável
 > isoladamente.
 
-**Status:** Fatia 1 em andamento — iniciada 2026-05-22.
+**Status:** Fatias 1-4 ✅ validadas e commitadas em 2026-05-22.
+Próxima sessão decide entre Fatia 5 (Rewarded Ads) ou skip pra spec §11
+(Daily Challenge → Supabase → Leaderboard).
 
 ---
 
