@@ -91,6 +91,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawPlayerDataSection();
             GUILayout.Space(6);
+            DrawDailyLoginSection();
+            GUILayout.Space(6);
             DrawMissionsSection();
             GUILayout.Space(6);
             DrawActiveItemSection();
@@ -123,6 +125,30 @@ namespace RailSwitchMVP.Core
             auto.DebugForceActive = GUILayout.Toggle(auto.DebugForceActive, " Auto-follow critical path (debug)");
             if (auto.IsActive)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
+        }
+
+        void DrawDailyLoginSection()
+        {
+            GUILayout.Label("Daily Login + Chest", _sectionStyle);
+            var dl = DailyLoginManager.Instance;
+            if (dl == null)
+            {
+                GUILayout.Label("(DailyLoginManager not in scene)", _hintStyle);
+                return;
+            }
+            string lc = string.IsNullOrEmpty(dl.LastClaimDate) ? "—" : dl.LastClaimDate;
+            string cd = string.IsNullOrEmpty(dl.ChestLastDate) ? "—" : dl.ChestLastDate;
+            GUILayout.Label($"Login: lastDay={dl.LastClaimedDay} lastClaim={lc} | Next: Day{dl.NextDay}(+{dl.NextDayReward})", _hintStyle);
+            GUILayout.Label($"Chest: lastDate={cd} | available={dl.IsChestAvailable()}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Show Login", GUILayout.MaxWidth(110))) dl.DebugForceLoginAvailable();
+            if (GUILayout.Button("Claim Login", GUILayout.MaxWidth(110))) dl.ClaimLogin();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Avail Chest", GUILayout.MaxWidth(110))) dl.DebugForceChestAvailable();
+            if (GUILayout.Button("Claim Chest", GUILayout.MaxWidth(110))) dl.ClaimChest();
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Reset Login+Chest")) dl.DebugResetAll();
         }
 
         void DrawMissionsSection()
