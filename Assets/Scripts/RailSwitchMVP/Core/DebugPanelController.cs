@@ -91,6 +91,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawPlayerDataSection();
             GUILayout.Space(6);
+            DrawCharactersSection();
+            GUILayout.Space(6);
             DrawDailyLoginSection();
             GUILayout.Space(6);
             DrawMissionsSection();
@@ -125,6 +127,48 @@ namespace RailSwitchMVP.Core
             auto.DebugForceActive = GUILayout.Toggle(auto.DebugForceActive, " Auto-follow critical path (debug)");
             if (auto.IsActive)
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
+        }
+
+        void DrawCharactersSection()
+        {
+            GUILayout.Label("Characters", _sectionStyle);
+            var pdm = PlayerDataManager.Instance;
+            if (pdm == null)
+            {
+                GUILayout.Label("(PlayerDataManager not in scene)", _hintStyle);
+                return;
+            }
+            var owned = new System.Text.StringBuilder();
+            for (int i = 0; i < CharacterCatalog.Count; i++)
+            {
+                if (pdm.IsCharacterOwned(i))
+                {
+                    if (owned.Length > 0) owned.Append(",");
+                    owned.Append(CharacterCatalog.Get(i).Name);
+                }
+            }
+            GUILayout.Label($"Equipped: {pdm.EquippedChar} ({CharacterCatalog.Get(pdm.EquippedChar).Name})", _hintStyle);
+            GUILayout.Label($"Owned: {owned}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            for (int i = 0; i < CharacterCatalog.Count; i++)
+            {
+                int idx = i;
+                if (GUILayout.Button($"Equip {CharacterCatalog.Get(i).Name}", GUILayout.MaxWidth(110)))
+                {
+                    if (!pdm.IsCharacterOwned(idx)) pdm.UnlockCharacter(idx);
+                    pdm.EquipCharacter(idx);
+                    pdm.Save();
+                }
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Unlock All", GUILayout.MaxWidth(110)))
+            {
+                for (int i = 0; i < CharacterCatalog.Count; i++) pdm.UnlockCharacter(i);
+                pdm.Save();
+            }
+            if (GUILayout.Button("Reset Chars", GUILayout.MaxWidth(110))) pdm.DebugResetCharacters();
+            GUILayout.EndHorizontal();
         }
 
         void DrawDailyLoginSection()
@@ -211,6 +255,10 @@ namespace RailSwitchMVP.Core
             int min = Mathf.FloorToInt(pdm.BestTime) / 60;
             int sec = Mathf.FloorToInt(pdm.BestTime) % 60;
             GUILayout.Label($"Best — Dist {pdm.BestDistance}m | Coins {pdm.BestCoins} | Tier {pdm.BestTier} | Time {min:D2}:{sec:D2}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("+100 coins", GUILayout.MaxWidth(110))) { pdm.AddCoins(100); pdm.Save(); }
+            if (GUILayout.Button("+1000 coins", GUILayout.MaxWidth(110))) { pdm.AddCoins(1000); pdm.Save(); }
+            GUILayout.EndHorizontal();
             if (GUILayout.Button("Reset All Player Data")) pdm.WipeAll();
         }
 

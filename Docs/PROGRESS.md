@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-22 — **Fatia 2 (MissionTracker) ✅ commitada** (`8eacb16`). **Fatia 3 (Daily Login + Chest stub) código pronto.** Falta setup Editor pra popup + botão chest. Ver `Docs/Progression_Fatia3_Setup.md`.
+**Última atualização:** 2026-05-22 — **Fatia 3 (Daily Login + Chest stub) ✅ commitada** (`02f5920`). **Fatia 4 (Personagens/Loja) código pronto.** Falta setup Editor pra ShopPanel + 3 cards + Player applier. Ver `Docs/Progression_Fatia4_Setup.md`.
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)

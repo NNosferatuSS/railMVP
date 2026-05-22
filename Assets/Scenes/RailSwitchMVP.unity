@@ -5822,6 +5822,7 @@ GameObject:
   - component: {fileID: 1921653307}
   - component: {fileID: 1921653306}
   - component: {fileID: 1921653311}
+  - component: {fileID: 1921653312}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -5973,6 +5974,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!114 &1921653312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921653305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ed414d369008294db3639d276dac2f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Player.PlayerCharacterApplier
+  targetRenderer: {fileID: 1921653308}
 --- !u!1 &2142157023
 GameObject:
   m_ObjectHideFlags: 0

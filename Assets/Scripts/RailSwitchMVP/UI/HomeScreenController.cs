@@ -40,8 +40,11 @@ namespace RailSwitchMVP.UI
         [SerializeField] private Button chestButton;
         [SerializeField] private TMP_Text chestButtonText;
 
-        [Header("Stubs (Fatias futuras — desabilitados por padrão)")]
+        [Header("Shop")]
         [SerializeField] private Button shopButton;
+        [SerializeField] private ShopController shopController;
+
+        [Header("Stubs (Fatias futuras — desabilitados por padrão)")]
         [SerializeField] private Button leaderboardButton;
         [SerializeField] private Button profileButton;
 
@@ -66,8 +69,8 @@ namespace RailSwitchMVP.UI
             if (loginClaimButton != null) loginClaimButton.onClick.AddListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.AddListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.AddListener(ClaimChest);
+            if (shopButton != null) shopButton.onClick.AddListener(OpenShop);
 
-            if (shopButton != null) shopButton.interactable = false;
             if (leaderboardButton != null) leaderboardButton.interactable = false;
             if (profileButton != null) profileButton.interactable = false;
         }
@@ -91,6 +94,7 @@ namespace RailSwitchMVP.UI
             if (loginClaimButton != null) loginClaimButton.onClick.RemoveListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.RemoveListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.RemoveListener(ClaimChest);
+            if (shopButton != null) shopButton.onClick.RemoveListener(OpenShop);
         }
 
         void HandleCoinsChanged(int newTotal)
@@ -201,6 +205,12 @@ namespace RailSwitchMVP.UI
         {
             var dl = DailyLoginManager.Instance;
             if (dl != null) dl.ClaimChest();
+        }
+
+        public void OpenShop()
+        {
+            if (shopController != null) shopController.Open();
+            else Debug.LogWarning("[Home] shopController não atribuído.");
         }
 
         public void LoadGame()

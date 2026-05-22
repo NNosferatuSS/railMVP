@@ -204,6 +204,17 @@ namespace RailSwitchMVP.Meta
 
         // ============ Debug ============
 
+        /// <summary>Reseta só personagens (mantém coins, bests, runs).</summary>
+        public void DebugResetCharacters()
+        {
+            _ownedChars.Clear();
+            _ownedChars.Add(0);
+            equippedChar = 0;
+            Save();
+            OnEquippedCharChanged?.Invoke(0);
+            Debug.Log("[PDM] Characters reset (Runner only).");
+        }
+
         /// <summary>Apaga todos os dados (debug). Sem confirmação.</summary>
         public void WipeAll()
         {
