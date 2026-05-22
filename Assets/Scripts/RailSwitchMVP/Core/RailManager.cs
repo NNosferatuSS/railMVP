@@ -99,9 +99,24 @@ namespace RailSwitchMVP.Core
             if (player.CurrentTile == null) return;
 
             int playerRow = player.CurrentTile.Row;
+            int effectiveRowsAhead = GetEffectiveRowsAhead();
+
+            // Despawn-ahead: usado quando o SpawnOverrideController reduz rowsAhead.
+            // Sem isso, rows com config velha ficariam à frente do player por mais
+            // 12 tiles antes do override aparecer. Re-seed do gerador na row mais
+            // alta sobrevivente pra que a continuação do critical path seja coerente.
+            if (highestSpawnedRow > playerRow + effectiveRowsAhead)
+            {
+                while (highestSpawnedRow > playerRow + effectiveRowsAhead)
+                {
+                    DespawnRow(highestSpawnedRow);
+                    highestSpawnedRow--;
+                }
+                ReseedGeneratorFromSurvivingTop();
+            }
 
             // Spawn ahead
-            while (highestSpawnedRow < playerRow + config.rowsAhead)
+            while (highestSpawnedRow < playerRow + effectiveRowsAhead)
             {
                 SpawnRow(highestSpawnedRow + 1);
             }
@@ -112,6 +127,21 @@ namespace RailSwitchMVP.Core
                 DespawnRow(lowestSpawnedRow);
                 lowestSpawnedRow++;
             }
+        }
+
+        int GetEffectiveRowsAhead()
+        {
+            int defaultAhead = config.rowsAhead;
+            var ov = SpawnOverrideController.Instance;
+            if (ov != null) return ov.GetEffectiveRowsAhead(defaultAhead);
+            return defaultAhead;
+        }
+
+        void ReseedGeneratorFromSurvivingTop()
+        {
+            if (generator == null) return;
+            if (!_rows.TryGetValue(highestSpawnedRow, out var top) || top == null) return;
+            generator.SetPreviousCriticalLanes(top.CriticalLanes);
         }
 
         void BootstrapInitialRows()

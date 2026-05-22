@@ -1,10 +1,17 @@
-# Rail Switch MVP — Especificação Técnica (v3)
+# Rail Switch MVP — Especificação Técnica (v3.2)
 
 **Projeto:** MVP de jogo top-down endless de trilhos com switches
 **Engine:** Unity 6000.3.10f1 (Unity 6.3 LTS, URP, Forward)
 **VCS:** Git (+ Git LFS para binários — veja `.gitattributes` na raiz)
 **Objetivo deste doc:** Validar o CORE GAMELOOP antes de qualquer arte/polish.
 
+> **Changelog v3.2 (2026-05-22):**
+> - Adicionada **§17 — Pós-MVP1 (Estado Atual Consolidado)** sintetizando
+>   MVP2 + todo o pós-MVP2 (power-ups passivos, active items, hazards
+>   não-letais, 3 ideas de UX, high score, ferramentas de debug).
+> - §15 "Reservas Arquiteturais" virou histórica — o "futuro" descrito lá
+>   já foi implementado; ver §17 pra o estado real.
+>
 > **Changelog v3.1:**
 > - Atualizado para **Unity 6.3 LTS** (era 2021.3.45f1).
 > - Trocado VCS de Perforce para **Git** (com Git LFS para assets binários).
@@ -684,6 +691,205 @@ Critical path com 5 moedas vs decoy com 1 moeda + power-up dá interessante dile
 2. **Reset durante o jogo:** o reset deve ter feedback visual (flash, sound)? Decidir quando implementarmos.
 3. **Moedas em decoys:** começamos com 0 (sinalização limpa) ou com 1 (cria tentação)? Sugestão: **0 no MVP**, adicionamos tentação depois.
 4. **Tempo de reação alvo:** ainda ~2.5s, ajustar tier a tier.
+
+> **Status pós-MVP1:**
+> - Ponto 2 (reset feedback) — endereçado via **transition seed**: o
+>   critical path drifta 1 lane/row até o centro canônico do tier 0,
+>   evitando DeadEnd injusto quando o player reseta longe do centro.
+>   Feedback visual de flash/som ainda pendente.
+> - Ponto 3 (moedas em decoys) — decidido: **0**, mantido até hoje.
+> - Pontos 1 e 4 (curva de tiers e tempo de reação) — ainda em
+>   calibração via playtesting. A `SpawnOverrideController` (§17.8.2)
+>   foi adicionada justamente pra acelerar essa calibração.
+
+---
+
+## 17. Pós-MVP1 — Estado Atual Consolidado
+
+> Esta seção sintetiza tudo que foi adicionado após o MVP1 fechar
+> (tag `v0.1.0-mvp`). Cada bloco aponta pro doc detalhado em `Docs/`
+> e pra tag de release quando aplicável. Para o estado vivo (o que
+> foi feito hoje, o que falta), ver `PROGRESS.md`.
+
+### 17.1 MVP2 — Risco/Recompensa (tag `v0.2.0-mvp2`)
+
+Adiciona dilemas reais ao gameloop validado no MVP1. Quatro iterações:
+
+- **Obstáculos letais** (`LethalObstacle`) só em decoys — reforça
+  "moeda = caminho seguro". Critical path nunca recebe. Colisão =
+  Game Over com razão `HitObstacle`. Detalhes em
+  `MVP2_Iteracao1_Obstaculos.md`.
+- **HUD básico** (`HUDController` + `GameTimer`): tempo (mm:ss),
+  distância (m), moedas, tier, mais indicadores ativos pra power-ups.
+  Detalhes em `MVP2_Iteracao2_HUD.md`.
+- **Game Over screen** (`GameOverController`): razão, 5 stats finais,
+  botão Restart (também tecla `R`). `Time.timeScale = 0` durante.
+  Detalhes em `MVP2_Iteracao3_GameOver.md`.
+- **Power-ups e Barreira:** `PowerUpManager` singleton com Shield,
+  SlowDown, Magnet, DifficultyReset. `PowerUpBase` abstract +
+  `PowerUpSpawner` paralelo aos demais spawners. `BarrierObstacle`
+  consumida por Shield. Tile com hazard nunca recebe power-up.
+  Detalhes em `MVP2_Iteracao4_PowerUps.md`.
+
+Plano original e decisões descartadas em `MVP2_Plan.md`.
+
+### 17.2 Pooling de tiles
+
+`PrefabPool` singleton armazena tiles + hazards + power-ups
+desativados em vez de destruí-los. `RailManager.DespawnRow` faz
+`PrefabPool.Release` quando disponível, e `ProceduralRailGenerator`
+usa `PrefabPool.Spawn` na geração. `TrackTile.ResetForReuse` zera
+estado quando vem do pool. Reduz GC spikes em runs longas.
+Detalhes em `PostMVP2_Pooling.md`.
+
+### 17.3 Power-ups passivos (PostMVP2.2)
+
+Quatro power-ups que rodam por N tiles ao serem coletados:
+
+- **2x Coins** — `PowerUpManager.CoinMultiplier` aplicado em
+  `CollectibleCoin.OnTriggerEnter`.
+- **Ghost** — `ObstacleBase.OnTriggerEnter` skip se Ghost ativo.
+  Estendido (commits `84972b5` + `ec3903e` + `53a24f9` + `88b0b95`)
+  pra atravessar **OutOfBounds** (clamp pra current lane) e
+  **DeadEnd** (player voa sobre rows vazias até encontrar tile).
+  Rescue land com lerp 0.2s se Ghost expira mid-flight.
+- **Lane Preview** — HUD mostra direção da próxima switch coerente
+  com o critical path (←/→/center).
+- **Coin Radar** — scale pulse em coins do critical path,
+  acompanhado de cor mais saturada.
+
+Detalhes em `PostMVP2_2_PassivePowerUps.md`.
+
+### 17.4 Active items (PostMVP2.3)
+
+Sistema de slot único (`ActiveItemSlot` singleton) que substitui
+o item ao pegar novo. Disparado por **Space** via
+`ActiveItemInputHandler`. Falha não consome (slot vazio = no-op).
+
+- **TimeFreezeController** — `Time.timeScale = 0` por 3s unscaled.
+- **TeleportController** — lateral ±1 lane via switch state.
+  `PlayerRailRider.TeleportToAdjacent` preserva Z e muda só X.
+
+HUD com `activeItemText` mostrando "Item: TimeFreeze (Space)" ou "-".
+Detalhes em `PostMVP2_3_ActiveItems.md`.
+
+### 17.5 Hazards não-letais (PostMVP2.5)
+
+Três obstáculos que afetam mecânica sem matar:
+
+- **SpeedUp zone** — `+50%` speed por 6 tiles, stacks somam.
+- **Lane Swap** — inverte ←/→ por 2 tiles, stack reseta.
+- **Vortex** — instant: redireciona switch pra direção válida.
+  Modos `OppositeOfSwitch` ou `PureRandom`.
+
+`DifficultyConfig` populado com curva escalada (Tier 0 = 0%,
+Tier 5 = 20/15/15%). HUD com indicadores ativos.
+Detalhes em `PostMVP2_5_NewObstacles.md`.
+
+### 17.6 3 Ideas de UX (PostMVP2.4)
+
+- **Idea 1 — Warmup 3-2-1-GO:** 5 rows single-center em 0.5× speed,
+  countdown na tela, input liberado (player aprende fazendo).
+  `WarmupController` + `RailGenConfig.warmupRowCount`. Tiers e
+  distância lógica não avançam durante warmup.
+- **Idea 2 — Trilhos coloridos por switch state:** seta colorida
+  verde se a próxima row tem tile na direção apontada, vermelha
+  se vai pra fora/vazio. Atualizado em tempo real via
+  `TrackTile.UpdateConnectivityVisual`.
+- **Idea 3 — Auto-follow critical (tile-based power-up):**
+  `AutoCriticalFollower` sobrescreve switch state pra mirar
+  critical na próxima row. Ativo via **debug toggle** ou
+  **power-up coletado** (`PowerUpManager.HasAutoCriticalFollow`).
+  Manual input ainda funciona (player pode "burlar" pra pegar
+  decoy intencional).
+
+Detalhes em `PostMVP2_4_3Ideas.md`.
+
+### 17.7 High Score persistente (PostMVP2.D)
+
+`HighScoreManager` singleton salva 4 bests via `PlayerPrefs`
+(distância/coins/tier/tempo). `GameOverController` exibe
+"Current ★ (Best: X)" inline e overlay opcional
+"★ NEW RECORD! Distance Coins..." quando aplicável.
+Botão "Reset Best Scores" no debug F1.
+Detalhes em `PostMVP2_D_HighScore.md`.
+
+### 17.8 Ferramentas de Debug
+
+Duas tools OnGUI separadas, gated em `Application.isEditor ||
+Debug.isDebugBuild`. Uma de cada vez (anchor à direita).
+
+#### 17.8.1 `DebugPanelController` (toggle **F1**)
+
+Ações **pontuais** durante o playtest:
+- **Grant** de cada power-up (consome Inventory slot quando ativo).
+- **Spawn** de cada hazard/power-up prefab N rows à frente do
+  player (botão ao lado de cada Grant).
+- Tier shortcuts (jump direto), force Game Over, add coins.
+- Auto-follow critical (`AutoCriticalFollower.DebugForceActive`).
+- Reset Best Scores.
+
+#### 17.8.2 `SpawnOverrideController` (toggle **F2**)
+
+Controle **contínuo** do spawn em runtime:
+- **Master ON/OFF** — quando OFF, gerador usa `DifficultyTier`
+  normalmente (zero impacto).
+- **Por hazard** (Lethal, Barrier, SpeedUp, LaneSwap, Vortex)
+  e **por power-up individualmente**: toggle enabled +
+  slider de chance + location (Critical/Decoy/Both) + botão `solo`.
+- **Global multiplier** (0–5×) em todas as chances.
+- **Snapshot from current tier** — copia valores do tier ativo
+  pros sliders.
+- **rowsAhead override** (toggle separado + slider 1–20) — reduz
+  janela de streaming. `RailManager` auto-despawna o excedente à
+  frente e re-seed o gerador via
+  `ProceduralRailGenerator.SetPreviousCriticalLanes(...)`. Permite
+  ver mudanças de slider em ~3 tiles em vez de ~12.
+- **Tier lock** (toggle + slider) — força e mantém o
+  `DifficultyManager` num tier fixo (bypassa auto-advance).
+- **Auto-follow critical** — mesmo state do F1, espelhado aqui pra
+  playtest one-handed.
+
+Integração no gerador: a cascata `if-else` de hazards e o
+`Random.Range` uniforme de power-ups foram substituídos por
+chamadas a `SpawnOverrideController.Instance.ResolveHazard(...)` e
+`ResolvePowerUpPrefab(...)`. `ResolveHazardClassic` /
+`ResolvePowerUpClassic` no próprio gerador servem de fallback
+quando o controller não está na cena (preserva comportamento
+exato do anterior).
+
+### 17.9 Componentes adicionados (referência cruzada)
+
+| Componente | Função | Adicionado em |
+|---|---|---|
+| `ObstacleBase` + `LethalObstacle` + `BarrierObstacle` | Hazards letais (Lethal) e absorvíveis por Shield (Barrier) | MVP2 Iter 1 + 4 |
+| `PowerUpBase` + `PowerUpManager` + 4 pickups | Sistema de power-ups | MVP2 Iter 4 |
+| `HUDController` + `GameTimer` | HUD persistente | MVP2 Iter 2 |
+| `GameOverController` | Tela de Game Over com Restart | MVP2 Iter 3 |
+| `PrefabPool` | Pooling de tiles/hazards/power-ups | PostMVP2 |
+| `HazardWarning` | Ícone flutuante N rows antes do hazard | PostMVP2 |
+| `ActiveItemSlot` + `TimeFreezeController` + `TeleportController` + `ActiveItemInputHandler` | Sistema de active item slot | PostMVP2.3 |
+| `WarmupController` | Countdown 3-2-1-GO + warmup rows | PostMVP2.4 (Idea 1) |
+| `AutoCriticalFollower` | Auto-follow do critical path | PostMVP2.4 (Idea 3) |
+| `SpeedUpZone` + `LaneSwap` + `Vortex` | Hazards não-letais | PostMVP2.5 |
+| `HighScoreManager` | 4 bests persistentes via PlayerPrefs | PostMVP2.D |
+| `DebugPanelController` | Debug pontual (F1) | Pós-MVP2 |
+| `SpawnOverrideController` | Override contínuo de spawn (F2) | 2026-05-22 |
+
+### 17.10 Próximos passos (descartados pelo user, podem voltar)
+
+Sequência foi: gameplay → polish técnico → power-ups → hazards →
+UX → persistência → debug tooling. Restam pendentes (decididos
+pelo user como não-prioritários por enquanto):
+
+- **C — Audio**: música ambiente + SFX em coletas/hits/Game Over.
+- **E — Polish visual**: modelos no lugar dos primitivos atuais.
+- **F — Mobile**: `TouchDirectionalInput` para deploy mobile.
+- **G — Animações UI**: fade-in Game Over, pulse em ícones HUD.
+
+Próximo passo provável é **playtesting puro** pra calibrar
+tunables — `SpawnOverrideController` (§17.8.2) foi adicionada
+justamente pra acelerar isso.
 
 ---
 

@@ -85,6 +85,9 @@ namespace RailSwitchMVP.Core
         public GameObject TilePrefab => tilePrefab;
         public bool IsInTransition => transitionAnchorLane >= 0;
 
+        // Exposto pra SpawnOverrideController popular sua UI com a lista atual.
+        public GameObject[] PowerUpPrefabs => powerUpPrefabs;
+
         public void Configure(RailGenConfig cfg, GameObject prefab)
         {
             if (cfg != null) config = cfg;
@@ -97,6 +100,19 @@ namespace RailSwitchMVP.Core
         public void ResetState()
         {
             previousCriticalLanes.Clear();
+            transitionAnchorLane = -1;
+        }
+
+        /// <summary>
+        /// Reseta o estado de critical-lanes pro conjunto fornecido. Usado quando
+        /// o RailManager despawna rows à frente (ex: override de rowsAhead via debug)
+        /// — o gerador precisa saber a partir de onde continuar.
+        /// </summary>
+        public void SetPreviousCriticalLanes(int[] lanes)
+        {
+            previousCriticalLanes.Clear();
+            if (lanes == null) return;
+            foreach (int L in lanes) previousCriticalLanes.Add(L);
             transitionAnchorLane = -1;
         }
 
@@ -352,69 +368,43 @@ namespace RailSwitchMVP.Core
                         tile.Coins.Spawn(coinCount, tile.IsOnCriticalPath);
                 }
 
-                // Hazards (Iter 1 + Iter 4): só em DECOYS. Critical path sempre limpo.
-                // Warmup rows pulam tudo (early return abaixo).
-                bool decoyHasHazard = false;
-                if (!isWarmupRow && !tile.IsOnCriticalPath && tile.Obstacles != null)
+                // Hazards: roteado via SpawnOverrideController quando presente.
+                // Master OFF (ou controller ausente) = comportamento clássico (só decoy, cascata Lethal→...→Vortex).
+                // Master ON = chances/locations vindas da UI F2 (pode incluir critical).
+                bool tileHasHazard = false;
+                if (!isWarmupRow && tile.Obstacles != null)
                 {
-                    // Lethal — Shield NÃO ajuda, player tem que evitar.
-                    if (lethalObstaclePrefab != null
-                        && tier.obstacleChanceOnDecoy > 0f
-                        && Random.value < tier.obstacleChanceOnDecoy)
+                    HazardResolution hz;
+                    if (SpawnOverrideController.Instance != null)
                     {
-                        var hazardGo = tile.Obstacles.Spawn(lethalObstaclePrefab);
-                        AttachWarning(hazardGo, _lethalWarningColor, _lethalWarningSymbol);
-                        decoyHasHazard = true;
+                        hz = SpawnOverrideController.Instance.ResolveHazard(
+                            tile.IsOnCriticalPath, tier,
+                            lethalObstaclePrefab, barrierObstaclePrefab,
+                            speedUpZonePrefab, laneSwapObstaclePrefab, vortexObstaclePrefab);
                     }
-                    // Barrier (MVP2 Iter 4) — Shield absorve.
-                    else if (barrierObstaclePrefab != null
-                        && tier.barrierChanceOnDecoy > 0f
-                        && Random.value < tier.barrierChanceOnDecoy)
+                    else
                     {
-                        var hazardGo = tile.Obstacles.Spawn(barrierObstaclePrefab);
-                        AttachWarning(hazardGo, _barrierWarningColor, _barrierWarningSymbol);
-                        decoyHasHazard = true;
+                        hz = ResolveHazardClassic(tile.IsOnCriticalPath, tier);
                     }
-                    // SpeedUp zone (PostMVP2.5) — não mata, debuff de velocidade.
-                    else if (speedUpZonePrefab != null
-                        && tier.speedUpZoneChanceOnDecoy > 0f
-                        && Random.value < tier.speedUpZoneChanceOnDecoy)
+
+                    if (hz.prefab != null)
                     {
-                        tile.Obstacles.Spawn(speedUpZonePrefab);
-                        decoyHasHazard = true;
-                    }
-                    // Lane Swap (PostMVP2.5) — inverte inputs por N tiles.
-                    else if (laneSwapObstaclePrefab != null
-                        && tier.laneSwapChanceOnDecoy > 0f
-                        && Random.value < tier.laneSwapChanceOnDecoy)
-                    {
-                        tile.Obstacles.Spawn(laneSwapObstaclePrefab);
-                        decoyHasHazard = true;
-                    }
-                    // Vortex (PostMVP2.5) — rouba escolha de switch.
-                    else if (vortexObstaclePrefab != null
-                        && tier.vortexChanceOnDecoy > 0f
-                        && Random.value < tier.vortexChanceOnDecoy)
-                    {
-                        tile.Obstacles.Spawn(vortexObstaclePrefab);
-                        decoyHasHazard = true;
+                        var hazardGo = tile.Obstacles.Spawn(hz.prefab);
+                        if (hz.kind == HazardKind.Lethal)
+                            AttachWarning(hazardGo, _lethalWarningColor, _lethalWarningSymbol);
+                        else if (hz.kind == HazardKind.Barrier)
+                            AttachWarning(hazardGo, _barrierWarningColor, _barrierWarningSymbol);
+                        tileHasHazard = true;
                     }
                 }
 
-                // Power-ups (MVP2 Iter 4): em critical e decoy, com chances diferentes.
-                // Tile com hazard NÃO recebe power-up (regra de design).
-                // Warmup rows nunca recebem.
-                if (!isWarmupRow && !decoyHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
+                // Power-ups: idem rota via override. Tile com hazard nunca recebe.
+                if (!isWarmupRow && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
                 {
-                    float chance = tile.IsOnCriticalPath
-                        ? tier.powerUpChanceOnCritical
-                        : tier.powerUpChanceOnDecoy;
-                    if (chance > 0f && Random.value < chance)
-                    {
-                        int idx = Random.Range(0, powerUpPrefabs.Length);
-                        var prefab = powerUpPrefabs[idx];
-                        if (prefab != null) tile.PowerUps.Spawn(prefab);
-                    }
+                    GameObject puPrefab = SpawnOverrideController.Instance != null
+                        ? SpawnOverrideController.Instance.ResolvePowerUpPrefab(tile.IsOnCriticalPath, tier, powerUpPrefabs)
+                        : ResolvePowerUpClassic(tile.IsOnCriticalPath, tier);
+                    if (puPrefab != null) tile.PowerUps.Spawn(puPrefab);
                 }
 
                 row.Tiles[L] = tile;
@@ -477,6 +467,32 @@ namespace RailSwitchMVP.Core
             // (mais próximo do player, no eixo Z forward).
             float leadZ = -warningRowsAhead * (config.trackLength + config.rowGap);
             warning.Setup(color, symbol, leadZ);
+        }
+
+        // Fallback usado quando SpawnOverrideController não está na cena.
+        // Replica a cascata original 1:1 (só decoy, primeiro hit ganha).
+        HazardResolution ResolveHazardClassic(bool isCritical, DifficultyTier tier)
+        {
+            if (isCritical) return HazardResolution.None;
+            if (lethalObstaclePrefab != null && tier.obstacleChanceOnDecoy > 0f && Random.value < tier.obstacleChanceOnDecoy)
+                return new HazardResolution { prefab = lethalObstaclePrefab, kind = HazardKind.Lethal };
+            if (barrierObstaclePrefab != null && tier.barrierChanceOnDecoy > 0f && Random.value < tier.barrierChanceOnDecoy)
+                return new HazardResolution { prefab = barrierObstaclePrefab, kind = HazardKind.Barrier };
+            if (speedUpZonePrefab != null && tier.speedUpZoneChanceOnDecoy > 0f && Random.value < tier.speedUpZoneChanceOnDecoy)
+                return new HazardResolution { prefab = speedUpZonePrefab, kind = HazardKind.SpeedUp };
+            if (laneSwapObstaclePrefab != null && tier.laneSwapChanceOnDecoy > 0f && Random.value < tier.laneSwapChanceOnDecoy)
+                return new HazardResolution { prefab = laneSwapObstaclePrefab, kind = HazardKind.LaneSwap };
+            if (vortexObstaclePrefab != null && tier.vortexChanceOnDecoy > 0f && Random.value < tier.vortexChanceOnDecoy)
+                return new HazardResolution { prefab = vortexObstaclePrefab, kind = HazardKind.Vortex };
+            return HazardResolution.None;
+        }
+
+        GameObject ResolvePowerUpClassic(bool isCritical, DifficultyTier tier)
+        {
+            float chance = isCritical ? tier.powerUpChanceOnCritical : tier.powerUpChanceOnDecoy;
+            if (chance <= 0f || Random.value >= chance) return null;
+            int idx = Random.Range(0, powerUpPrefabs.Length);
+            return powerUpPrefabs[idx];
         }
     }
 }

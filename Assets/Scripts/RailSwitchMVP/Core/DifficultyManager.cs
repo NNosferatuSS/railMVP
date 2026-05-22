@@ -100,6 +100,21 @@ namespace RailSwitchMVP.Core
 
             if (config == null || config.tiers == null) return;
 
+            // Debug: tier lock via SpawnOverrideController força um tier específico
+            // e bypassa o auto-advance enquanto ativo.
+            var ov = SpawnOverrideController.Instance;
+            if (ov != null && ov.TryGetLockedTier(config.tiers.Count, out int lockedIdx))
+            {
+                if (lockedIdx != currentTierIndex)
+                {
+                    currentTierIndex = lockedIdx;
+                    currentTier = config.tiers[lockedIdx];
+                    Debug.Log($"[DifficultyManager] 🔒 LOCKED Tier {lockedIdx} (debug override)");
+                    OnTierChanged?.Invoke(currentTier);
+                }
+                return;
+            }
+
             while (currentTierIndex + 1 < config.tiers.Count
                 && distanceTraveled >= config.tiers[currentTierIndex + 1].triggerAtDistance)
             {
