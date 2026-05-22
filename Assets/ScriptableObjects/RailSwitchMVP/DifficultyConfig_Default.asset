@@ -83,7 +83,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     speedUpZoneChanceOnDecoy: 0.15
-    laneSwapChanceOnDecoy: 0.10
+    laneSwapChanceOnDecoy: 0.1
     vortexChanceOnDecoy: 0.08
   - triggerAtDistance: 800
     maxLanes: 7

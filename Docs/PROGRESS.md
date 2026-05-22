@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-20 (final do dia — sessão grande: 3 ideas + PostMVP2.5 + PostMVP2.4 + D high score + debug spawn buttons + prefab rename)
+**Última atualização:** 2026-05-22 — **Fatia 1 (Fundação meta-game) ✅ validada.** `PlayerDataManager`, `HomeScreenController`, `GameOverController` migrado, `HighScoreManager.cs` deletado. Próxima: Fatia 2 (MissionTracker).
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -14,9 +14,34 @@
 
 ## 🟢 Próxima sessão: começe AQUI
 
-**Estado: TUDO implementado, prefabs criados e organizados, debug spawn buttons
-no painel pra testar tudo facilmente. Falta apenas playtesting pra calibrar
-feel e descobrir bugs sutis.**
+**Estado: gameplay completo (MVP1+MVP2+pós-MVP2 todo). Entrando agora na
+camada de PROGRESSÃO (meta-game) — fundação + missões + login + loja + ads.
+Ordem em 5 fatias verticais. Detalhes em
+`Docs/Progression_Implementation_Plan.md`.**
+
+### Fatia atual: 2 — MissionTracker
+
+3 missões diárias + 3 semanais com 9 tipos de tracking. Pool de 20
+diárias + 10 semanais (spec §3.2/§4.2). Rotação determinística por
+`DayOfYear % 20`. Hooks em `CoinManager`, `PowerUpManager`,
+`DifficultyManager`, `CollectibleCoin`, `GameManager`. UI na Home com
+botão Reclamar. Detalhes em `Docs/Progression_Implementation_Plan.md`.
+
+### Fatia 1 — Fundação ✅ (2026-05-22)
+
+- `PlayerDataManager` singleton DontDestroyOnLoad com coins, bests, runs,
+  personagens. Reusa keys `RailMVP.BestX` do HighScoreManager.
+- `HomeScene` placeholder com Coins/Best/Player + JOGAR + 3 stubs.
+- `GameOverController` migrado + botão HOME + `CommitRunToPlayerData()`
+  idempotente que credita coins e incrementa runs.
+- `DebugPanelController` migrado pra seção "Player data" com Reset All.
+- `HighScoreManager.cs` deletado.
+- Build Settings: HomeScene index 0, RailSwitchMVP index 1.
+
+### Backlog de gameplay (ainda válido)
+
+- Playtesting puro pra calibrar tunables (descartado pelo user por ora).
+- Setup do `_SpawnOverride` GameObject na cena (pendente).
 
 ### Resumo do que está pronto
 
@@ -29,6 +54,7 @@ feel e descobrir bugs sutis.**
 | D — High score persistente | ⏳ Implementado, falta validar persistência entre sessões |
 | Debug spawn buttons (botão Spawn ao lado de cada Grant) | ✅ Implementado, user atribuiu prefabs |
 | Debug panel posição (lado direito) | ✅ |
+| **Spawn Override (F2, in-runtime)** | ⏳ Implementado, falta criar GameObject `_SpawnOverride` na cena |
 
 ### Prefabs no repo (organizados PowerUp_/Debuff_)
 
@@ -141,6 +167,28 @@ Ordem combinada com user:
   - `GameOverController` mostra "Current ★ (Best: X)" inline + opcional
     NewRecordText overlay "★ NEW RECORD! Distance Coins...".
   - DebugPanel button "Reset Best Scores".
+- ✅ **Spawn Override (debug runtime):** commit `<próximo>`.
+  - `SpawnOverrideController` singleton, OnGUI toggle **F2**, painel à direita.
+  - Master toggle (OFF = comportamento clássico, ON = override).
+  - Por hazard (Lethal/Barrier/SpeedUp/LaneSwap/Vortex) e por power-up
+    individualmente: enabled/chance/location (Crit/Decoy/Both) + botão `solo`.
+  - Global multiplier × em todas as chances.
+  - Botão "Snapshot from current tier" copia valores do tier ativo.
+  - `ProceduralRailGenerator` roteia decisões via `SpawnOverrideController.Instance`
+    se presente, senão usa `ResolveHazardClassic`/`ResolvePowerUpClassic` (mantém
+    comportamento idêntico ao anterior pra runs sem o controller).
+  - **rowsAhead override** (toggle separado, slider 1–20): reduz a janela
+    de streaming pra mudanças nos sliders aparecerem em poucos tiles. Quando
+    reduzido, `RailManager` auto-despawna o excedente à frente e chama
+    `ProceduralRailGenerator.SetPreviousCriticalLanes(...)` pra re-seed o
+    gerador na row sobrevivente (sem isso, critical path drifftaria errado).
+  - **Tier lock** (toggle + slider 0..tierCount-1): força e mantém o
+    `DifficultyManager` num tier fixo (bypassa auto-advance). `UpdateDistance`
+    checa `SpawnOverrideController.TryGetLockedTier(...)` antes do loop normal
+    de progressão. Ao destravar, retoma auto-advance pela distância atual.
+  - **Setup pendente:** criar GameObject `_SpawnOverride` na cena com o
+    componente. Não precisa atribuir prefabs — controller descobre a lista
+    de power-ups via `ProceduralRailGenerator.PowerUpPrefabs` no Start.
 
 Ver follow-ups originais em `Docs/MVP2_Plan.md §"Pontos que NÃO entram"`.
 

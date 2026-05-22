@@ -5,17 +5,20 @@ using UnityEngine.InputSystem;
 using TMPro;
 using RailSwitchMVP.Core;
 using RailSwitchMVP.Collectibles;
+using RailSwitchMVP.Meta;
 using RailSwitchMVP.Player;
 
 namespace RailSwitchMVP.UI
 {
     /// <summary>
-    /// Tela de Game Over (MVP2 Iter 3). Escuta GameManager.OnGameOver,
-    /// ativa o painel, popula stats finais e pausa o jogo (Time.timeScale = 0).
-    /// Botão Restart e tecla R recarregam a cena pra começar do zero.
+    /// Tela de Game Over. Escuta GameManager.OnGameOver, popula stats finais
+    /// e pausa o jogo. Ao sair (Restart ou Home), transfere as coins do run
+    /// pro PlayerDataManager e atualiza best scores.
     /// </summary>
     public class GameOverController : MonoBehaviour
     {
+        public const string HomeSceneName = "HomeScene";
+
         [Header("Panel & UI refs")]
         [SerializeField] private GameObject panel;
         [SerializeField] private TMP_Text reasonText;
@@ -24,6 +27,7 @@ namespace RailSwitchMVP.UI
         [SerializeField] private TMP_Text coinsText;
         [SerializeField] private TMP_Text bestTierText;
         [SerializeField] private Button restartButton;
+        [SerializeField] private Button homeButton;
 
         [Header("High score (D)")]
         [Tooltip("Texto opcional que aparece quando algum record é batido. " +
@@ -37,6 +41,14 @@ namespace RailSwitchMVP.UI
         [SerializeField] private CoinManager coinManager;
 
         private bool _isShowing;
+        private bool _runCommitted;
+
+        // Stats finais capturados quando o GameOver dispara — usados pra
+        // transferir pro PDM no Restart/Home.
+        private int _runMeters;
+        private int _runCoins;
+        private int _runTier;
+        private float _runTime;
 
         // Mesmo padrão do HUDController: captura baseline no 1º LateUpdate
         // pra exibir distância "limpa" (a partir de 0) mesmo que o player
@@ -59,6 +71,8 @@ namespace RailSwitchMVP.UI
 
             if (restartButton != null)
                 restartButton.onClick.AddListener(Restart);
+            if (homeButton != null)
+                homeButton.onClick.AddListener(GoHome);
         }
 
         void OnDestroy()
@@ -67,6 +81,8 @@ namespace RailSwitchMVP.UI
                 GameManager.Instance.OnGameOver -= HandleGameOver;
             if (restartButton != null)
                 restartButton.onClick.RemoveListener(Restart);
+            if (homeButton != null)
+                homeButton.onClick.RemoveListener(GoHome);
         }
 
         void LateUpdate()
@@ -94,47 +110,53 @@ namespace RailSwitchMVP.UI
             if (reasonText != null)
                 reasonText.text = FormatReason(reason);
 
-            // Compute current run stats.
-            int curMeters = 0;
+            // Compute current run stats e cacheia pra transferir no Restart/Home.
             if (player != null)
             {
                 float baseline = _baselineCaptured ? _distanceBaseline : player.DistanceTraveled;
-                curMeters = Mathf.Max(0, Mathf.FloorToInt(player.DistanceTraveled - baseline));
+                _runMeters = Mathf.Max(0, Mathf.FloorToInt(player.DistanceTraveled - baseline));
             }
-            int curCoins = coinManager != null ? coinManager.Total : 0;
-            int curTier = difficulty != null ? difficulty.CurrentTierIndex : 0;
-            float curTime = timer != null ? timer.Elapsed : 0f;
+            _runCoins = coinManager != null ? coinManager.Total : 0;
+            _runTier = difficulty != null ? difficulty.CurrentTierIndex : 0;
+            _runTime = timer != null ? timer.Elapsed : 0f;
             string curTimeStr = timer != null ? timer.FormatMMSS() : "00:00";
 
-            // Atualiza bests (PlayerPrefs).
-            HighScoreManager.RecordResult broken = default;
-            var hsm = HighScoreManager.Instance;
-            if (hsm != null) broken = hsm.TryUpdate(curMeters, curCoins, curTier, curTime);
+            // Atualiza bests via PlayerDataManager (PlayerPrefs sob o capô).
+            PlayerDataManager.RecordResult broken = default;
+            var pdm = PlayerDataManager.Instance;
+            if (pdm != null)
+            {
+                broken = pdm.UpdateBests(_runMeters, _runCoins, _runTier, _runTime);
+            }
+            else
+            {
+                Debug.LogWarning("[GameOver] PlayerDataManager.Instance null — best scores não foram salvos. Adicione _PlayerDataManager na cena.");
+            }
 
             // Labels com (Best: X) inline. Star ★ se record batido.
             if (timeText != null)
             {
                 string newTag = broken.time ? " ★" : "";
-                string bestStr = hsm != null ? FormatTime(hsm.BestTime) : "—";
+                string bestStr = pdm != null ? FormatTime(pdm.BestTime) : "—";
                 timeText.text = $"Time: {curTimeStr}{newTag}  (Best: {bestStr})";
             }
             if (distanceText != null)
             {
                 string newTag = broken.distance ? " ★" : "";
-                string bestStr = hsm != null ? $"{hsm.BestDistance} m" : "—";
-                distanceText.text = $"Distance: {curMeters} m{newTag}  (Best: {bestStr})";
+                string bestStr = pdm != null ? $"{pdm.BestDistance} m" : "—";
+                distanceText.text = $"Distance: {_runMeters} m{newTag}  (Best: {bestStr})";
             }
             if (coinsText != null)
             {
                 string newTag = broken.coins ? " ★" : "";
-                string bestStr = hsm != null ? hsm.BestCoins.ToString() : "—";
-                coinsText.text = $"Coins: {curCoins}{newTag}  (Best: {bestStr})";
+                string bestStr = pdm != null ? pdm.BestCoins.ToString() : "—";
+                coinsText.text = $"Coins: {_runCoins}{newTag}  (Best: {bestStr})";
             }
             if (bestTierText != null)
             {
                 string newTag = broken.tier ? " ★" : "";
-                string bestStr = hsm != null ? hsm.BestTier.ToString() : "—";
-                bestTierText.text = $"Tier: {curTier}{newTag}  (Best: {bestStr})";
+                string bestStr = pdm != null ? pdm.BestTier.ToString() : "—";
+                bestTierText.text = $"Tier: {_runTier}{newTag}  (Best: {bestStr})";
             }
 
             // Overlay "NEW RECORD!" se qualquer record batido.
@@ -179,14 +201,39 @@ namespace RailSwitchMVP.UI
         }
 
         /// <summary>
-        /// Recarrega a cena. Restaura Time.timeScale antes de carregar pra que
-        /// a próxima sessão não inicie pausada.
+        /// Recarrega a cena pra começar nova run. Transfere coins do run
+        /// pro PDM e incrementa total de runs antes de recarregar.
         /// </summary>
         public void Restart()
         {
+            CommitRunToPlayerData();
             Time.timeScale = 1f;
             var scene = SceneManager.GetActiveScene();
             SceneManager.LoadScene(scene.buildIndex);
+        }
+
+        /// <summary>
+        /// Volta pra HomeScene. Mesma transferência do Restart.
+        /// </summary>
+        public void GoHome()
+        {
+            CommitRunToPlayerData();
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(HomeSceneName);
+        }
+
+        // Idempotente — só roda uma vez por GameOver (Restart e Home não
+        // podem ambos creditar duas vezes se user spammar).
+        void CommitRunToPlayerData()
+        {
+            if (_runCommitted) return;
+            _runCommitted = true;
+
+            var pdm = PlayerDataManager.Instance;
+            if (pdm == null) return;
+            pdm.AddCoins(_runCoins);
+            pdm.IncrementTotalRuns();
+            pdm.Save();
         }
     }
 }

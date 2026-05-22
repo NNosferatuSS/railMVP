@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using RailSwitchMVP.Collectibles;
+using RailSwitchMVP.Meta;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
 
@@ -88,7 +89,7 @@ namespace RailSwitchMVP.Core
 
             DrawAutoTestSection();
             GUILayout.Space(6);
-            DrawHighScoreSection();
+            DrawPlayerDataSection();
             GUILayout.Space(6);
             DrawActiveItemSection();
             GUILayout.Space(6);
@@ -122,19 +123,20 @@ namespace RailSwitchMVP.Core
                 GUILayout.Label("Player segue critical sozinho. Manual input ainda funciona (override por tile).", _hintStyle);
         }
 
-        void DrawHighScoreSection()
+        void DrawPlayerDataSection()
         {
-            GUILayout.Label("High score", _sectionStyle);
-            var hsm = HighScoreManager.Instance;
-            if (hsm == null)
+            GUILayout.Label("Player data", _sectionStyle);
+            var pdm = PlayerDataManager.Instance;
+            if (pdm == null)
             {
-                GUILayout.Label("(HighScoreManager not in scene)", _hintStyle);
+                GUILayout.Label("(PlayerDataManager not in scene)", _hintStyle);
                 return;
             }
-            int min = Mathf.FloorToInt(hsm.BestTime) / 60;
-            int sec = Mathf.FloorToInt(hsm.BestTime) % 60;
-            GUILayout.Label($"Dist {hsm.BestDistance}m | Coins {hsm.BestCoins} | Tier {hsm.BestTier} | Time {min:D2}:{sec:D2}", _hintStyle);
-            if (GUILayout.Button("Reset Best Scores")) hsm.ResetAll();
+            GUILayout.Label($"Coins: {pdm.Coins} | Runs: {pdm.TotalRuns} | Char: {pdm.EquippedChar}", _hintStyle);
+            int min = Mathf.FloorToInt(pdm.BestTime) / 60;
+            int sec = Mathf.FloorToInt(pdm.BestTime) % 60;
+            GUILayout.Label($"Best — Dist {pdm.BestDistance}m | Coins {pdm.BestCoins} | Tier {pdm.BestTier} | Time {min:D2}:{sec:D2}", _hintStyle);
+            if (GUILayout.Button("Reset All Player Data")) pdm.WipeAll();
         }
 
         void DrawActiveItemSection()

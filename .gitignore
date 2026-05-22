@@ -12,6 +12,11 @@
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 
+# Unity asset recovery folder (gerado em crash/import recovery).
+# Precisa estar DEPOIS da regra !Assets/**/*.meta pra .meta ser ignorado também.
+[Aa]ssets/_Recovery/
+[Aa]ssets/_Recovery.meta
+
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
 
