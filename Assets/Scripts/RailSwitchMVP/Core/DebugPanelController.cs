@@ -72,6 +72,16 @@ namespace RailSwitchMVP.Core
                 _show = !_show;
         }
 
+        /// <summary>
+        /// Toggle público pra ser ligado em UI Button (Android, onde F1 não existe).
+        /// Respeita restrictToDebugBuilds — no-op em release.
+        /// </summary>
+        public void Toggle()
+        {
+            if (!ShouldRespond) return;
+            _show = !_show;
+        }
+
         void OnGUI()
         {
             if (!_show || !ShouldRespond) return;

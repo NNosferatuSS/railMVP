@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-22 — **Camera Polish implementado** (tilt até 90°, smoothing, shake, death cam). Pronto pra testar na segunda. Detalhes em `Docs/CameraPolish_Setup.md`. **Fatias 1-4 já commitadas.** Próxima sessão: testar polish da câmera, depois decidir entre Fatia 5 (Rewarded Ads) ou skip pra Daily Challenge/Supabase.
+**Última atualização:** 2026-05-24 — **Mobile Input** + **perf passada inicial**. Primeiro build Android rodou; swipe foi trocado por **tap zones** (mais previsível) após feedback de que swipe falhava intermitente. Adicionado `PerformanceBootstrapper` (target fps 60, vSync off, no-sleep mobile) + fix de FindFirstObjectByType em hot path do CollectibleCoin. Detalhes em `Docs/MobileInput_Setup.md` e `Docs/Mobile_Performance.md`. Camera Polish (2026-05-22) ainda pendente de teste. **Fatias 1-4 já commitadas.**
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -19,14 +19,64 @@ camada de PROGRESSÃO (meta-game) — fundação + missões + login + loja + ads
 Ordem em 5 fatias verticais. Detalhes em
 `Docs/Progression_Implementation_Plan.md`.**
 
-### Próxima sessão (segunda 2026-05-25): decidir caminho
+### Próxima sessão: setup mobile + build Android
 
-Duas opções:
-- **Fatia 5 — Rewarded Ads (Unity Ads SDK).** Substitui o chest stub
-  e o "2x coins" do GameOver por ads reais. Requer conta Unity Ads +
-  Package + build mobile pra testar de verdade (Editor só dá test ads).
-- **Skip pra spec §11.** Daily Challenge → Supabase backend → Leaderboard.
-  Chest stub continua funcionando localmente; ads ficam pra depois.
+**Fluxo:**
+1. Setup na cena dos componentes novos (`Docs/MobileInput_Setup.md` §1-3).
+2. Switch Platform → Android + Development Build em Build Settings.
+3. Build And Run no device. Validar critérios em `MobileInput_Setup.md`.
+4. Testar Camera Polish ao mesmo tempo (commit `81585af`).
+
+**Depois disso, decidir entre:**
+- **Fatia 5 — Rewarded Ads (Unity Ads SDK).** Substitui chest stub e
+  "2x coins" do GameOver por ads reais. Requer conta Unity Ads. Agora
+  com build mobile estável, dá pra testar de verdade.
+- **Skip pra spec §11.** Daily Challenge → Supabase → Leaderboard.
+
+### Mobile Performance ✅ passada inicial 2026-05-24 (pendente teste)
+
+Iteração após primeiro build Android mostrar fps abaixo do esperado:
+
+- **`Core/PerformanceBootstrapper.cs`** — `RuntimeInitializeOnLoadMethod` antes
+  da cena. Trava `targetFrameRate = 60`, `vSyncCount = 0`,
+  `Screen.sleepTimeout = NeverSleep` em mobile. Não precisa ser anexado a GO.
+- **Fix CollectibleCoin.Collect()** — cache estático do PlayerRailRider.
+  Antes, cada moeda coletada chamava `FindFirstObjectByType` (scene scan).
+  Com Magnet ativo, era chamado várias vezes/seg.
+
+**Tunables não-código (Editor) sugeridos** — listados em ordem de impacto em
+`Docs/Mobile_Performance.md`:
+1. `Mobile_RPAsset` → Main Light Cast Shadows = OFF (maior ganho).
+2. `Mobile_RPAsset` → HDR = OFF.
+3. Render scale 0.7 se ainda pesado.
+4. Profiler obrigatório antes de mais mudanças (não otimizar às cegas).
+
+### Mobile Input ✅ implementado 2026-05-24 (pendente setup cena + build)
+
+Adicionou camada de input touch + UI buttons sem mexer no keyboard. Editor
+continua funcionando exatamente igual; Android ganha o equivalente em UI.
+
+- `Input/TouchDirectionalInput.cs` — **tap zones por default** (tap em
+  metade esq/dir = -1/+1). Modo Swipe alternativo via enum (testado, ruim
+  em mobile típico). No-op em desktop (Touchscreen.current == null).
+  Toques sobre UI são ignorados via EventSystem.RaycastAll.
+- `Input/CompositeDirectionalInput.cs` — agrega N IDirectionalInput. Player
+  aponta pra ele; ele tenta touch primeiro, fallback keyboard. Plug-and-play
+  sem mexer no PlayerRailRider.
+- `UI/MobileTouchUI.cs` — botão USE (Active Item) + 2 botões TELE ←/→.
+  Auto-hide via `ActiveItemSlot.OnItemAcquired/Used` e `PowerUpManager.OnPowerUpTick/Expired`.
+  `hideOnDesktop` flag opcional.
+- `Core/MobileDebugButtons.cs` — 2 botões pra toggle F1/F2 em Android (onde
+  não existe teclado). Auto-hide em release builds.
+- `DebugPanelController.Toggle()` e `SpawnOverrideController.Toggle()` públicos
+  pra serem ligados em Button.onClick.
+
+**Setup pendente:** componentes na cena + UI buttons no HUD canvas + trocar
+`inputSource` do PlayerRailRider de Keyboard → Composite. Passo-a-passo
+completo + critérios de validação em `Docs/MobileInput_Setup.md`.
+
+**Debug no Android:** Development Build em Build Settings, `MobileDebugButtons`
+na cena, `adb logcat -s Unity` pra stream de logs. Detalhes no doc.
 
 ### Camera Polish ✅ implementado 2026-05-22 (pendente testar)
 

@@ -109,6 +109,16 @@ namespace RailSwitchMVP.Core
             if (kb != null && kb.f2Key.wasPressedThisFrame) _show = !_show;
         }
 
+        /// <summary>
+        /// Toggle público pra ser ligado em UI Button (Android, onde F2 não existe).
+        /// Respeita restrictToDebugBuilds — no-op em release.
+        /// </summary>
+        public void Toggle()
+        {
+            if (!ShouldRespond) return;
+            _show = !_show;
+        }
+
         // ========================================================
         // PUBLIC API — chamado pelo RailManager / ProceduralRailGenerator
         // ========================================================

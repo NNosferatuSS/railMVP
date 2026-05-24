@@ -30,6 +30,10 @@ namespace RailSwitchMVP.Collectibles
 
         private Vector3 _baseScale;
 
+        // Cache estático — coins são criados/destruídos constantemente.
+        // FindFirstObjectByType era chamado por cada Collect() (mobile fps killer).
+        private static PlayerRailRider _cachedPlayer;
+
         void Awake()
         {
             _baseScale = transform.localScale;
@@ -75,7 +79,7 @@ namespace RailSwitchMVP.Collectibles
             }
             if (MissionTracker.Instance != null)
             {
-                var player = Object.FindFirstObjectByType<PlayerRailRider>();
+                var player = _cachedPlayer != null ? _cachedPlayer : (_cachedPlayer = Object.FindFirstObjectByType<PlayerRailRider>());
                 if (player != null && player.CurrentTile != null)
                     MissionTracker.Instance.OnTileWithCoin(player.CurrentTile.GetInstanceID());
             }
