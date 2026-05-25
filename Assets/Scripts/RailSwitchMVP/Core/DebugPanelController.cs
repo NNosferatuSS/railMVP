@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using RailSwitchMVP.Collectibles;
 using RailSwitchMVP.Meta;
+using RailSwitchMVP.Net;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
 
@@ -131,6 +132,8 @@ namespace RailSwitchMVP.Core
             DrawDailyChallengeSection();
             GUILayout.Space(6);
             DrawAuthSection();
+            GUILayout.Space(6);
+            DrawSyncSection();
             GUILayout.Space(6);
             DrawAdsSection();
             GUILayout.Space(6);
@@ -271,6 +274,29 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Re-auth", GUILayout.MaxWidth(110))) auth.DebugForceReauth();
             GUILayout.EndHorizontal();
             if (GUILayout.Button("Sign out (no re-auth)")) auth.DebugSignOut();
+        }
+
+        void DrawSyncSection()
+        {
+            GUILayout.Label("Sync (Fatia 7B)", _sectionStyle);
+            var sync = PlayerDataSync.Instance;
+            if (sync == null)
+            {
+                GUILayout.Label("(PlayerDataSync not in scene)", _hintStyle);
+                return;
+            }
+            string lastSynced = string.IsNullOrEmpty(sync.LastSyncedAt) ? "—" : Trunc(sync.LastSyncedAt, 24);
+            GUILayout.Label($"status: {sync.Status} | last: {lastSynced}", _hintStyle);
+            if (!string.IsNullOrEmpty(sync.LastError))
+                GUILayout.Label($"err: {Trunc(sync.LastError, 60)}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Pull now", GUILayout.MaxWidth(110))) sync.DebugPullNow();
+            if (GUILayout.Button("Push now", GUILayout.MaxWidth(110))) sync.DebugPushNow();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Log status", GUILayout.MaxWidth(110))) sync.DebugLogStatus();
+            if (GUILayout.Button("Wipe+Pull", GUILayout.MaxWidth(110))) sync.DebugWipeLocalAndPull();
+            GUILayout.EndHorizontal();
         }
 
         void DrawAdsSection()

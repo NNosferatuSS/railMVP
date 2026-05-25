@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using UnityEngine;
+using RailSwitchMVP.Net;
 
 namespace RailSwitchMVP.Meta
 {
@@ -50,6 +51,11 @@ namespace RailSwitchMVP.Meta
 
         public event Action OnDailyResultRecorded;
 
+        /// <summary>Disparado quando qualquer campo daily muda e foi persistido (pra Fatia 7B sync). Suprimido durante ApplyRemoteState.</summary>
+        public event Action OnDataChanged;
+
+        bool _suppressDataChanged;
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -81,6 +87,41 @@ namespace RailSwitchMVP.Meta
             PlayerPrefs.SetInt(KBestEverM, bestEverM);
             PlayerPrefs.SetString(KBestEverDate, bestEverDate);
             PlayerPrefs.Save();
+
+            if (!_suppressDataChanged) OnDataChanged?.Invoke();
+        }
+
+        // ============ Sync (Fatia 7B) ============
+
+        /// <summary>
+        /// Sobrescreve estado in-memory + PlayerPrefs com dados vindos do servidor.
+        /// NÃO dispara OnDataChanged (evita loop). Dispara OnDailyResultRecorded
+        /// pra UI da Home refletir.
+        /// </summary>
+        public void ApplyRemoteState(PlayerRemoteState s)
+        {
+            if (s == null) return;
+            todayDate    = s.daily_today_date ?? "";
+            todayBestM   = s.daily_today_best_m;
+            bestEverM    = s.daily_best_ever_m;
+            bestEverDate = s.daily_best_ever_date ?? "";
+
+            _suppressDataChanged = true;
+            Save();
+            _suppressDataChanged = false;
+
+            OnDailyResultRecorded?.Invoke();
+            Debug.Log($"[Daily] ApplyRemoteState — todayDate='{todayDate}' todayBest={todayBestM}m bestEver={bestEverM}m");
+        }
+
+        /// <summary>Copia o estado daily atual pra um PlayerRemoteState (pra push em Fatia 7B).</summary>
+        public void CopyToRemoteState(PlayerRemoteState target)
+        {
+            if (target == null) return;
+            target.daily_today_date     = todayDate;
+            target.daily_today_best_m   = todayBestM;
+            target.daily_best_ever_m    = bestEverM;
+            target.daily_best_ever_date = bestEverDate;
         }
 
         // ============ Seed ============

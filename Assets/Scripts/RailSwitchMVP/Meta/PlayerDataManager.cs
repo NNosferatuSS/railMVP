@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using RailSwitchMVP.Net;
 
 namespace RailSwitchMVP.Meta
 {
@@ -64,6 +65,11 @@ namespace RailSwitchMVP.Meta
         public event System.Action<int> OnCoinsChanged;
         public event System.Action<RecordResult> OnRecordsUpdated;
         public event System.Action<int> OnEquippedCharChanged;
+
+        /// <summary>Disparado após Save() pra observers que precisam sync (Fatia 7B). Suprimido durante ApplyRemoteState pra evitar loop pull→save→push.</summary>
+        public event System.Action OnDataChanged;
+
+        bool _suppressDataChanged;
 
         void Awake()
         {
@@ -130,6 +136,64 @@ namespace RailSwitchMVP.Meta
             PlayerPrefs.SetString(KeyPlayerName, playerName);
             PlayerPrefs.SetString(KeyOwnedChars, string.Join(",", _ownedChars));
             PlayerPrefs.Save();
+
+            if (!_suppressDataChanged) OnDataChanged?.Invoke();
+        }
+
+        // ============ Sync (Fatia 7B) ============
+
+        /// <summary>
+        /// Sobrescreve estado in-memory + PlayerPrefs com dados vindos do servidor.
+        /// NÃO dispara OnDataChanged (evita loop pull→save→push). Dispara os
+        /// eventos de UI normais (OnCoinsChanged, OnRecordsUpdated, OnEquippedCharChanged)
+        /// pra Home/HUD refletirem o estado novo.
+        /// </summary>
+        public void ApplyRemoteState(PlayerRemoteState s)
+        {
+            if (s == null) return;
+
+            coins        = s.coins;
+            bestDistance = s.best_distance;
+            bestCoins    = s.best_coins;
+            bestTier     = s.best_tier;
+            bestTime     = s.best_time;
+            totalRuns    = s.total_runs;
+            equippedChar = s.equipped_char;
+            playerName   = string.IsNullOrEmpty(s.player_name) ? "Player" : s.player_name;
+
+            _ownedChars.Clear();
+            _ownedChars.Add(0);
+            if (!string.IsNullOrEmpty(s.owned_chars))
+            {
+                foreach (var part in s.owned_chars.Split(','))
+                {
+                    if (int.TryParse(part.Trim(), out int idx))
+                        _ownedChars.Add(idx);
+                }
+            }
+
+            _suppressDataChanged = true;
+            Save();
+            _suppressDataChanged = false;
+
+            OnCoinsChanged?.Invoke(coins);
+            OnEquippedCharChanged?.Invoke(equippedChar);
+            Debug.Log($"[PDM] ApplyRemoteState — coins={coins} bestDist={bestDistance}m runs={totalRuns} equipped={equippedChar}");
+        }
+
+        /// <summary>Copia o estado atual pra um PlayerRemoteState (pra push em Fatia 7B). updated_at fica vazio — server seta via trigger.</summary>
+        public void CopyToRemoteState(PlayerRemoteState target)
+        {
+            if (target == null) return;
+            target.coins         = coins;
+            target.best_distance = bestDistance;
+            target.best_coins    = bestCoins;
+            target.best_tier     = bestTier;
+            target.best_time     = bestTime;
+            target.total_runs    = totalRuns;
+            target.equipped_char = equippedChar;
+            target.owned_chars   = string.Join(",", _ownedChars);
+            target.player_name   = playerName;
         }
 
         // ============ Coins ============
