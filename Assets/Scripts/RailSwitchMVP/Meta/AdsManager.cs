@@ -127,6 +127,17 @@ namespace RailSwitchMVP.Meta
                 return;
             }
 
+            // DEV ONLY — hardcoded consent + privacy mode destravam header bidding
+            // em LGPD/GDPR e maximizam inventory disponível (mixed audience flag).
+            // Produção: substituir pelo resultado real de um CMP/popup de consent.
+            var gdprMetaData = new MetaData("gdpr");
+            gdprMetaData.Set("consent", "true");
+            Advertisement.SetMetaData(gdprMetaData);
+
+            var privacyMetaData = new MetaData("privacy");
+            privacyMetaData.Set("mode", "mixed");
+            Advertisement.SetMetaData(privacyMetaData);
+
             if (verboseLogs) Debug.Log($"[Ads] Initialize gameId={_activeGameId} test={testMode}");
             Advertisement.Initialize(_activeGameId, testMode, this);
         }
