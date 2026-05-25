@@ -69,6 +69,14 @@ namespace RailSwitchMVP.Meta
         /// <summary>Disparado quando PlayerName muda via SetPlayerName (Fatia 9). UI escuta pra atualizar texts inline.</summary>
         public event System.Action<string> OnPlayerNameChanged;
 
+        /// <summary>
+        /// Disparado após ApplyRemoteState — sinaliza pra UI "re-leia TUDO do PDM"
+        /// (sem payload). Resolve o problema de pull em runtime atualizar coins
+        /// mas não best/runs. Não dispara em Save() local (esses campos não mudam
+        /// individualmente sem ter o próprio event tipado).
+        /// </summary>
+        public event System.Action OnFullStateChanged;
+
         /// <summary>Disparado após Save() pra observers que precisam sync (Fatia 7B). Suprimido durante ApplyRemoteState pra evitar loop pull→save→push.</summary>
         public event System.Action OnDataChanged;
 
@@ -186,6 +194,7 @@ namespace RailSwitchMVP.Meta
             OnCoinsChanged?.Invoke(coins);
             OnEquippedCharChanged?.Invoke(equippedChar);
             OnPlayerNameChanged?.Invoke(playerName);
+            OnFullStateChanged?.Invoke();
             Debug.Log($"[PDM] ApplyRemoteState — coins={coins} bestDist={bestDistance}m runs={totalRuns} equipped={equippedChar} name='{playerName}'");
         }
 

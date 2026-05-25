@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using RailSwitchMVP.Meta;
 using RailSwitchMVP.Net;
@@ -42,11 +43,16 @@ namespace RailSwitchMVP.UI
         [Tooltip("Texto opcional mostrado quando a lista vem vazia.")]
         [SerializeField] private GameObject emptyStatePanel;
 
+        [Header("CTA — \"Voce ainda nao jogou\"")]
+        [Tooltip("Botao opcional 'JOGAR DESAFIO' que aparece dentro do panel quando o user ainda nao jogou daily hoje. Deixar null = comportamento antigo (so texto).")]
+        [SerializeField] private Button playDailyChallengeButton;
+
         readonly List<LeaderboardEntryUI> _spawnedEntries = new List<LeaderboardEntryUI>();
 
         void Awake()
         {
             if (closeButton != null) closeButton.onClick.AddListener(Close);
+            if (playDailyChallengeButton != null) playDailyChallengeButton.onClick.AddListener(OnPlayDailyClicked);
             // Nota: NÃO chamar leaderboardPanel.SetActive(false) aqui — o painel
             // hospeda o próprio componente, então Awake só dispara na primeira
             // SetActive(true). Chamar SetActive(false) aqui desativava o painel
@@ -57,6 +63,7 @@ namespace RailSwitchMVP.UI
         void OnDestroy()
         {
             if (closeButton != null) closeButton.onClick.RemoveListener(Close);
+            if (playDailyChallengeButton != null) playDailyChallengeButton.onClick.RemoveListener(OnPlayDailyClicked);
         }
 
         public void Open()
@@ -94,6 +101,7 @@ namespace RailSwitchMVP.UI
             SetLoading(true);
             ClearEntries();
             if (myRankBannerText != null) myRankBannerText.text = "";
+            if (playDailyChallengeButton != null) playDailyChallengeButton.gameObject.SetActive(false);
 
             int pending = 2; // 2 fetches: top + my rank
             void Done()
@@ -138,15 +146,29 @@ namespace RailSwitchMVP.UI
 
         void UpdateMyRankBanner(int rank, int distance)
         {
-            if (myRankBannerText == null) return;
-            if (rank < 0)
+            bool hasPlayed = rank > 0;
+            if (myRankBannerText != null)
             {
-                myRankBannerText.text = "Você ainda não jogou hoje.";
+                myRankBannerText.text = hasPlayed
+                    ? $"Você: #{rank} — {distance} m"
+                    : "Você ainda não jogou hoje.";
             }
-            else
+            // CTA visível só quando user ainda não jogou.
+            if (playDailyChallengeButton != null)
+                playDailyChallengeButton.gameObject.SetActive(!hasPlayed);
+        }
+
+        void OnPlayDailyClicked()
+        {
+            var daily = DailyChallengeManager.Instance;
+            if (daily == null)
             {
-                myRankBannerText.text = $"Você: #{rank} — {distance} m";
+                Debug.LogWarning("[LB] DailyChallengeManager.Instance null — não dá pra começar daily.");
+                return;
             }
+            daily.StartChallenge();
+            Close();
+            SceneManager.LoadScene(SceneNames.Game);
         }
 
         void ClearEntries()

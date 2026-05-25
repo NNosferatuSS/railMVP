@@ -66,6 +66,7 @@ namespace RailSwitchMVP.UI
             {
                 pdm.OnCoinsChanged += HandleCoinsChanged;
                 pdm.OnPlayerNameChanged += HandlePlayerNameChanged;
+                pdm.OnFullStateChanged += HandleFullStateChanged;
             }
 
             var mt = MissionTracker.Instance;
@@ -101,6 +102,7 @@ namespace RailSwitchMVP.UI
             {
                 pdm.OnCoinsChanged -= HandleCoinsChanged;
                 pdm.OnPlayerNameChanged -= HandlePlayerNameChanged;
+                pdm.OnFullStateChanged -= HandleFullStateChanged;
             }
 
             var mt = MissionTracker.Instance;
@@ -138,6 +140,10 @@ namespace RailSwitchMVP.UI
         {
             if (playerNameText != null) playerNameText.text = newName;
         }
+
+        // Pull do server (Fatia 7B) atualiza vários campos de uma vez — coins/name
+        // têm eventos próprios, mas best/runs não. Refresh() completo cobre todos.
+        void HandleFullStateChanged() => Refresh();
 
         void HandleLoginClaimed() { CloseLoginPopup(); RefreshChestButton(); }
         void HandleChestClaimed() { RefreshChestButton(); }
