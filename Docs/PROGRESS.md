@@ -6,7 +6,7 @@
 > e atualize a data.
 
 **Última atualização:** 2026-05-24 — **Fatia 5 — Rewarded Ads ✅ VALIDADA** (Unity Ads classic SDK, não Mediation). AdsManager singleton + chest sem stub + botão "Watch Ad +N coins" no GameOver. Dashboard configurado, ads servindo em Editor (test mode). Pre-launch checklist movido pra `Docs/Pre_Launch_Checklist.md` (keystore, Privacy Policy, GDPR, Play Console — pra quando shipar). **Fatias 1-5 fechadas.** Próxima sessão: decidir entre spec §11 (Daily Challenge + Supabase + Leaderboard), polish de gameplay (audio/visual), ou nova feature.
-**Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
+**Engine:** Unity 6000.4.7f1 (6.4 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
 

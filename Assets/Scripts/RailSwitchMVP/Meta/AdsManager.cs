@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Advertisements;
 
@@ -46,6 +47,25 @@ namespace RailSwitchMVP.Meta
         [Tooltip("Logs detalhados de cada callback do Unity Ads SDK.")]
         [SerializeField] private bool verboseLogs = true;
 
+        [Header("Mock Mode (DEV ONLY)")]
+        [Tooltip("Quando true, BYPASSA o Unity Ads SDK totalmente. " +
+            "Simula init imediato + 'ad' que dura mockAdDuration segundos e chama onSuccess. " +
+            "Útil quando o backend ainda não está servindo ads (projeto novo) ou pra dev offline. " +
+            "DESLIGAR antes de release.")]
+        [SerializeField] private bool useMockAds = false;
+
+        [Tooltip("Duração da 'tela preta simulando ad' em segundos. " +
+            "Só usado se useMockAds = true.")]
+        [Range(0.1f, 10f)]
+        [SerializeField] private float mockAdDuration = 1.5f;
+
+        [Tooltip("Quando true, mock sempre chama onSuccess. " +
+            "Quando false, alterna success/fail (pra testar onFailed paths).")]
+        [SerializeField] private bool mockAdAlwaysSucceeds = true;
+
+        // Estado mock — alterna sucesso/falha quando mockAdAlwaysSucceeds = false.
+        private bool _mockNextOutcomeSuccess = true;
+
         private string _activeGameId;
         private string _activeRewardedId;
         private bool _initialized;
@@ -83,6 +103,16 @@ namespace RailSwitchMVP.Meta
 
         void Start()
         {
+            if (useMockAds)
+            {
+                if (verboseLogs) Debug.Log("[Ads-MOCK] Mock mode ON — bypassing Unity Ads SDK.");
+                _initialized = true;
+                _rewardedLoaded = true;
+                // Notifica imediatamente que está pronto.
+                OnRewardedReadyChanged?.Invoke(true);
+                return;
+            }
+
             if (Advertisement.isInitialized)
             {
                 _initialized = true;
@@ -128,9 +158,33 @@ namespace RailSwitchMVP.Meta
             _rewardedLoaded = false; // marca como consumido até o reload terminar
             OnRewardedReadyChanged?.Invoke(false);
 
+            if (useMockAds)
+            {
+                if (verboseLogs) Debug.Log($"[Ads-MOCK] Show (duration={mockAdDuration}s)");
+                StartCoroutine(MockShowRoutine());
+                return true;
+            }
+
             if (verboseLogs) Debug.Log($"[Ads] Show {_activeRewardedId}");
             Advertisement.Show(_activeRewardedId, this);
             return true;
+        }
+
+        // Simula um ad: aguarda mockAdDuration unscaled, dispara success/fail
+        // conforme mockAdAlwaysSucceeds (ou alterna), recarrega o próximo.
+        IEnumerator MockShowRoutine()
+        {
+            yield return new WaitForSecondsRealtime(mockAdDuration);
+
+            bool success = mockAdAlwaysSucceeds || _mockNextOutcomeSuccess;
+            if (!mockAdAlwaysSucceeds) _mockNextOutcomeSuccess = !_mockNextOutcomeSuccess;
+
+            if (verboseLogs) Debug.Log($"[Ads-MOCK] Show complete: {(success ? "COMPLETED" : "SKIPPED")}");
+            FlushPending(success);
+
+            // "Reload": volta a ficar disponível pra próxima.
+            _rewardedLoaded = true;
+            OnRewardedReadyChanged?.Invoke(true);
         }
 
         // ==================================================
@@ -213,7 +267,7 @@ namespace RailSwitchMVP.Meta
         public void DebugLogState()
         {
             Debug.Log($"[Ads] gameId={_activeGameId} placement={_activeRewardedId} " +
-                $"init={_initialized} loaded={_rewardedLoaded} test={testMode}");
+                $"init={_initialized} loaded={_rewardedLoaded} test={testMode} mock={useMockAds}");
         }
     }
 }

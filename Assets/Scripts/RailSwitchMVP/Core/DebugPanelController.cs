@@ -56,10 +56,20 @@ namespace RailSwitchMVP.Core
         [Tooltip("Quantas rows à frente do player o prefab é spawnado nos botões Spawn.")]
         [SerializeField] private int debugSpawnRowsAhead = 2;
 
+        [Tooltip("Multiplicador aplicado em TODOS os elementos dentro do painel (fontes + altura " +
+            "implícita de botões). 1.0 = tamanho original. 1.25 = 25% maior (default mobile).")]
+        [Range(0.8f, 2.5f)]
+        [SerializeField] private float uiScale = 1.25f;
+
         private bool _show;
         private Vector2 _scroll;
         private GUIStyle _sectionStyle;
         private GUIStyle _hintStyle;
+
+        // Originais do GUI.skin antes do scale — restaurados ao fim de OnGUI
+        // pra não poluir outros OnGUI da app (ex: SpawnOverrideController).
+        private bool _skinOriginalsCaptured;
+        private int _origButtonFont, _origLabelFont, _origToggleFont, _origTextFieldFont, _origBoxFont;
 
         bool ShouldRespond => !restrictToDebugBuilds || Application.isEditor || Debug.isDebugBuild;
 
@@ -86,6 +96,19 @@ namespace RailSwitchMVP.Core
         {
             if (!_show || !ShouldRespond) return;
 
+            PushScaledSkin();
+            try
+            {
+                DrawPanel();
+            }
+            finally
+            {
+                PopScaledSkin();
+            }
+        }
+
+        void DrawPanel()
+        {
             EnsureStyles();
 
             float x = anchor == PanelAnchor.Left
@@ -104,6 +127,8 @@ namespace RailSwitchMVP.Core
             DrawCharactersSection();
             GUILayout.Space(6);
             DrawDailyLoginSection();
+            GUILayout.Space(6);
+            DrawAdsSection();
             GUILayout.Space(6);
             DrawMissionsSection();
             GUILayout.Space(6);
@@ -203,6 +228,27 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Claim Chest", GUILayout.MaxWidth(110))) dl.ClaimChest();
             GUILayout.EndHorizontal();
             if (GUILayout.Button("Reset Login+Chest")) dl.DebugResetAll();
+        }
+
+        void DrawAdsSection()
+        {
+            GUILayout.Label("Ads (Fatia 5)", _sectionStyle);
+            var ads = AdsManager.Instance;
+            if (ads == null)
+            {
+                GUILayout.Label("(AdsManager not in scene — modo stub)", _hintStyle);
+                return;
+            }
+            GUILayout.Label($"init={ads.IsInitialized} ready={ads.IsRewardedReady}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Log state", GUILayout.MaxWidth(110))) ads.DebugLogState();
+            if (GUILayout.Button("Force show", GUILayout.MaxWidth(110)))
+            {
+                ads.TryShowRewarded(
+                    onSuccess: () => Debug.Log("[Ads-Debug] success"),
+                    onFailed:  () => Debug.Log("[Ads-Debug] failed/skipped"));
+            }
+            GUILayout.EndHorizontal();
         }
 
         void DrawMissionsSection()
@@ -466,24 +512,68 @@ namespace RailSwitchMVP.Core
 
         void EnsureStyles()
         {
+            int sectionSize = Mathf.RoundToInt(13 * uiScale);
+            int hintSize = Mathf.RoundToInt(10 * uiScale);
+
             if (_sectionStyle == null)
             {
                 _sectionStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Bold,
-                    fontSize = 13,
+                    fontSize = sectionSize,
                 };
                 _sectionStyle.normal.textColor = new Color(0.9f, 0.9f, 0.5f);
             }
+            else _sectionStyle.fontSize = sectionSize;
+
             if (_hintStyle == null)
             {
                 _hintStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 10,
+                    fontSize = hintSize,
                     wordWrap = true,
                 };
                 _hintStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
             }
+            else _hintStyle.fontSize = hintSize;
+        }
+
+        // ============ UI scale helpers ============
+
+        // Aplica uiScale aos font sizes do GUI.skin (button, label, etc).
+        // Salva originais na primeira chamada e restaura via PopScaledSkin
+        // pra não vazar pro próximo OnGUI (ex: SpawnOverrideController).
+        void PushScaledSkin()
+        {
+            var skin = GUI.skin;
+            if (!_skinOriginalsCaptured)
+            {
+                _origButtonFont = skin.button.fontSize;
+                _origLabelFont = skin.label.fontSize;
+                _origToggleFont = skin.toggle.fontSize;
+                _origTextFieldFont = skin.textField.fontSize;
+                _origBoxFont = skin.box.fontSize;
+                _skinOriginalsCaptured = true;
+            }
+            // Se o original era 0 (default da fonte built-in ~12), usa baseline 12.
+            int baseFont = _origButtonFont > 0 ? _origButtonFont : 12;
+            int scaled = Mathf.RoundToInt(baseFont * uiScale);
+            skin.button.fontSize = scaled;
+            skin.label.fontSize = scaled;
+            skin.toggle.fontSize = scaled;
+            skin.textField.fontSize = scaled;
+            skin.box.fontSize = scaled;
+        }
+
+        void PopScaledSkin()
+        {
+            if (!_skinOriginalsCaptured) return;
+            var skin = GUI.skin;
+            skin.button.fontSize = _origButtonFont;
+            skin.label.fontSize = _origLabelFont;
+            skin.toggle.fontSize = _origToggleFont;
+            skin.textField.fontSize = _origTextFieldFont;
+            skin.box.fontSize = _origBoxFont;
         }
     }
 }

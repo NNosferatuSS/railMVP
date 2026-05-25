@@ -81,9 +81,18 @@ namespace RailSwitchMVP.Core
 
         private string _soloKey;
 
+        [Tooltip("Multiplicador aplicado em TODOS os elementos dentro do painel (fontes + altura " +
+            "implícita de botões). 1.0 = original. 1.25 = 25% maior (default mobile).")]
+        [Range(0.8f, 2.5f)]
+        [SerializeField] private float uiScale = 1.25f;
+
         private bool _show;
         private Vector2 _scroll;
         private GUIStyle _sectionStyle, _hintStyle, _masterOnStyle;
+
+        // Originais do GUI.skin antes do scale.
+        private bool _skinOriginalsCaptured;
+        private int _origButtonFont, _origLabelFont, _origToggleFont, _origTextFieldFont, _origBoxFont;
 
         bool ShouldRespond => !restrictToDebugBuilds || Application.isEditor || Debug.isDebugBuild;
 
@@ -257,6 +266,14 @@ namespace RailSwitchMVP.Core
         void OnGUI()
         {
             if (!_show || !ShouldRespond) return;
+
+            PushScaledSkin();
+            try { DrawPanel(); }
+            finally { PopScaledSkin(); }
+        }
+
+        void DrawPanel()
+        {
             EnsureStyles();
 
             float x = Screen.width - panelSize.x - panelPosition.x;
@@ -376,19 +393,60 @@ namespace RailSwitchMVP.Core
 
         void EnsureStyles()
         {
+            int baseLabel = GUI.skin.label.fontSize > 0 ? GUI.skin.label.fontSize : 12;
+            int scaled = Mathf.RoundToInt(baseLabel * uiScale);
+
             if (_sectionStyle == null)
                 _sectionStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold };
+            _sectionStyle.fontSize = scaled;
+
             if (_hintStyle == null)
             {
                 _hintStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic };
                 _hintStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
             }
+            _hintStyle.fontSize = scaled;
+
             if (_masterOnStyle == null)
             {
                 _masterOnStyle = new GUIStyle(GUI.skin.toggle) { fontStyle = FontStyle.Bold };
                 _masterOnStyle.normal.textColor = new Color(0.4f, 1f, 0.4f);
                 _masterOnStyle.onNormal.textColor = new Color(0.4f, 1f, 0.4f);
             }
+            _masterOnStyle.fontSize = scaled;
+        }
+
+        // ============ UI scale helpers ============
+        void PushScaledSkin()
+        {
+            var skin = GUI.skin;
+            if (!_skinOriginalsCaptured)
+            {
+                _origButtonFont = skin.button.fontSize;
+                _origLabelFont = skin.label.fontSize;
+                _origToggleFont = skin.toggle.fontSize;
+                _origTextFieldFont = skin.textField.fontSize;
+                _origBoxFont = skin.box.fontSize;
+                _skinOriginalsCaptured = true;
+            }
+            int baseFont = _origButtonFont > 0 ? _origButtonFont : 12;
+            int scaled = Mathf.RoundToInt(baseFont * uiScale);
+            skin.button.fontSize = scaled;
+            skin.label.fontSize = scaled;
+            skin.toggle.fontSize = scaled;
+            skin.textField.fontSize = scaled;
+            skin.box.fontSize = scaled;
+        }
+
+        void PopScaledSkin()
+        {
+            if (!_skinOriginalsCaptured) return;
+            var skin = GUI.skin;
+            skin.button.fontSize = _origButtonFont;
+            skin.label.fontSize = _origLabelFont;
+            skin.toggle.fontSize = _origToggleFont;
+            skin.textField.fontSize = _origTextFieldFont;
+            skin.box.fontSize = _origBoxFont;
         }
     }
 }
