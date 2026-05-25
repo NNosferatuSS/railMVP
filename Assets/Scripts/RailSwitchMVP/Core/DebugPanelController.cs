@@ -130,6 +130,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawDailyChallengeSection();
             GUILayout.Space(6);
+            DrawAuthSection();
+            GUILayout.Space(6);
             DrawAdsSection();
             GUILayout.Space(6);
             DrawMissionsSection();
@@ -249,6 +251,26 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Reset Today", GUILayout.MaxWidth(110))) dc.DebugResetToday();
             GUILayout.EndHorizontal();
             if (GUILayout.Button("Wipe All Daily")) dc.DebugWipe();
+        }
+
+        void DrawAuthSection()
+        {
+            GUILayout.Label("Auth (Fatia 7A)", _sectionStyle);
+            var auth = AuthManager.Instance;
+            if (auth == null)
+            {
+                GUILayout.Label("(AuthManager not in scene)", _hintStyle);
+                return;
+            }
+            string uid = string.IsNullOrEmpty(auth.UserId) ? "—" : (auth.UserId.Length > 12 ? auth.UserId.Substring(0, 12) + "…" : auth.UserId);
+            GUILayout.Label($"auth'd={auth.IsAuthenticated} | uid={uid}", _hintStyle);
+            if (!string.IsNullOrEmpty(auth.LastError))
+                GUILayout.Label($"err: {auth.LastError}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Log status", GUILayout.MaxWidth(110))) auth.DebugLogStatus();
+            if (GUILayout.Button("Re-auth", GUILayout.MaxWidth(110))) auth.DebugForceReauth();
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Sign out (no re-auth)")) auth.DebugSignOut();
         }
 
         void DrawAdsSection()
