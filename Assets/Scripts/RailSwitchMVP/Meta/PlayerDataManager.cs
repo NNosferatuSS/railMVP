@@ -66,10 +66,17 @@ namespace RailSwitchMVP.Meta
         public event System.Action<RecordResult> OnRecordsUpdated;
         public event System.Action<int> OnEquippedCharChanged;
 
+        /// <summary>Disparado quando PlayerName muda via SetPlayerName (Fatia 9). UI escuta pra atualizar texts inline.</summary>
+        public event System.Action<string> OnPlayerNameChanged;
+
         /// <summary>Disparado após Save() pra observers que precisam sync (Fatia 7B). Suprimido durante ApplyRemoteState pra evitar loop pull→save→push.</summary>
         public event System.Action OnDataChanged;
 
         bool _suppressDataChanged;
+
+        // Validação de player_name (Fatia 9). Trim, length 3-12, alphanumeric + espaço + underscore.
+        public const int PlayerNameMinLength = 3;
+        public const int PlayerNameMaxLength = 12;
 
         void Awake()
         {
@@ -178,7 +185,8 @@ namespace RailSwitchMVP.Meta
 
             OnCoinsChanged?.Invoke(coins);
             OnEquippedCharChanged?.Invoke(equippedChar);
-            Debug.Log($"[PDM] ApplyRemoteState — coins={coins} bestDist={bestDistance}m runs={totalRuns} equipped={equippedChar}");
+            OnPlayerNameChanged?.Invoke(playerName);
+            Debug.Log($"[PDM] ApplyRemoteState — coins={coins} bestDist={bestDistance}m runs={totalRuns} equipped={equippedChar} name='{playerName}'");
         }
 
         /// <summary>Copia o estado atual pra um PlayerRemoteState (pra push em Fatia 7B). updated_at fica vazio — server seta via trigger.</summary>
@@ -242,6 +250,38 @@ namespace RailSwitchMVP.Meta
             }
 
             return result;
+        }
+
+        // ============ Player Name (Fatia 9) ============
+
+        /// <summary>
+        /// Atualiza o nome do jogador com validação. Retorna true se válido (e
+        /// persistiu). false se rejeitou (length errado, vazio).
+        ///
+        /// Em sucesso: dispara OnPlayerNameChanged (UI live update) + OnDataChanged
+        /// (Sync push pro Supabase via Fatia 7B). Submits subsequentes pro
+        /// leaderboard usam o nome novo automaticamente.
+        ///
+        /// Não atualiza rows já submetidas no daily_results — `player_name` é
+        /// desnormalizado lá, e nosso submit_daily_result RPC só atualiza com
+        /// distance > existing. Aceitável pra MVP.
+        /// </summary>
+        public bool SetPlayerName(string newName)
+        {
+            if (newName == null) return false;
+            string trimmed = newName.Trim();
+            if (trimmed.Length < PlayerNameMinLength || trimmed.Length > PlayerNameMaxLength)
+            {
+                Debug.LogWarning($"[PDM] SetPlayerName rejected: length {trimmed.Length} not in [{PlayerNameMinLength},{PlayerNameMaxLength}].");
+                return false;
+            }
+            if (trimmed == playerName) return true; // no-op
+
+            playerName = trimmed;
+            Save();
+            OnPlayerNameChanged?.Invoke(playerName);
+            Debug.Log($"[PDM] PlayerName set to '{playerName}'.");
+            return true;
         }
 
         // ============ Characters ============

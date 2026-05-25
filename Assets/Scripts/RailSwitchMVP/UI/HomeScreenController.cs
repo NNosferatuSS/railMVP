@@ -53,15 +53,20 @@ namespace RailSwitchMVP.UI
         [SerializeField] private Button leaderboardButton;
         [SerializeField] private LeaderboardPanelController leaderboardController;
 
-        [Header("Stubs (Fatias futuras — desabilitados por padrão)")]
+        [Header("Profile (Fatia 9)")]
         [SerializeField] private Button profileButton;
+        [SerializeField] private ProfilePanelController profileController;
 
         void OnEnable()
         {
             Refresh();
 
             var pdm = PlayerDataManager.Instance;
-            if (pdm != null) pdm.OnCoinsChanged += HandleCoinsChanged;
+            if (pdm != null)
+            {
+                pdm.OnCoinsChanged += HandleCoinsChanged;
+                pdm.OnPlayerNameChanged += HandlePlayerNameChanged;
+            }
 
             var mt = MissionTracker.Instance;
             if (mt != null) mt.OnMissionsChanged += RefreshMissions;
@@ -86,14 +91,17 @@ namespace RailSwitchMVP.UI
             if (shopButton != null) shopButton.onClick.AddListener(OpenShop);
             if (dailyChallengeButton != null) dailyChallengeButton.onClick.AddListener(StartDailyChallenge);
             if (leaderboardButton != null) leaderboardButton.onClick.AddListener(OpenLeaderboard);
-
-            if (profileButton != null) profileButton.interactable = false;
+            if (profileButton != null) profileButton.onClick.AddListener(OpenProfile);
         }
 
         void OnDisable()
         {
             var pdm = PlayerDataManager.Instance;
-            if (pdm != null) pdm.OnCoinsChanged -= HandleCoinsChanged;
+            if (pdm != null)
+            {
+                pdm.OnCoinsChanged -= HandleCoinsChanged;
+                pdm.OnPlayerNameChanged -= HandlePlayerNameChanged;
+            }
 
             var mt = MissionTracker.Instance;
             if (mt != null) mt.OnMissionsChanged -= RefreshMissions;
@@ -118,11 +126,17 @@ namespace RailSwitchMVP.UI
             if (shopButton != null) shopButton.onClick.RemoveListener(OpenShop);
             if (dailyChallengeButton != null) dailyChallengeButton.onClick.RemoveListener(StartDailyChallenge);
             if (leaderboardButton != null) leaderboardButton.onClick.RemoveListener(OpenLeaderboard);
+            if (profileButton != null) profileButton.onClick.RemoveListener(OpenProfile);
         }
 
         void HandleCoinsChanged(int newTotal)
         {
             if (coinsText != null) coinsText.text = $"Coins: {newTotal}";
+        }
+
+        void HandlePlayerNameChanged(string newName)
+        {
+            if (playerNameText != null) playerNameText.text = newName;
         }
 
         void HandleLoginClaimed() { CloseLoginPopup(); RefreshChestButton(); }
@@ -297,6 +311,12 @@ namespace RailSwitchMVP.UI
         {
             if (leaderboardController != null) leaderboardController.Open();
             else Debug.LogWarning("[Home] leaderboardController não atribuído.");
+        }
+
+        public void OpenProfile()
+        {
+            if (profileController != null) profileController.Open();
+            else Debug.LogWarning("[Home] profileController não atribuído.");
         }
 
         public void LoadGame()
