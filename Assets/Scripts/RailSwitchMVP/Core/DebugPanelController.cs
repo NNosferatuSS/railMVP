@@ -128,6 +128,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawDailyLoginSection();
             GUILayout.Space(6);
+            DrawDailyChallengeSection();
+            GUILayout.Space(6);
             DrawAdsSection();
             GUILayout.Space(6);
             DrawMissionsSection();
@@ -228,6 +230,25 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Claim Chest", GUILayout.MaxWidth(110))) dl.ClaimChest();
             GUILayout.EndHorizontal();
             if (GUILayout.Button("Reset Login+Chest")) dl.DebugResetAll();
+        }
+
+        void DrawDailyChallengeSection()
+        {
+            GUILayout.Label("Daily Challenge (Fatia 6)", _sectionStyle);
+            var dc = DailyChallengeManager.Instance;
+            if (dc == null)
+            {
+                GUILayout.Label("(DailyChallengeManager not in scene)", _hintStyle);
+                return;
+            }
+            string bestEverDate = string.IsNullOrEmpty(dc.BestEverDate) ? "—" : dc.BestEverDate;
+            GUILayout.Label($"Today seed: {dc.GetTodaySeed()} | active mode: {(dc.IsDailyChallenge ? "DAILY" : "normal")}", _hintStyle);
+            GUILayout.Label($"Today best: {dc.TodayBestM} m | Ever: {dc.BestEverM} m ({bestEverDate})", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Toggle Daily", GUILayout.MaxWidth(110))) dc.DebugToggleDailyMode();
+            if (GUILayout.Button("Reset Today", GUILayout.MaxWidth(110))) dc.DebugResetToday();
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Wipe All Daily")) dc.DebugWipe();
         }
 
         void DrawAdsSection()

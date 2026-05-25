@@ -51,6 +51,7 @@ namespace RailSwitchMVP.UI
         private bool _isShowing;
         private bool _runCommitted;
         private bool _doubleCoinsClaimed; // 1 ad por GameOver, evita farm
+        private bool _wasDailyRun;        // snapshot do IsDailyChallenge no momento do gameOver
 
         // Stats finais capturados quando o GameOver dispara — usados pra
         // transferir pro PDM no Restart/Home.
@@ -135,9 +136,12 @@ namespace RailSwitchMVP.UI
             if (_isShowing) return;
             _isShowing = true;
 
+            var daily = DailyChallengeManager.Instance;
+            _wasDailyRun = daily != null && daily.IsDailyChallenge;
+
             // Não mostra painel ainda — aguarda death sequence pra impacto.
             if (reasonText != null)
-                reasonText.text = FormatReason(reason);
+                reasonText.text = _wasDailyRun ? $"DAILY CHALLENGE — {FormatReason(reason)}" : FormatReason(reason);
 
             // Compute current run stats e cacheia pra transferir no Restart/Home.
             if (player != null)
@@ -160,6 +164,14 @@ namespace RailSwitchMVP.UI
             else
             {
                 Debug.LogWarning("[GameOver] PlayerDataManager.Instance null — best scores não foram salvos. Adicione _PlayerDataManager na cena.");
+            }
+
+            // Daily Challenge: registra resultado se foi run daily. Best global (acima)
+            // é independente — daily runs também contam pra bests gerais.
+            DailyChallengeManager.DailyRecordResult dailyBroken = default;
+            if (_wasDailyRun && daily != null)
+            {
+                dailyBroken = daily.EndChallenge(_runMeters);
             }
 
             // Labels com (Best: X) inline. Star ★ se record batido.
@@ -188,16 +200,19 @@ namespace RailSwitchMVP.UI
                 bestTierText.text = $"Tier: {_runTier}{newTag}  (Best: {bestStr})";
             }
 
-            // Overlay "NEW RECORD!" se qualquer record batido.
+            // Overlay "NEW RECORD!" se qualquer record batido (normal ou daily).
             if (newRecordText != null)
             {
-                if (broken.Any)
+                bool anyBroken = broken.Any || dailyBroken.brokeToday || dailyBroken.brokeEver;
+                if (anyBroken)
                 {
                     var stats = "";
                     if (broken.distance) stats += "Distance ";
                     if (broken.coins) stats += "Coins ";
                     if (broken.tier) stats += "Tier ";
                     if (broken.time) stats += "Time ";
+                    if (dailyBroken.brokeEver) stats += "DailyEver ";
+                    else if (dailyBroken.brokeToday) stats += "DailyToday ";
                     newRecordText.text = $"★ NEW RECORD! {stats.Trim()}";
                     newRecordText.gameObject.SetActive(true);
                 }
@@ -323,11 +338,14 @@ namespace RailSwitchMVP.UI
         }
 
         /// <summary>
-        /// Volta pra HomeScene. Mesma transferência do Restart.
+        /// Volta pra HomeScene. Mesma transferência do Restart. Consome flag de Daily
+        /// Challenge se ativa — próxima entrada na Game será modo normal.
         /// </summary>
         public void GoHome()
         {
             CommitRunToPlayerData();
+            var daily = DailyChallengeManager.Instance;
+            if (daily != null) daily.ConsumeChallengeFlag();
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneNames.Home);
         }

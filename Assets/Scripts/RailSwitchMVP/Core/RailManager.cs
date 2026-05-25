@@ -3,6 +3,7 @@ using UnityEngine;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Track;
 using RailSwitchMVP.Player;
+using RailSwitchMVP.Meta;
 
 namespace RailSwitchMVP.Core
 {
@@ -62,6 +63,14 @@ namespace RailSwitchMVP.Core
             }
 
             difficulty.OnDifficultyReset += HandleDifficultyReset;
+
+            // Seed do RNG da run. Daily Challenge = seed determinístico do dia
+            // (mesmo level pra todos). Senão, seed random normal. Tem que vir ANTES
+            // da primeira geração — ProceduralRailGenerator usa Random.Range/value.
+            var daily = DailyChallengeManager.Instance;
+            int seed = daily != null ? daily.GetSessionSeed() : System.Environment.TickCount;
+            Random.InitState(seed);
+            Debug.Log($"[RailManager] Run seed={seed} daily={(daily != null && daily.IsDailyChallenge)}");
 
             // Bootstrap: gera as primeiras rowsAhead linhas a partir do índice 0.
             BootstrapInitialRows();

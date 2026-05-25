@@ -40,6 +40,11 @@ namespace RailSwitchMVP.UI
         [SerializeField] private Button chestButton;
         [SerializeField] private TMP_Text chestButtonText;
 
+        [Header("Daily Challenge (Fatia 6)")]
+        [SerializeField] private Button dailyChallengeButton;
+        [Tooltip("Texto que mostra Today's Best + Best Ever. Substituído em runtime.")]
+        [SerializeField] private TMP_Text dailyChallengeText;
+
         [Header("Shop")]
         [SerializeField] private Button shopButton;
         [SerializeField] private ShopController shopController;
@@ -68,11 +73,15 @@ namespace RailSwitchMVP.UI
             var ads = AdsManager.Instance;
             if (ads != null) ads.OnRewardedReadyChanged += HandleAdsReadyChanged;
 
+            var daily = DailyChallengeManager.Instance;
+            if (daily != null) daily.OnDailyResultRecorded += HandleDailyResultRecorded;
+
             if (playButton != null) playButton.onClick.AddListener(LoadGame);
             if (loginClaimButton != null) loginClaimButton.onClick.AddListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.AddListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.AddListener(ClaimChest);
             if (shopButton != null) shopButton.onClick.AddListener(OpenShop);
+            if (dailyChallengeButton != null) dailyChallengeButton.onClick.AddListener(StartDailyChallenge);
 
             if (leaderboardButton != null) leaderboardButton.interactable = false;
             if (profileButton != null) profileButton.interactable = false;
@@ -96,11 +105,15 @@ namespace RailSwitchMVP.UI
             var ads = AdsManager.Instance;
             if (ads != null) ads.OnRewardedReadyChanged -= HandleAdsReadyChanged;
 
+            var daily = DailyChallengeManager.Instance;
+            if (daily != null) daily.OnDailyResultRecorded -= HandleDailyResultRecorded;
+
             if (playButton != null) playButton.onClick.RemoveListener(LoadGame);
             if (loginClaimButton != null) loginClaimButton.onClick.RemoveListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.RemoveListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.RemoveListener(ClaimChest);
             if (shopButton != null) shopButton.onClick.RemoveListener(OpenShop);
+            if (dailyChallengeButton != null) dailyChallengeButton.onClick.RemoveListener(StartDailyChallenge);
         }
 
         void HandleCoinsChanged(int newTotal)
@@ -111,6 +124,7 @@ namespace RailSwitchMVP.UI
         void HandleLoginClaimed() { CloseLoginPopup(); RefreshChestButton(); }
         void HandleChestClaimed() { RefreshChestButton(); }
         void HandleAdsReadyChanged(bool _) { RefreshChestButton(); }
+        void HandleDailyResultRecorded() { RefreshDailyChallengeCard(); }
 
         void Refresh()
         {
@@ -118,6 +132,7 @@ namespace RailSwitchMVP.UI
             RefreshMissions();
             RefreshLoginPopup();
             RefreshChestButton();
+            RefreshDailyChallengeCard();
         }
 
         void RefreshPlayerData()
@@ -216,6 +231,34 @@ namespace RailSwitchMVP.UI
         public void CloseLoginPopup()
         {
             if (loginPopupPanel != null) loginPopupPanel.SetActive(false);
+        }
+
+        void RefreshDailyChallengeCard()
+        {
+            if (dailyChallengeText == null) return;
+            var daily = DailyChallengeManager.Instance;
+            if (daily == null)
+            {
+                dailyChallengeText.text = "Daily Challenge — (manager ausente)";
+                if (dailyChallengeButton != null) dailyChallengeButton.interactable = false;
+                return;
+            }
+            string today = daily.HasPlayedToday() ? $"{daily.TodayBestM} m" : "—";
+            string ever = daily.BestEverM > 0 ? $"{daily.BestEverM} m" : "—";
+            dailyChallengeText.text = $"Hoje: {today}   Best: {ever}";
+            if (dailyChallengeButton != null) dailyChallengeButton.interactable = true;
+        }
+
+        public void StartDailyChallenge()
+        {
+            var daily = DailyChallengeManager.Instance;
+            if (daily == null)
+            {
+                Debug.LogWarning("[Home] DailyChallengeManager.Instance null — adicione _DailyChallengeManager na HomeScene.");
+                return;
+            }
+            daily.StartChallenge();
+            SceneManager.LoadScene(SceneNames.Game);
         }
 
         public void ClaimChest()
