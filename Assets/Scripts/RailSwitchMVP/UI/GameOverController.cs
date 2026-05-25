@@ -34,6 +34,13 @@ namespace RailSwitchMVP.UI
             "Padrão: '★ NEW RECORD! Distance Coins Tier Time' (só os batidos).")]
         [SerializeField] private TMP_Text newRecordText;
 
+        [Header("Rewarded Ad — 2x coins (Fatia 5)")]
+        [Tooltip("Botão pra dobrar coins do run via rewarded ad. Auto-hide se " +
+            "AdsManager ausente ou não pronto. Spec §5.2.")]
+        [SerializeField] private Button doubleCoinsButton;
+        [Tooltip("Texto do botão (default 'Watch Ad +N coins'). Substituído em runtime.")]
+        [SerializeField] private TMP_Text doubleCoinsButtonText;
+
         [Header("Singletons (auto-resolved if empty)")]
         [SerializeField] private GameTimer timer;
         [SerializeField] private PlayerRailRider player;
@@ -43,6 +50,7 @@ namespace RailSwitchMVP.UI
 
         private bool _isShowing;
         private bool _runCommitted;
+        private bool _doubleCoinsClaimed; // 1 ad por GameOver, evita farm
 
         // Stats finais capturados quando o GameOver dispara — usados pra
         // transferir pro PDM no Restart/Home.
@@ -81,6 +89,13 @@ namespace RailSwitchMVP.UI
                 restartButton.onClick.AddListener(Restart);
             if (homeButton != null)
                 homeButton.onClick.AddListener(GoHome);
+            if (doubleCoinsButton != null)
+                doubleCoinsButton.onClick.AddListener(WatchAdForDoubleCoins);
+
+            var ads = AdsManager.Instance;
+            if (ads != null) ads.OnRewardedReadyChanged += HandleAdsReadyChanged;
+
+            RefreshDoubleCoinsButton();
         }
 
         void OnDestroy()
@@ -91,7 +106,14 @@ namespace RailSwitchMVP.UI
                 restartButton.onClick.RemoveListener(Restart);
             if (homeButton != null)
                 homeButton.onClick.RemoveListener(GoHome);
+            if (doubleCoinsButton != null)
+                doubleCoinsButton.onClick.RemoveListener(WatchAdForDoubleCoins);
+
+            var ads = AdsManager.Instance;
+            if (ads != null) ads.OnRewardedReadyChanged -= HandleAdsReadyChanged;
         }
+
+        void HandleAdsReadyChanged(bool _) { RefreshDoubleCoinsButton(); }
 
         void LateUpdate()
         {
@@ -185,9 +207,67 @@ namespace RailSwitchMVP.UI
                 }
             }
 
+            RefreshDoubleCoinsButton();
+
             // Death sequence: slow-mo enquanto a PlayerCameraRig zooma + shake.
             // Após deathCamDuration, congela e mostra o painel.
             StartCoroutine(DeathSequence());
+        }
+
+        void RefreshDoubleCoinsButton()
+        {
+            if (doubleCoinsButton == null) return;
+
+            // Botão só faz sentido: (1) GameOver showing, (2) tem coins pra dobrar,
+            // (3) ainda não usou neste GameOver, (4) AdsManager está pronto (ou ausente = stub).
+            bool hasCoins = _runCoins > 0;
+            var ads = AdsManager.Instance;
+            bool adReady = ads == null || ads.IsRewardedReady;
+            bool show = _isShowing && hasCoins && !_doubleCoinsClaimed && adReady;
+
+            doubleCoinsButton.gameObject.SetActive(show);
+            doubleCoinsButton.interactable = show;
+            if (doubleCoinsButtonText != null && show)
+                doubleCoinsButtonText.text = $"Watch Ad +{_runCoins} coins";
+        }
+
+        public void WatchAdForDoubleCoins()
+        {
+            if (_doubleCoinsClaimed || _runCoins <= 0) return;
+
+            var ads = AdsManager.Instance;
+            if (ads == null)
+            {
+                // Modo stub (Editor sem AdsManager).
+                GrantDoubleCoins();
+                return;
+            }
+
+            bool shown = ads.TryShowRewarded(
+                onSuccess: GrantDoubleCoins,
+                onFailed: () => Debug.Log("[GameOver] 2x ad failed/skipped — sem bonus.")
+            );
+            if (!shown) RefreshDoubleCoinsButton();
+        }
+
+        void GrantDoubleCoins()
+        {
+            if (_doubleCoinsClaimed) return;
+            _doubleCoinsClaimed = true;
+
+            var pdm = PlayerDataManager.Instance;
+            if (pdm != null)
+            {
+                pdm.AddCoins(_runCoins); // credita o EXTRA _runCoins (dobra)
+                pdm.Save();
+            }
+            Debug.Log($"[GameOver] 2x coins granted: +{_runCoins} extra.");
+
+            // Refresca o display in-place pra refletir o novo total.
+            if (coinsText != null)
+                coinsText.text = $"Coins: {_runCoins * 2} (2x via ad)";
+
+            RefreshDoubleCoinsButton();
         }
 
         IEnumerator DeathSequence()

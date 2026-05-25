@@ -65,6 +65,9 @@ namespace RailSwitchMVP.UI
                 dl.OnChestClaimed += HandleChestClaimed;
             }
 
+            var ads = AdsManager.Instance;
+            if (ads != null) ads.OnRewardedReadyChanged += HandleAdsReadyChanged;
+
             if (playButton != null) playButton.onClick.AddListener(LoadGame);
             if (loginClaimButton != null) loginClaimButton.onClick.AddListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.AddListener(CloseLoginPopup);
@@ -90,6 +93,9 @@ namespace RailSwitchMVP.UI
                 dl.OnChestClaimed -= HandleChestClaimed;
             }
 
+            var ads = AdsManager.Instance;
+            if (ads != null) ads.OnRewardedReadyChanged -= HandleAdsReadyChanged;
+
             if (playButton != null) playButton.onClick.RemoveListener(LoadGame);
             if (loginClaimButton != null) loginClaimButton.onClick.RemoveListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.RemoveListener(CloseLoginPopup);
@@ -104,6 +110,7 @@ namespace RailSwitchMVP.UI
 
         void HandleLoginClaimed() { CloseLoginPopup(); RefreshChestButton(); }
         void HandleChestClaimed() { RefreshChestButton(); }
+        void HandleAdsReadyChanged(bool _) { RefreshChestButton(); }
 
         void Refresh()
         {
@@ -181,12 +188,22 @@ namespace RailSwitchMVP.UI
                 return;
             }
             bool available = dl.IsChestAvailable();
-            chestButton.interactable = available;
+
+            // Fatia 5: se AdsManager existe mas ad não pronto (offline / load
+            // falhou), esconde o botão completamente (spec §5.2 — sem fallback
+            // grátis em produção). Sem AdsManager na cena = modo stub
+            // (sempre claimable), pra Editor / dev rápido.
+            var ads = AdsManager.Instance;
+            bool adsAvailable = ads == null || ads.IsRewardedReady;
+
+            bool show = available && adsAvailable;
+            chestButton.gameObject.SetActive(show || !available);
+            chestButton.interactable = show;
             if (chestButtonText != null)
             {
-                chestButtonText.text = available
-                    ? $"Baú Grátis +{DailyLoginManager.ChestReward}"
-                    : "Baú já reclamado hoje";
+                if (!available) chestButtonText.text = "Baú já reclamado hoje";
+                else if (!adsAvailable) chestButtonText.text = "Carregando...";
+                else chestButtonText.text = $"Baú Grátis +{DailyLoginManager.ChestReward}";
             }
         }
 
@@ -204,7 +221,23 @@ namespace RailSwitchMVP.UI
         public void ClaimChest()
         {
             var dl = DailyLoginManager.Instance;
-            if (dl != null) dl.ClaimChest();
+            if (dl == null || !dl.IsChestAvailable()) return;
+
+            var ads = AdsManager.Instance;
+            if (ads == null)
+            {
+                // Modo stub (Editor sem AdsManager na cena).
+                dl.ClaimChest();
+                return;
+            }
+
+            // Spec §5.2 — só credita NO callback de sucesso do ad. Botão já
+            // foi escondido se !IsRewardedReady, mas double-check via TryShow.
+            bool shown = ads.TryShowRewarded(
+                onSuccess: () => dl.ClaimChest(),
+                onFailed: () => Debug.Log("[Home] Chest ad failed/skipped — sem reward.")
+            );
+            if (!shown) RefreshChestButton();
         }
 
         public void OpenShop()

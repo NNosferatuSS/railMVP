@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-24 — **Mobile Input** + **perf passada inicial**. Primeiro build Android rodou; swipe foi trocado por **tap zones** (mais previsível) após feedback de que swipe falhava intermitente. Adicionado `PerformanceBootstrapper` (target fps 60, vSync off, no-sleep mobile) + fix de FindFirstObjectByType em hot path do CollectibleCoin. Detalhes em `Docs/MobileInput_Setup.md` e `Docs/Mobile_Performance.md`. Camera Polish (2026-05-22) ainda pendente de teste. **Fatias 1-4 já commitadas.**
+**Última atualização:** 2026-05-24 — **Fatia 5 — Rewarded Ads ✅ VALIDADA** (Unity Ads classic SDK, não Mediation). AdsManager singleton + chest sem stub + botão "Watch Ad +N coins" no GameOver. Dashboard configurado, ads servindo em Editor (test mode). Pre-launch checklist movido pra `Docs/Pre_Launch_Checklist.md` (keystore, Privacy Policy, GDPR, Play Console — pra quando shipar). **Fatias 1-5 fechadas.** Próxima sessão: decidir entre spec §11 (Daily Challenge + Supabase + Leaderboard), polish de gameplay (audio/visual), ou nova feature.
 **Engine:** Unity 6000.3.10f1 (6.3 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -19,21 +19,42 @@ camada de PROGRESSÃO (meta-game) — fundação + missões + login + loja + ads
 Ordem em 5 fatias verticais. Detalhes em
 `Docs/Progression_Implementation_Plan.md`.**
 
-### Próxima sessão: setup mobile + build Android
+### Próxima sessão: setup Ads + testar Fatia 5
 
 **Fluxo:**
-1. Setup na cena dos componentes novos (`Docs/MobileInput_Setup.md` §1-3).
-2. Switch Platform → Android + Development Build em Build Settings.
-3. Build And Run no device. Validar critérios em `MobileInput_Setup.md`.
-4. Testar Camera Polish ao mesmo tempo (commit `81585af`).
+1. Setup conta Unity Ads no dashboard + linkar Project (`Docs/AdsFatia5_Setup.md` §"Setup conta").
+2. Criar `_AdsManager` GameObject na HomeScene + preencher Game IDs.
+3. Adicionar botão "Watch Ad +N coins" no `_GameOver` panel da RailSwitchMVP scene.
+4. Testar fluxo chest + GameOver com Test Mode = true (Editor).
+5. Rebuild Android + validar device com test ads.
 
-**Depois disso, decidir entre:**
-- **Fatia 5 — Rewarded Ads (Unity Ads SDK).** Substitui chest stub e
-  "2x coins" do GameOver por ads reais. Requer conta Unity Ads. Agora
-  com build mobile estável, dá pra testar de verdade.
-- **Skip pra spec §11.** Daily Challenge → Supabase → Leaderboard.
+**Depois disso, opções pro próximo passo:**
+- **Spec §11** — Daily Challenge → Supabase backend → Leaderboard.
+- **Gameplay polish** — audio, modelos visuais, animações UI.
+- **Mais features de meta** — input UI pra PlayerName, novos personagens, etc.
 
-### Mobile Performance ✅ passada inicial 2026-05-24 (pendente teste)
+### Fatia 5 — Rewarded Ads ✅ VALIDADA 2026-05-24
+
+- `com.unity.ads` 4.4.2 adicionado ao manifest. Escolhido **classic Unity Ads**
+  (não Mediation/LevelPlay) pra MVP — migração futura é localizada.
+- `Meta/AdsManager.cs` singleton DontDestroyOnLoad. Wrapper Unity Ads:
+  `TryShowRewarded(onSuccess, onFailed)` + `IsRewardedReady` +
+  `OnRewardedReadyChanged` event. Reload automático após show.
+- `DailyLoginManager.ClaimChest()` — removido stub interno. Caller decide
+  se passa por ad.
+- `HomeScreenController.ClaimChest()` — orquestra ad → `dl.ClaimChest`.
+  `RefreshChestButton` esconde botão se ad não pronto (spec §5.2).
+  Sem AdsManager na cena = modo stub (fallback Editor).
+- `GameOverController` — botão NOVO "Watch Ad +N coins" (não existia stub).
+  1 uso por GameOver via `_doubleCoinsClaimed`. Credita +runCoins extra
+  (dobra total).
+- Bug fix: enum era `UnityAdsShowCompletionState` (não `UnityAdsCompletionState`).
+- Doc completo passo-a-passo (incluindo dashboard, scene setup, validação
+  Editor + Android) em `Docs/AdsFatia5_Setup.md`.
+- Checklist de pre-launch (keystore, Privacy Policy, GDPR, Play Console) em
+  `Docs/Pre_Launch_Checklist.md` — consultar quando for shipar.
+
+### Mobile Performance ✅ passada inicial 2026-05-24 (commit `5428c00`)
 
 Iteração após primeiro build Android mostrar fps abaixo do esperado:
 

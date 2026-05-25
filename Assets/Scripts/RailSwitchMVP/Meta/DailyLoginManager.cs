@@ -136,9 +136,12 @@ namespace RailSwitchMVP.Meta
         public bool IsChestAvailable() => _chestLastDate != TodayUtc();
 
         /// <summary>
-        /// STUB Fatia 3 — credita direto sem ad. Fatia 5 vai trocar isso por
-        /// AdsManager.ShowRewardedAd(callback) e só dar a recompensa no callback
-        /// de sucesso.
+        /// Credita a recompensa do chest e marca o dia como reclamado.
+        /// Chamável diretamente (modo stub/Editor sem ad) ou via callback de
+        /// AdsManager.TryShowRewarded (Fatia 5). Sem checagem de ad — caller
+        /// deve garantir que o user "ganhou" o reward antes de chamar.
+        ///
+        /// Idempotente no dia (segunda chamada no mesmo dia é no-op).
         /// </summary>
         public void ClaimChest()
         {
@@ -148,7 +151,6 @@ namespace RailSwitchMVP.Meta
                 return;
             }
 
-            // TODO Fatia 5: substituir por AdsManager.ShowRewardedAd(success → grant).
             if (PlayerDataManager.Instance != null)
             {
                 PlayerDataManager.Instance.AddCoins(ChestReward);
