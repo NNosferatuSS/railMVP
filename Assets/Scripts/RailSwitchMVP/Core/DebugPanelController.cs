@@ -5,6 +5,7 @@ using RailSwitchMVP.Meta;
 using RailSwitchMVP.Net;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
+using RailSwitchMVP.UI;
 
 namespace RailSwitchMVP.Core
 {
@@ -150,6 +151,8 @@ namespace RailSwitchMVP.Core
             DrawCoinsSection();
             GUILayout.Space(6);
             DrawGameStateSection();
+            GUILayout.Space(6);
+            DrawTutorialSection();
             GUILayout.Space(6);
             DrawSpawnSection();
 
@@ -511,6 +514,21 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Trigger DeadEnd")) gm.TriggerGameOver(GameOverReason.DeadEnd);
             if (GUILayout.Button("Trigger OutOfBounds")) gm.TriggerGameOver(GameOverReason.OutOfBounds);
             if (GUILayout.Button("Trigger HitObstacle")) gm.TriggerGameOver(GameOverReason.HitObstacle);
+        }
+
+        void DrawTutorialSection()
+        {
+            // Seção independente — funciona em qualquer cena (HomeScene, Game) porque
+            // só lê PlayerPrefs, sem dependência de singletons que podem estar ausentes.
+            GUILayout.Label("Tutorial (Fatia 10)", _sectionStyle);
+            int seen = PlayerPrefs.GetInt(TutorialOverlayController.PrefsKey, 0);
+            GUILayout.Label($"Status: {(seen == 1 ? "seen" : "not seen")}", _hintStyle);
+            if (GUILayout.Button("Reset Tutorial"))
+            {
+                PlayerPrefs.DeleteKey(TutorialOverlayController.PrefsKey);
+                PlayerPrefs.Save();
+                Debug.Log("[Tutorial] DEBUG: SeenV1 flag cleared. Next Game scene shows overlay.");
+            }
         }
 
         void DrawSpawnSection()
