@@ -49,8 +49,11 @@ namespace RailSwitchMVP.UI
         [SerializeField] private Button shopButton;
         [SerializeField] private ShopController shopController;
 
-        [Header("Stubs (Fatias futuras — desabilitados por padrão)")]
+        [Header("Leaderboard (Fatia 8)")]
         [SerializeField] private Button leaderboardButton;
+        [SerializeField] private LeaderboardPanelController leaderboardController;
+
+        [Header("Stubs (Fatias futuras — desabilitados por padrão)")]
         [SerializeField] private Button profileButton;
 
         void OnEnable()
@@ -82,8 +85,8 @@ namespace RailSwitchMVP.UI
             if (chestButton != null) chestButton.onClick.AddListener(ClaimChest);
             if (shopButton != null) shopButton.onClick.AddListener(OpenShop);
             if (dailyChallengeButton != null) dailyChallengeButton.onClick.AddListener(StartDailyChallenge);
+            if (leaderboardButton != null) leaderboardButton.onClick.AddListener(OpenLeaderboard);
 
-            if (leaderboardButton != null) leaderboardButton.interactable = false;
             if (profileButton != null) profileButton.interactable = false;
         }
 
@@ -114,6 +117,7 @@ namespace RailSwitchMVP.UI
             if (chestButton != null) chestButton.onClick.RemoveListener(ClaimChest);
             if (shopButton != null) shopButton.onClick.RemoveListener(OpenShop);
             if (dailyChallengeButton != null) dailyChallengeButton.onClick.RemoveListener(StartDailyChallenge);
+            if (leaderboardButton != null) leaderboardButton.onClick.RemoveListener(OpenLeaderboard);
         }
 
         void HandleCoinsChanged(int newTotal)
@@ -287,6 +291,12 @@ namespace RailSwitchMVP.UI
         {
             if (shopController != null) shopController.Open();
             else Debug.LogWarning("[Home] shopController não atribuído.");
+        }
+
+        public void OpenLeaderboard()
+        {
+            if (leaderboardController != null) leaderboardController.Open();
+            else Debug.LogWarning("[Home] leaderboardController não atribuído.");
         }
 
         public void LoadGame()

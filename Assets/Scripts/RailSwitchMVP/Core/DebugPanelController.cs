@@ -135,6 +135,8 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawSyncSection();
             GUILayout.Space(6);
+            DrawLeaderboardSection();
+            GUILayout.Space(6);
             DrawAdsSection();
             GUILayout.Space(6);
             DrawMissionsSection();
@@ -296,6 +298,30 @@ namespace RailSwitchMVP.Core
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Log status", GUILayout.MaxWidth(110))) sync.DebugLogStatus();
             if (GUILayout.Button("Wipe+Pull", GUILayout.MaxWidth(110))) sync.DebugWipeLocalAndPull();
+            GUILayout.EndHorizontal();
+        }
+
+        void DrawLeaderboardSection()
+        {
+            GUILayout.Label("Leaderboard (Fatia 8)", _sectionStyle);
+            var lb = LeaderboardManager.Instance;
+            if (lb == null)
+            {
+                GUILayout.Label("(LeaderboardManager not in scene)", _hintStyle);
+                return;
+            }
+            int topCount = lb.TopCache != null ? lb.TopCache.Length : 0;
+            string rank = lb.MyRank > 0 ? $"#{lb.MyRank}" : "—";
+            GUILayout.Label($"top: {topCount} entries | myRank: {rank} ({lb.MyDistance}m)", _hintStyle);
+            if (!string.IsNullOrEmpty(lb.LastError))
+                GUILayout.Label($"err: {Trunc(lb.LastError, 60)}", _hintStyle);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Fetch top", GUILayout.MaxWidth(110))) lb.DebugFetchTopNow();
+            if (GUILayout.Button("Fetch rank", GUILayout.MaxWidth(110))) lb.DebugFetchRankNow();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Log status", GUILayout.MaxWidth(110))) lb.DebugLogStatus();
+            if (GUILayout.Button("Force +500m", GUILayout.MaxWidth(110))) lb.DebugForceSubmit(500, 10, 1, 30f);
             GUILayout.EndHorizontal();
         }
 

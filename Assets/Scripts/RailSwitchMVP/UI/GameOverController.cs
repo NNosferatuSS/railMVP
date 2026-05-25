@@ -172,6 +172,15 @@ namespace RailSwitchMVP.UI
             if (_wasDailyRun && daily != null)
             {
                 dailyBroken = daily.EndChallenge(_runMeters);
+
+                // Leaderboard online (Fatia 8): submeter só se quebrou local best.
+                // Server-side function (submit_daily_result) faz check extra contra
+                // o registro atual no banco — race entre devices fica safe.
+                if (dailyBroken.brokeToday)
+                {
+                    var lb = LeaderboardManager.Instance;
+                    if (lb != null) lb.SubmitResult(_runMeters, _runCoins, _runTier, _runTime);
+                }
             }
 
             // Labels com (Best: X) inline. Star ★ se record batido.
