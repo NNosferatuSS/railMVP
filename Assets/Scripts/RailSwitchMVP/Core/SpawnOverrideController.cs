@@ -148,31 +148,20 @@ namespace RailSwitchMVP.Core
             return true;
         }
 
-        public HazardResolution ResolveHazard(
+        public bool MasterEnabled => masterEnabled;
+
+        /// <summary>
+        /// Override path (chamado APENAS quando masterEnabled = true). Quando master é
+        /// false, o gerador chama o caminho clássico direto, sem passar por aqui.
+        /// </summary>
+        public HazardResolution ResolveHazardOverride(
             bool isOnCriticalPath,
-            DifficultyTier tier,
             GameObject lethalPrefab,
             GameObject barrierPrefab,
             GameObject speedUpPrefab,
             GameObject laneSwapPrefab,
             GameObject vortexPrefab)
         {
-            if (!masterEnabled)
-            {
-                if (isOnCriticalPath) return HazardResolution.None;
-                if (lethalPrefab   != null && tier.obstacleChanceOnDecoy    > 0f && Random.value < tier.obstacleChanceOnDecoy)
-                    return new HazardResolution { prefab = lethalPrefab,   kind = HazardKind.Lethal };
-                if (barrierPrefab  != null && tier.barrierChanceOnDecoy     > 0f && Random.value < tier.barrierChanceOnDecoy)
-                    return new HazardResolution { prefab = barrierPrefab,  kind = HazardKind.Barrier };
-                if (speedUpPrefab  != null && tier.speedUpZoneChanceOnDecoy > 0f && Random.value < tier.speedUpZoneChanceOnDecoy)
-                    return new HazardResolution { prefab = speedUpPrefab,  kind = HazardKind.SpeedUp };
-                if (laneSwapPrefab != null && tier.laneSwapChanceOnDecoy    > 0f && Random.value < tier.laneSwapChanceOnDecoy)
-                    return new HazardResolution { prefab = laneSwapPrefab, kind = HazardKind.LaneSwap };
-                if (vortexPrefab   != null && tier.vortexChanceOnDecoy      > 0f && Random.value < tier.vortexChanceOnDecoy)
-                    return new HazardResolution { prefab = vortexPrefab,   kind = HazardKind.Vortex };
-                return HazardResolution.None;
-            }
-
             if (TryRollHazard("hz_lethal",   lethal,   isOnCriticalPath, lethalPrefab,   HazardKind.Lethal,   out var r1)) return r1;
             if (TryRollHazard("hz_barrier",  barrier,  isOnCriticalPath, barrierPrefab,  HazardKind.Barrier,  out var r2)) return r2;
             if (TryRollHazard("hz_speedup",  speedUp,  isOnCriticalPath, speedUpPrefab,  HazardKind.SpeedUp,  out var r3)) return r3;
@@ -193,18 +182,13 @@ namespace RailSwitchMVP.Core
             return true;
         }
 
-        public GameObject ResolvePowerUpPrefab(bool isOnCriticalPath, DifficultyTier tier, GameObject[] prefabs)
+        /// <summary>
+        /// Override path. Chamado APENAS quando masterEnabled = true. Não usa pool
+        /// do tier — usa as Entry per-prefab manipuladas pela UI F2.
+        /// </summary>
+        public GameObject ResolvePowerUpPrefabOverride(bool isOnCriticalPath, GameObject[] prefabs)
         {
             if (prefabs == null || prefabs.Length == 0) return null;
-
-            if (!masterEnabled)
-            {
-                float chance = isOnCriticalPath ? tier.powerUpChanceOnCritical : tier.powerUpChanceOnDecoy;
-                if (chance <= 0f || Random.value >= chance) return null;
-                int idx = Random.Range(0, prefabs.Length);
-                return prefabs[idx];
-            }
-
             EnsurePowerUpEntries(prefabs);
 
             foreach (var go in _powerUpOrder)
@@ -243,20 +227,64 @@ namespace RailSwitchMVP.Core
 
         public void SnapshotFromTier(DifficultyTier tier)
         {
-            lethal.chance   = tier.obstacleChanceOnDecoy;
-            barrier.chance  = tier.barrierChanceOnDecoy;
-            speedUp.chance  = tier.speedUpZoneChanceOnDecoy;
-            laneSwap.chance = tier.laneSwapChanceOnDecoy;
-            vortex.chance   = tier.vortexChanceOnDecoy;
+            // Traduz pool ponderado → chance per-Entry: chance = hazardChanceOnDecoy * (weight/totalWeight).
+            // Types fora do pool ficam com chance 0 (disabled visualmente via enabled=false).
+            ApplyHazardSnapshot(lethal,   HazardKind.Lethal,   tier);
+            ApplyHazardSnapshot(barrier,  HazardKind.Barrier,  tier);
+            ApplyHazardSnapshot(speedUp,  HazardKind.SpeedUp,  tier);
+            ApplyHazardSnapshot(laneSwap, HazardKind.LaneSwap, tier);
+            ApplyHazardSnapshot(vortex,   HazardKind.Vortex,   tier);
             lethal.location = barrier.location = speedUp.location = laneSwap.location = vortex.location = SpawnLocation.DecoyOnly;
 
-            float avgPu = (tier.powerUpChanceOnCritical + tier.powerUpChanceOnDecoy) * 0.5f;
+            float totalPuWeight = 0f;
+            if (tier.powerUpPool != null)
+                foreach (var w in tier.powerUpPool)
+                    if (w.weight > 0f) totalPuWeight += w.weight;
+            float chanceForSnapshot = (tier.powerUpChanceOnCritical + tier.powerUpChanceOnDecoy) * 0.5f;
+
             foreach (var go in _powerUpOrder)
             {
+                if (go == null) continue;
                 var e = _powerUpEntries[go];
-                e.chance = avgPu;
                 e.location = SpawnLocation.Both;
+                float poolWeight = LookupPoolWeightForPrefab(go, tier.powerUpPool);
+                if (poolWeight <= 0f || totalPuWeight <= 0f) { e.chance = 0f; continue; }
+                e.chance = Mathf.Clamp01(chanceForSnapshot * (poolWeight / totalPuWeight));
             }
+        }
+
+        void ApplyHazardSnapshot(Entry e, HazardKind kind, DifficultyTier tier)
+        {
+            float total = 0f;
+            float own = 0f;
+            if (tier.hazardPool != null)
+            {
+                foreach (var w in tier.hazardPool)
+                {
+                    if (w.weight <= 0f) continue;
+                    total += w.weight;
+                    if (w.kind == kind) own = w.weight;
+                }
+            }
+            if (total <= 0f || own <= 0f) { e.chance = 0f; return; }
+            e.chance = Mathf.Clamp01(tier.hazardChanceOnDecoy * (own / total));
+        }
+
+        // Heurística: match por substring entre nome do prefab e nome do enum.
+        // Ex: ShieldPickup → Shield, DoubleCoinsPickup → DoubleCoins.
+        // O snapshot da F2 é só uma aproximação — tunagem fina é por slider.
+        static float LookupPoolWeightForPrefab(GameObject prefab, List<PowerUpWeight> pool)
+        {
+            if (prefab == null || pool == null) return 0f;
+            string name = prefab.name;
+            foreach (var w in pool)
+            {
+                if (w.weight <= 0f) continue;
+                string typeName = w.type.ToString();
+                if (name.IndexOf(typeName, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    return w.weight;
+            }
+            return 0f;
         }
 
         // ========================================================

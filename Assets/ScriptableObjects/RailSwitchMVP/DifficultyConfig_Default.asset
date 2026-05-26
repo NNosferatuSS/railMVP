@@ -22,15 +22,16 @@ MonoBehaviour:
     playerSpeed: 8
     cameraZoomMin: 12
     cameraZoomMax: 18
+    cameraOrthoSizeMin: 4
+    cameraOrthoSizeMax: 6
     coinsPerCriticalTile: 3
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0
-    barrierChanceOnDecoy: 0
+    hazardChanceOnDecoy: 0
+    hazardPool: []
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0
-    laneSwapChanceOnDecoy: 0
-    vortexChanceOnDecoy: 0
+    powerUpPool:
+    - {type: 0, weight: 1}
   - triggerAtDistance: 100
     maxLanes: 5
     minLanesPerRow: 2
@@ -40,15 +41,19 @@ MonoBehaviour:
     playerSpeed: 10
     cameraZoomMin: 14
     cameraZoomMax: 20
+    cameraOrthoSizeMin: 5
+    cameraOrthoSizeMax: 7
     coinsPerCriticalTile: 3
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0.15
-    barrierChanceOnDecoy: 0
+    hazardChanceOnDecoy: 0.22
+    hazardPool:
+    - {kind: 1, weight: 0.15}
+    - {kind: 3, weight: 0.08}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0.08
-    laneSwapChanceOnDecoy: 0
-    vortexChanceOnDecoy: 0
+    powerUpPool:
+    - {type: 0, weight: 1}
+    - {type: 2, weight: 1}
   - triggerAtDistance: 250
     maxLanes: 5
     minLanesPerRow: 3
@@ -58,15 +63,23 @@ MonoBehaviour:
     playerSpeed: 12
     cameraZoomMin: 15
     cameraZoomMax: 22
+    cameraOrthoSizeMin: 5
+    cameraOrthoSizeMax: 8
     coinsPerCriticalTile: 4
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0.25
-    barrierChanceOnDecoy: 0.1
+    hazardChanceOnDecoy: 0.44
+    hazardPool:
+    - {kind: 1, weight: 0.25}
+    - {kind: 2, weight: 0.1}
+    - {kind: 3, weight: 0.12}
+    - {kind: 4, weight: 0.05}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0.12
-    laneSwapChanceOnDecoy: 0.05
-    vortexChanceOnDecoy: 0
+    powerUpPool:
+    - {type: 0, weight: 1}
+    - {type: 2, weight: 1}
+    - {type: 1, weight: 1}
+    - {type: 4, weight: 0.5}
   - triggerAtDistance: 500
     maxLanes: 7
     minLanesPerRow: 3
@@ -76,15 +89,26 @@ MonoBehaviour:
     playerSpeed: 14
     cameraZoomMin: 17
     cameraZoomMax: 24
+    cameraOrthoSizeMin: 6
+    cameraOrthoSizeMax: 9
     coinsPerCriticalTile: 4
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0.35
-    barrierChanceOnDecoy: 0.2
+    hazardChanceOnDecoy: 0.63
+    hazardPool:
+    - {kind: 1, weight: 0.35}
+    - {kind: 2, weight: 0.2}
+    - {kind: 3, weight: 0.15}
+    - {kind: 4, weight: 0.1}
+    - {kind: 5, weight: 0.08}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0.15
-    laneSwapChanceOnDecoy: 0.1
-    vortexChanceOnDecoy: 0.08
+    powerUpPool:
+    - {type: 0, weight: 1}
+    - {type: 2, weight: 1}
+    - {type: 1, weight: 1}
+    - {type: 4, weight: 0.5}
+    - {type: 5, weight: 0.7}
+    - {type: 6, weight: 0.7}
   - triggerAtDistance: 800
     maxLanes: 7
     minLanesPerRow: 4
@@ -94,15 +118,28 @@ MonoBehaviour:
     playerSpeed: 16
     cameraZoomMin: 19
     cameraZoomMax: 26
+    cameraOrthoSizeMin: 7
+    cameraOrthoSizeMax: 10
     coinsPerCriticalTile: 5
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0.45
-    barrierChanceOnDecoy: 0.25
+    hazardChanceOnDecoy: 0.74
+    hazardPool:
+    - {kind: 1, weight: 0.45}
+    - {kind: 2, weight: 0.25}
+    - {kind: 3, weight: 0.18}
+    - {kind: 4, weight: 0.12}
+    - {kind: 5, weight: 0.12}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0.18
-    laneSwapChanceOnDecoy: 0.12
-    vortexChanceOnDecoy: 0.12
+    powerUpPool:
+    - {type: 0, weight: 1}
+    - {type: 2, weight: 1}
+    - {type: 1, weight: 1}
+    - {type: 4, weight: 0.5}
+    - {type: 5, weight: 0.7}
+    - {type: 6, weight: 0.7}
+    - {type: 7, weight: 0.5}
+    - {type: 8, weight: 0.4}
   - triggerAtDistance: 1200
     maxLanes: 9
     minLanesPerRow: 4
@@ -112,12 +149,27 @@ MonoBehaviour:
     playerSpeed: 18
     cameraZoomMin: 21
     cameraZoomMax: 28
+    cameraOrthoSizeMin: 8
+    cameraOrthoSizeMax: 12
     coinsPerCriticalTile: 5
     coinsPerDecoyTile: 0
-    obstacleChanceOnDecoy: 0.55
-    barrierChanceOnDecoy: 0.3
+    hazardChanceOnDecoy: 0.82
+    hazardPool:
+    - {kind: 1, weight: 0.55}
+    - {kind: 2, weight: 0.3}
+    - {kind: 3, weight: 0.2}
+    - {kind: 4, weight: 0.15}
+    - {kind: 5, weight: 0.15}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    speedUpZoneChanceOnDecoy: 0.2
-    laneSwapChanceOnDecoy: 0.15
-    vortexChanceOnDecoy: 0.15
+    powerUpPool:
+    - {type: 0, weight: 1}
+    - {type: 2, weight: 1}
+    - {type: 1, weight: 1}
+    - {type: 4, weight: 0.5}
+    - {type: 5, weight: 0.7}
+    - {type: 6, weight: 0.7}
+    - {type: 7, weight: 0.5}
+    - {type: 8, weight: 0.4}
+    - {type: 9, weight: 0.3}
+    - {type: 3, weight: 0.15}

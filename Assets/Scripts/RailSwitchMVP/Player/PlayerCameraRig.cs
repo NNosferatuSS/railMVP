@@ -37,6 +37,7 @@ namespace RailSwitchMVP.Player
 
         [Header("Runtime (read-only)")]
         [SerializeField] private float currentZoom;
+        [SerializeField] private float currentOrthoSize;
 
         // Base position usada pra smoothing — separada do transform.position
         // pra que o shake (somado depois) não interfira no Lerp.
@@ -56,6 +57,8 @@ namespace RailSwitchMVP.Player
         // Skip o primeiro OnTierChanged (disparado no ResetDifficulty/init).
         bool _seenInitialTier;
 
+        Camera _cam;
+
         void Awake()
         {
             if (Instance != null && Instance != this)
@@ -66,6 +69,7 @@ namespace RailSwitchMVP.Player
                 return;
             }
             Instance = this;
+            _cam = GetComponent<Camera>();
         }
 
         void OnDestroy()
@@ -84,9 +88,15 @@ namespace RailSwitchMVP.Player
                 Debug.LogError("[PlayerCameraRig] DifficultyManager not assigned.");
 
             if (difficulty != null)
+            {
                 currentZoom = difficulty.CurrentTier.cameraZoomMin;
+                currentOrthoSize = difficulty.CurrentTier.cameraOrthoSizeMin;
+            }
             else
+            {
                 currentZoom = 15f;
+                currentOrthoSize = 6f;
+            }
 
             SubscribeEvents();
         }
@@ -129,22 +139,57 @@ namespace RailSwitchMVP.Player
         {
             if (player == null || config == null || difficulty == null) return;
 
-            // Target da câmera: player + offset pra frente (look-ahead)
-            Vector3 target = player.position + Vector3.forward * config.cameraLookAhead;
-
-            // Zoom alvo baseado na speed do tier atual
             var tier = difficulty.CurrentTier;
-            float speedFactor = Mathf.InverseLerp(speedAtMinZoom, speedAtMaxZoom, tier.playerSpeed);
-            float targetZoom = Mathf.Lerp(tier.cameraZoomMin, tier.cameraZoomMax, speedFactor);
-            currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * config.cameraZoomSpeed);
+            bool isOrtho = _cam != null && _cam.orthographic;
 
-            // Death cam aplica delta no distance/tilt
+            // LookAhead escala com playerSpeed pra manter horizonte temporal constante
+            // (mesmos ~N segundos à frente em todos os tiers, em vez de N unidades fixas).
+            // Referência: speedAtMinZoom (o "baseline" do mapping de altura).
+            // Funciona idêntico em perspective e ortho.
+            float speedRatio = speedAtMinZoom > 0f ? (tier.playerSpeed / speedAtMinZoom) : 1f;
+            float effectiveLookAhead = config.cameraLookAhead * speedRatio;
+            Vector3 target = player.position + Vector3.forward * effectiveLookAhead;
+
+            // Per-tier interp por speed — usado nos dois modos (cada um lê seus campos).
+            float speedFactor = Mathf.InverseLerp(speedAtMinZoom, speedAtMaxZoom, tier.playerSpeed);
+            float globalZoom = Mathf.Max(0.01f, config.cameraZoomGlobalMultiplier);
+
+            if (isOrtho)
+            {
+                // === ORTHOGRAPHIC: zoom real é via orthographicSize ===
+                // Per-tier ortho size × globalZoom (multiplier vira zoom verdadeiro aqui).
+                float targetOrtho = Mathf.Lerp(tier.cameraOrthoSizeMin, tier.cameraOrthoSizeMax, speedFactor) * globalZoom;
+                currentOrthoSize = Mathf.Lerp(currentOrthoSize, targetOrtho, Time.deltaTime * config.cameraZoomSpeed);
+                _cam.orthographicSize = Mathf.Max(0.1f, currentOrthoSize - config.deathCamOrthoSizeDelta * _deathCamFactor);
+                // currentZoom (altura Y) ainda usado pra posicionar — não afeta zoom visual em ortho.
+                float targetZoomY = Mathf.Lerp(tier.cameraZoomMin, tier.cameraZoomMax, speedFactor);
+                currentZoom = Mathf.Lerp(currentZoom, targetZoomY, Time.deltaTime * config.cameraZoomSpeed);
+            }
+            else
+            {
+                // === PERSPECTIVE: FOV + altura/distance ===
+                if (_cam != null && !Mathf.Approximately(_cam.fieldOfView, config.cameraFieldOfView))
+                    _cam.fieldOfView = config.cameraFieldOfView;
+                float targetZoom = Mathf.Lerp(tier.cameraZoomMin, tier.cameraZoomMax, speedFactor);
+                currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * config.cameraZoomSpeed);
+            }
+
+            // Death cam aplica delta no distance/tilt (afeta posição nos dois modos).
             float effectiveDistance = config.cameraDistance - config.deathCamZoomDelta * _deathCamFactor;
             float effectiveTilt = config.cameraTilt + config.deathCamTiltDelta * _deathCamFactor;
 
+            // Distance escala com speedRatio junto com lookAhead — caso contrário, ao
+            // crescer lookAhead sem crescer distance, a câmera ultrapassa o player
+            // (camZ = player + lookAhead − distance fica positivo). Vale nos dois modos:
+            // em ortho não afeta zoom visual, mas mantém invariante "câmera atrás do player".
+            float effectiveDistanceScaled = effectiveDistance * speedRatio;
+
+            // Em ortho, globalZoom já foi aplicado no orthoSize — não escalar posição também.
+            // Em perspective, globalZoom escala distance+altura (preserva ângulo).
+            float positionScale = isOrtho ? 1f : globalZoom;
             Vector3 desiredPos = target
-                + Vector3.back * effectiveDistance
-                + Vector3.up * currentZoom;
+                + Vector3.back * (effectiveDistanceScaled * positionScale)
+                + Vector3.up * (currentZoom * positionScale);
 
             // Smoothing: lerp _basePos pra desiredPos. Primeira vez teleporta.
             if (!_hasBasePos)

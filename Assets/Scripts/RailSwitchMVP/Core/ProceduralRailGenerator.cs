@@ -57,10 +57,21 @@ namespace RailSwitchMVP.Core
         [Tooltip("Prefab do Vortex (PostMVP2.5). Rouba escolha de switch (push pra outra lane).")]
         [SerializeField] private GameObject vortexObstaclePrefab;
 
-        [Tooltip("Array de prefabs de power-up (MVP2 Iter 4). Sugestão: 4 elementos " +
-            "(Shield, SlowDown, Magnet, DifficultyReset). Generator escolhe um random " +
-            "uniformemente. Array vazio = no-op (power-ups não spawnam).")]
-        [SerializeField] private GameObject[] powerUpPrefabs;
+        [System.Serializable]
+        public struct PowerUpPrefabBinding
+        {
+            public PowerUpType type;
+            public GameObject prefab;
+        }
+
+        [Tooltip("Bindings (type → prefab) de cada power-up que existe no jogo. " +
+            "Cada tier escolhe um subset destes via DifficultyTier.powerUpPool com pesos. " +
+            "Lista vazia = no-op (power-ups não spawnam mesmo com chance > 0).")]
+        [SerializeField] private List<PowerUpPrefabBinding> powerUpPrefabs = new List<PowerUpPrefabBinding>();
+
+        // Cache type→prefab pra weighted pick não pagar O(n) toda chamada.
+        // Rebuildado on-demand (mudou ref ou conta). Null = ainda não build.
+        private Dictionary<PowerUpType, GameObject> _powerUpByType;
 
         // Cores e símbolos dos warnings sobre hazards (pós-MVP2 UI hint).
         // Centralizados aqui pra fácil tunar visual sem mexer em prefabs.
@@ -86,7 +97,52 @@ namespace RailSwitchMVP.Core
         public bool IsInTransition => transitionAnchorLane >= 0;
 
         // Exposto pra SpawnOverrideController popular sua UI com a lista atual.
-        public GameObject[] PowerUpPrefabs => powerUpPrefabs;
+        // Retorna array flat de prefabs (skipa entries sem prefab) — compat com
+        // o caminho debug-UI que indexa por GameObject reference.
+        public GameObject[] PowerUpPrefabs
+        {
+            get
+            {
+                if (powerUpPrefabs == null || powerUpPrefabs.Count == 0)
+                    return System.Array.Empty<GameObject>();
+                var list = new List<GameObject>(powerUpPrefabs.Count);
+                foreach (var b in powerUpPrefabs)
+                    if (b.prefab != null) list.Add(b.prefab);
+                return list.ToArray();
+            }
+        }
+
+        GameObject GetPowerUpPrefab(PowerUpType type)
+        {
+            if (_powerUpByType == null || _powerUpByType.Count != (powerUpPrefabs?.Count ?? 0))
+                RebuildPowerUpCache();
+            if (_powerUpByType == null) return null;
+            return _powerUpByType.TryGetValue(type, out var go) ? go : null;
+        }
+
+        void RebuildPowerUpCache()
+        {
+            _powerUpByType = new Dictionary<PowerUpType, GameObject>();
+            if (powerUpPrefabs == null) return;
+            foreach (var b in powerUpPrefabs)
+            {
+                if (b.prefab == null) continue;
+                _powerUpByType[b.type] = b.prefab; // último ganha em caso de duplicata
+            }
+        }
+
+        GameObject GetHazardPrefab(HazardKind kind)
+        {
+            switch (kind)
+            {
+                case HazardKind.Lethal:   return lethalObstaclePrefab;
+                case HazardKind.Barrier:  return barrierObstaclePrefab;
+                case HazardKind.SpeedUp:  return speedUpZonePrefab;
+                case HazardKind.LaneSwap: return laneSwapObstaclePrefab;
+                case HazardKind.Vortex:   return vortexObstaclePrefab;
+                default: return null;
+            }
+        }
 
         public void Configure(RailGenConfig cfg, GameObject prefab)
         {
@@ -375,10 +431,12 @@ namespace RailSwitchMVP.Core
                 if (!isWarmupRow && tile.Obstacles != null)
                 {
                     HazardResolution hz;
-                    if (SpawnOverrideController.Instance != null)
+                    bool useOverride = SpawnOverrideController.Instance != null
+                        && SpawnOverrideController.Instance.MasterEnabled;
+                    if (useOverride)
                     {
-                        hz = SpawnOverrideController.Instance.ResolveHazard(
-                            tile.IsOnCriticalPath, tier,
+                        hz = SpawnOverrideController.Instance.ResolveHazardOverride(
+                            tile.IsOnCriticalPath,
                             lethalObstaclePrefab, barrierObstaclePrefab,
                             speedUpZonePrefab, laneSwapObstaclePrefab, vortexObstaclePrefab);
                     }
@@ -399,10 +457,12 @@ namespace RailSwitchMVP.Core
                 }
 
                 // Power-ups: idem rota via override. Tile com hazard nunca recebe.
-                if (!isWarmupRow && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
+                if (!isWarmupRow && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Count > 0)
                 {
-                    GameObject puPrefab = SpawnOverrideController.Instance != null
-                        ? SpawnOverrideController.Instance.ResolvePowerUpPrefab(tile.IsOnCriticalPath, tier, powerUpPrefabs)
+                    bool useOverride = SpawnOverrideController.Instance != null
+                        && SpawnOverrideController.Instance.MasterEnabled;
+                    GameObject puPrefab = useOverride
+                        ? SpawnOverrideController.Instance.ResolvePowerUpPrefabOverride(tile.IsOnCriticalPath, PowerUpPrefabs)
                         : ResolvePowerUpClassic(tile.IsOnCriticalPath, tier);
                     if (puPrefab != null) tile.PowerUps.Spawn(puPrefab);
                 }
@@ -470,29 +530,68 @@ namespace RailSwitchMVP.Core
         }
 
         // Fallback usado quando SpawnOverrideController não está na cena.
-        // Replica a cascata original 1:1 (só decoy, primeiro hit ganha).
+        // Modelo: 1 chance global (hazardChanceOnDecoy) + weighted pick no pool.
         HazardResolution ResolveHazardClassic(bool isCritical, DifficultyTier tier)
         {
             if (isCritical) return HazardResolution.None;
-            if (lethalObstaclePrefab != null && tier.obstacleChanceOnDecoy > 0f && Random.value < tier.obstacleChanceOnDecoy)
-                return new HazardResolution { prefab = lethalObstaclePrefab, kind = HazardKind.Lethal };
-            if (barrierObstaclePrefab != null && tier.barrierChanceOnDecoy > 0f && Random.value < tier.barrierChanceOnDecoy)
-                return new HazardResolution { prefab = barrierObstaclePrefab, kind = HazardKind.Barrier };
-            if (speedUpZonePrefab != null && tier.speedUpZoneChanceOnDecoy > 0f && Random.value < tier.speedUpZoneChanceOnDecoy)
-                return new HazardResolution { prefab = speedUpZonePrefab, kind = HazardKind.SpeedUp };
-            if (laneSwapObstaclePrefab != null && tier.laneSwapChanceOnDecoy > 0f && Random.value < tier.laneSwapChanceOnDecoy)
-                return new HazardResolution { prefab = laneSwapObstaclePrefab, kind = HazardKind.LaneSwap };
-            if (vortexObstaclePrefab != null && tier.vortexChanceOnDecoy > 0f && Random.value < tier.vortexChanceOnDecoy)
-                return new HazardResolution { prefab = vortexObstaclePrefab, kind = HazardKind.Vortex };
-            return HazardResolution.None;
+            if (tier.hazardChanceOnDecoy <= 0f || tier.hazardPool == null || tier.hazardPool.Count == 0)
+                return HazardResolution.None;
+            if (Random.value >= tier.hazardChanceOnDecoy) return HazardResolution.None;
+
+            HazardKind kind = WeightedPickHazard(tier.hazardPool);
+            GameObject prefab = GetHazardPrefab(kind);
+            if (prefab == null) return HazardResolution.None;
+            return new HazardResolution { prefab = prefab, kind = kind };
         }
 
         GameObject ResolvePowerUpClassic(bool isCritical, DifficultyTier tier)
         {
             float chance = isCritical ? tier.powerUpChanceOnCritical : tier.powerUpChanceOnDecoy;
             if (chance <= 0f || Random.value >= chance) return null;
-            int idx = Random.Range(0, powerUpPrefabs.Length);
-            return powerUpPrefabs[idx];
+            if (tier.powerUpPool == null || tier.powerUpPool.Count == 0) return null;
+
+            PowerUpType type;
+            if (!TryWeightedPickPowerUp(tier.powerUpPool, out type)) return null;
+            return GetPowerUpPrefab(type);
+        }
+
+        // Sorteia uma HazardKind do pool ponderado. Pesos ≤ 0 são ignorados.
+        // Se soma de pesos = 0, retorna None (caller trata).
+        HazardKind WeightedPickHazard(List<HazardWeight> pool)
+        {
+            float total = 0f;
+            for (int i = 0; i < pool.Count; i++)
+                if (pool[i].weight > 0f) total += pool[i].weight;
+            if (total <= 0f) return HazardKind.None;
+
+            float r = Random.value * total;
+            float acc = 0f;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                if (pool[i].weight <= 0f) continue;
+                acc += pool[i].weight;
+                if (r < acc) return pool[i].kind;
+            }
+            return pool[pool.Count - 1].kind; // fallback numérico
+        }
+
+        bool TryWeightedPickPowerUp(List<PowerUpWeight> pool, out PowerUpType type)
+        {
+            float total = 0f;
+            for (int i = 0; i < pool.Count; i++)
+                if (pool[i].weight > 0f) total += pool[i].weight;
+            if (total <= 0f) { type = default; return false; }
+
+            float r = Random.value * total;
+            float acc = 0f;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                if (pool[i].weight <= 0f) continue;
+                acc += pool[i].weight;
+                if (r < acc) { type = pool[i].type; return true; }
+            }
+            type = pool[pool.Count - 1].type;
+            return true;
         }
     }
 }

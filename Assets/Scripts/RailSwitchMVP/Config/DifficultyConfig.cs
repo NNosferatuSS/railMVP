@@ -1,8 +1,33 @@
 using System.Collections.Generic;
 using UnityEngine;
+using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Config
 {
+    /// <summary>
+    /// Entrada do hazardPool de um tier — define que tipos podem aparecer
+    /// e com que peso relativo (0 = excluído, equivalente a omitir).
+    /// O sorteio é feito quando o tile decoy hit em hazardChanceOnDecoy.
+    /// </summary>
+    [System.Serializable]
+    public struct HazardWeight
+    {
+        public HazardKind kind;
+        [Range(0f, 10f)] public float weight;
+    }
+
+    /// <summary>
+    /// Entrada do powerUpPool de um tier — quais power-ups podem dropar e
+    /// com que peso relativo. Único pool por tier (compartilhado entre
+    /// critical e decoy). Type sem prefab registrado no generator é skipado.
+    /// </summary>
+    [System.Serializable]
+    public struct PowerUpWeight
+    {
+        public PowerUpType type;
+        [Range(0f, 10f)] public float weight;
+    }
+
     /// <summary>
     /// Snapshot completo de configuração para um tier de dificuldade.
     /// Cada tier é ativado quando o player atinge triggerAtDistance.
@@ -35,9 +60,21 @@ namespace RailSwitchMVP.Config
         [Tooltip("Velocidade forward do player neste tier")]
         public float playerSpeed;
 
-        [Header("Camera")]
+        [Header("Camera — Perspective (altura Y)")]
+        [Tooltip("Altura Y mínima da câmera (player parado / speed = speedAtMinZoom). " +
+            "Usado apenas em modo Perspective.")]
         public float cameraZoomMin;
+        [Tooltip("Altura Y máxima da câmera (speed = speedAtMaxZoom). Usado apenas em Perspective.")]
         public float cameraZoomMax;
+
+        [Header("Camera — Orthographic (orthoSize)")]
+        [Tooltip("orthographicSize mínimo deste tier (player lento). " +
+            "Metade da altura vertical da view em unidades de mundo. " +
+            "Usado apenas em modo Orthographic.")]
+        public float cameraOrthoSizeMin;
+        [Tooltip("orthographicSize máximo deste tier (player rápido). Maior = zoom out. " +
+            "Usado apenas em modo Orthographic.")]
+        public float cameraOrthoSizeMax;
 
         [Header("Coins")]
         [Tooltip("Quantidade de moedas em cada tile do critical path")]
@@ -46,40 +83,34 @@ namespace RailSwitchMVP.Config
         [Tooltip("Quantidade de moedas em cada tile decoy (0 = sem moedas em decoys)")]
         public int coinsPerDecoyTile;
 
-        [Header("Obstacles (MVP2)")]
+        [Header("Hazards")]
         [Range(0f, 1f)]
-        [Tooltip("Probabilidade de um tile DECOY receber um obstáculo letal. " +
-            "Critical path NUNCA recebe obstáculo (decisão de design MVP2 — " +
-            "reforça \"moeda = caminho seguro\").")]
-        public float obstacleChanceOnDecoy;
+        [Tooltip("Probabilidade de um tile DECOY receber QUALQUER hazard. " +
+            "Critical path NUNCA recebe hazard (design rule). Se hit, o tipo " +
+            "é sorteado por peso em hazardPool. Pool vazio = nenhum hazard, " +
+            "mesmo com chance > 0.")]
+        public float hazardChanceOnDecoy;
 
-        [Range(0f, 1f)]
-        [Tooltip("Probabilidade de um tile DECOY receber uma barreira (absorvida por Shield). " +
-            "Independente de obstacleChanceOnDecoy — mas tiles nunca recebem AMBOS no mesmo lugar.")]
-        public float barrierChanceOnDecoy;
+        [Tooltip("Tipos de hazard elegíveis neste tier e seus pesos relativos " +
+            "(0 = desabilitado, equivalente a omitir). Permite progressão tipo " +
+            "\"tier 1 só letal; tier 3 introduz barrier; tier 5 todos\".")]
+        public List<HazardWeight> hazardPool;
 
-        [Header("Power-ups (MVP2)")]
+        [Header("Power-ups")]
         [Range(0f, 1f)]
-        [Tooltip("Probabilidade de um tile do CRITICAL PATH receber um power-up.")]
+        [Tooltip("Probabilidade de um tile do CRITICAL PATH receber um power-up. " +
+            "Se hit, o tipo é sorteado por peso em powerUpPool.")]
         public float powerUpChanceOnCritical;
 
         [Range(0f, 1f)]
         [Tooltip("Probabilidade de um tile DECOY receber um power-up. " +
-            "Tile com obstáculo OU barreira não recebe power-up.")]
+            "Tile que já recebeu hazard NUNCA recebe power-up.")]
         public float powerUpChanceOnDecoy;
 
-        [Header("Hazards (PostMVP2.5)")]
-        [Range(0f, 1f)]
-        [Tooltip("Chance de SpeedUp zone (acelera player por N tiles, não mata).")]
-        public float speedUpZoneChanceOnDecoy;
-
-        [Range(0f, 1f)]
-        [Tooltip("Chance de Lane Swap (inverte inputs ←/→ por N tiles).")]
-        public float laneSwapChanceOnDecoy;
-
-        [Range(0f, 1f)]
-        [Tooltip("Chance de Vortex (rouba escolha de switch — push pra outra lane válida).")]
-        public float vortexChanceOnDecoy;
+        [Tooltip("Tipos de power-up elegíveis neste tier e seus pesos relativos. " +
+            "Pool único compartilhado entre critical e decoy (chance varia, " +
+            "distribuição não). Type sem binding no generator é skipado.")]
+        public List<PowerUpWeight> powerUpPool;
     }
 
     /// <summary>

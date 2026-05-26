@@ -50,11 +50,26 @@ namespace RailSwitchMVP.Config
         [Tooltip("Offset Z (quão atrás do player a câmera fica)")]
         public float cameraDistance = 6f;
 
-        [Tooltip("Quanto a câmera olha para frente do player")]
+        [Tooltip("Quanto a câmera olha para frente do player, EM UNIDADES no speed mínimo. " +
+            "Escala proporcionalmente com a playerSpeed do tier ativo " +
+            "(ratio = tier.playerSpeed / speedAtMinZoom do PlayerCameraRig), " +
+            "mantendo o horizonte temporal constante (~X segundos à frente) em todos os tiers.")]
         public float cameraLookAhead = 4f;
+
+        [Tooltip("Campo de visão da câmera em graus (perspective). 60 = default Unity. " +
+            "Valores baixos (~40) = lente tele, perspectiva achatada, sensação de zoom. " +
+            "Valores altos (~80+) = grande angular, mais coisa na tela, distorção nas bordas.")]
+        [Range(20f, 100f)]
+        public float cameraFieldOfView = 60f;
 
         [Tooltip("Velocidade de transição do zoom adaptativo")]
         public float cameraZoomSpeed = 8f;
+
+        [Tooltip("Multiplier global de zoom — escala cameraDistance (Z) e altura Y juntos, " +
+            "preservando o ângulo de visão. 1 = sem alteração. 0.7 = ~30% mais perto. " +
+            "1.5 = ~50% mais longe. Aplica em cima dos valores per-tier do DifficultyConfig.")]
+        [Range(0.3f, 3f)]
+        public float cameraZoomGlobalMultiplier = 1f;
 
         [Header("Camera — Smoothing")]
         [Tooltip("Suavização da posição da câmera (Lerp factor). " +
@@ -82,8 +97,13 @@ namespace RailSwitchMVP.Config
         [Tooltip("Time.timeScale durante a sequência. 0.3 = câmera lenta dramática.")]
         [Range(0.05f, 1f)] public float deathCamSlowMo = 0.3f;
 
-        [Tooltip("Quanto a câmera se aproxima no death cam (subtrai do cameraDistance).")]
+        [Tooltip("Quanto a câmera se aproxima no death cam (subtrai do cameraDistance). " +
+            "Usado apenas em Perspective — ortho usa deathCamOrthoSizeDelta.")]
         public float deathCamZoomDelta = 1.5f;
+
+        [Tooltip("Quanto o orthographicSize se reduz no death cam (efeito zoom-in em ortho). " +
+            "Usado apenas em Orthographic.")]
+        public float deathCamOrthoSizeDelta = 1.5f;
 
         [Tooltip("Quanto o tilt da câmera aumenta no death cam.")]
         [Range(-30f, 30f)]
