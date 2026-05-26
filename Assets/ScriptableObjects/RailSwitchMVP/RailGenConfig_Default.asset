@@ -20,13 +20,24 @@ MonoBehaviour:
   warmupSpeedMultiplier: 0.5
   rowsAhead: 12
   rowsBehind: 2
-  cameraTilt: 60
-  cameraDistance: 6
-  cameraLookAhead: 4
-  cameraFieldOfView: 60
+  cameraTilt: 60.2
+  cameraDistance: 6.81
+  cameraLookAhead: 7.77
+  cameraFieldOfView: 48
   cameraZoomSpeed: 8
-  cameraZoomGlobalMultiplier: 1
+  cameraZoomGlobalMultiplier: 2.05
+  cameraPositionSmoothing: 12
+  shakeLightIntensity: 0.15
+  shakeLightDuration: 0.15
+  shakeMediumIntensity: 0.3
+  shakeMediumDuration: 0.25
+  shakeHeavyIntensity: 0.6
+  shakeHeavyDuration: 0.5
+  deathCamDuration: 1
+  deathCamSlowMo: 0.3
+  deathCamZoomDelta: 1.5
   deathCamOrthoSizeDelta: 1.5
+  deathCamTiltDelta: 5
   debugDrawCriticalPath: 1
   criticalPathGizmoColor: {r: 0, g: 1, b: 0.4, a: 0.8}
   decoyGizmoColor: {r: 1, g: 0.4, b: 0.2, a: 0.5}
