@@ -26,7 +26,23 @@ namespace RailSwitchMVP.Core
         private float _lastRawDistance;
 
         public DifficultyConfig Config => config;
-        public DifficultyTier CurrentTier => currentTier;
+
+        // No Editor, lê live do SO pra que edições no Inspector durante Play
+        // propaguem imediatamente (próxima row gerada, próximo frame de speed
+        // do player, etc.). Em build, mantém o struct cacheado — comportamento
+        // estável e barato no hot path.
+        public DifficultyTier CurrentTier
+        {
+#if UNITY_EDITOR
+            get => (config != null && config.tiers != null
+                    && currentTierIndex >= 0 && currentTierIndex < config.tiers.Count)
+                ? config.tiers[currentTierIndex]
+                : currentTier;
+#else
+            get => currentTier;
+#endif
+        }
+
         public int CurrentTierIndex => currentTierIndex;
         public float DistanceTraveled => distanceTraveled;
 
@@ -122,7 +138,8 @@ namespace RailSwitchMVP.Core
                 currentTier = config.tiers[currentTierIndex];
                 Debug.Log($"[DifficultyManager] ↑ Tier {currentTierIndex} @ {distanceTraveled:F1}m " +
                     $"(speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes}, " +
-                    $"crit={currentTier.criticalPathsPerRow}, coins={currentTier.coinsPerCriticalTile})");
+                    $"crit={currentTier.criticalPathsPerRow}, " +
+                    $"coins=[{currentTier.criticalCoinsMin}-{currentTier.criticalCoinsMax}])");
                 OnTierChanged?.Invoke(currentTier);
             }
         }

@@ -35,6 +35,13 @@ namespace RailSwitchMVP.Player
         [Tooltip("Velocidade do player que mapeia para o zoom máximo (mais longe)")]
         [SerializeField] private float speedAtMaxZoom = 20f;
 
+        [Header("Lateral Follow (experimento)")]
+        [Tooltip("Quando false, X da câmera fica travado em anchoredX e ignora switch de lanes. Toggle ao vivo no Inspector.")]
+        [SerializeField] private bool followLateral = false;
+
+        [Tooltip("X mundial usado quando followLateral=false. 0 = centro do grid (lane central com globalMaxLanes ímpar).")]
+        [SerializeField] private float anchoredX = 0f;
+
         [Header("Runtime (read-only)")]
         [SerializeField] private float currentZoom;
         [SerializeField] private float currentOrthoSize;
@@ -148,7 +155,9 @@ namespace RailSwitchMVP.Player
             // Funciona idêntico em perspective e ortho.
             float speedRatio = speedAtMinZoom > 0f ? (tier.playerSpeed / speedAtMinZoom) : 1f;
             float effectiveLookAhead = config.cameraLookAhead * speedRatio;
-            Vector3 target = player.position + Vector3.forward * effectiveLookAhead;
+            float targetX = followLateral ? player.position.x : anchoredX;
+            Vector3 anchorBase = new Vector3(targetX, player.position.y, player.position.z);
+            Vector3 target = anchorBase + Vector3.forward * effectiveLookAhead;
 
             // Per-tier interp por speed — usado nos dois modos (cada um lê seus campos).
             float speedFactor = Mathf.InverseLerp(speedAtMinZoom, speedAtMaxZoom, tier.playerSpeed);

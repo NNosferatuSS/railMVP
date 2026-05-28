@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-24 — **Fatia 5 — Rewarded Ads ✅ VALIDADA** (Unity Ads classic SDK, não Mediation). AdsManager singleton + chest sem stub + botão "Watch Ad +N coins" no GameOver. Dashboard configurado, ads servindo em Editor (test mode). Pre-launch checklist movido pra `Docs/Pre_Launch_Checklist.md` (keystore, Privacy Policy, GDPR, Play Console — pra quando shipar). **Fatias 1-5 fechadas.** Próxima sessão: decidir entre spec §11 (Daily Challenge + Supabase + Leaderboard), polish de gameplay (audio/visual), ou nova feature.
+**Última atualização:** 2026-05-28 — **Sessão de tuning tools.** Slot System (Slices 1+2) implementado: coins/hazards/power-ups num grid de slots discretos (default 5), coin spawner skipa reservados pra stride uniforme, coin count vira range `[min, max]` por tier. + `CoinPlacement` enum (UniformGrid/RandomFree, default RandomFree). + `PlayerCameraRig.followLateral` toggle (default false — câmera não segue lateralmente, experimento). + `DifficultyManager.CurrentTier` lê live do SO no Editor (`#if UNITY_EDITOR`) pra que edits no Inspector propaguem sem precisar transição de tier. + arquivos `HazardPool`/`PowerUpPool`/`IValidatedConfig`/`ValidatedConfigInspector` finalmente commitados (commit anterior `c139450` referenciava mas tinha esquecido os .cs). Detalhes em `Docs/SlotSystem_Refactor.md`. Anterior: Fatia 5 — Rewarded Ads ✅ VALIDADA.
 **Engine:** Unity 6000.4.7f1 (6.4 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -14,10 +14,78 @@
 
 ## 🟢 Próxima sessão: começe AQUI
 
-**Estado: gameplay completo (MVP1+MVP2+pós-MVP2 todo). Entrando agora na
-camada de PROGRESSÃO (meta-game) — fundação + missões + login + loja + ads.
-Ordem em 5 fatias verticais. Detalhes em
-`Docs/Progression_Implementation_Plan.md`.**
+**Estado: gameplay completo (MVP1+MVP2+pós-MVP2 todo) + meta-game (Fatias 1-5).
+Iteração ATUAL: refactor do sistema de spawn (slot system) pra dar granularidade
+de balanço.**
+
+### Slot System — Slices 1 + 2 ⏳ implementados 2026-05-28, falta validar
+
+Refactor da geração procedural pra usar **slots discretos** ao longo do tile
+(default 5, configurável em `RailGenConfig.coinSlotsPerTile`). Coins, hazards
+e power-ups agora ocupam slots — quem reserva um índice impede que outro
+spawne em cima. **Resolve o problema de overlap visual** entre moeda no centro
+e hazard/power-up no centro.
+
+**Arquivos tocados:**
+
+- `Config/RailGenConfig.cs` — + enum `SlotPlacement` (CenterSlot/RandomFree),
+  + `coinSlotsPerTile` (5), `coinSlotPadding` (0.1), `hazardSlotStrategy`,
+  `powerUpSlotStrategy`. + validações.
+- `Track/TrackTile.cs` — + helper `GetSlotPosition(slotIndex, totalSlots,
+  padding, height)` que centraliza o Lerp antes duplicado nos 3 spawners.
+- `Track/CoinSpawner.cs` — reescrito. Nova assinatura
+  `Spawn(targetCount, totalSlots, padding, reservedSlots)`. Distribuição
+  uniforme entre slots livres (endpoints inclusos com count > 1). Removidos
+  campos legacy: `padding`, `startPoint`, `endPoint`, `spawnOnStartCount`,
+  `isCriticalPath`, `Awake`/`Start`/`ResolvePointsFromTile`.
+- `Track/ObstacleSpawner.cs` / `PowerUpSpawner.cs` — nova assinatura
+  `Spawn(prefab, slotIndex, totalSlots, padding)`. Removidos `startPoint`,
+  `endPoint`, `Awake`/`ResolvePointsFromTile`.
+- `Core/ProceduralRailGenerator.cs` — em `GenerateRow`, **ordem invertida**:
+  hazard → reserva slot → power-up → reserva → coins com `reservedSlots`.
+  + helper `PickSlot(strategy, totalSlots, reserved)` com fallback gracioso
+  (busca livre mais próximo do centro pra CenterSlot, sample aleatório pra
+  RandomFree).
+- `RailGenConfig_Default.asset` — + 4 campos novos.
+
+**Decisões fechadas com user:**
+1. Slot count: GLOBAL no RailGenConfig (não per-tier nem per-prefab).
+2. Strategy: CenterSlot/RandomFree configurável desde o slice 1 (default Center
+   pra preservar o visual atual).
+3. Coin min/max: 2 ints separados (`criticalCoinsMin/Max`) — vem no Slice 2.
+
+**Próxima sessão: validar Slice 1 no Unity**
+
+1. Abrir Unity, abrir `TrackTile_Prefab`. Unity vai warnar sobre os campos
+   antigos (`spawnOnStartCount`, `isCriticalPath`, `startPoint`, `endPoint`,
+   `padding`) nos 3 spawners — só salvar (Ctrl+S) e os orphans somem.
+2. Selecionar `RailGenConfig_Default` → conferir que os 4 campos novos
+   aparecem com `coinSlotsPerTile=5`, `coinSlotPadding=0.1`,
+   `hazardSlotStrategy=CenterSlot`, `powerUpSlotStrategy=CenterSlot`.
+3. Rodar uma run. Em Tier 1+ (decoys com hazards), verificar visualmente
+   que **moeda + hazard não mais ocupam o mesmo X central**.
+4. Com 3 coins no critical sem powerup: devem aparecer nos slots `0, 2, 4`.
+5. Com 3 coins + powerup no centro (slot 2): coins vão pros slots `0, 4`
+   (slot 2 skipado — stride uniforme com o powerup, total 2 coins + 1 PU).
+
+**Slice 2 ✅ código implementado:** `DifficultyTier` agora tem
+`criticalCoinsMin/Max` + `decoyCoinsMin/Max`. Sample por tile via
+`Random.Range(min, max+1)` no generator. `FormerlySerializedAs` preserva
+o valor antigo no Min; `OnValidate` auto-copia min→max na primeira
+abertura do `DifficultyConfig_Default`. Log do `DifficultyManager` ajustado
+pra mostrar `coins=[min-max]`. **Validar Unity:** abrir o asset uma vez
+pra disparar OnValidate, depois ajustar os Max nos 6 tiers (default vem
+igual ao min após migração).
+
+**Slice 3 (opcional):** UI no `SpawnOverrideController` (F2) pra trocar slot
+strategy + coin range em runtime. Só se for útil pro playtest.
+
+---
+
+### Backlog anterior (intacto)
+
+Estado: gameplay completo (MVP1+MVP2+pós-MVP2 todo) + camada de PROGRESSÃO
+(Fatias 1-5 fechadas). Detalhes em `Docs/Progression_Implementation_Plan.md`.
 
 ### Próxima sessão: setup Ads + testar Fatia 5
 

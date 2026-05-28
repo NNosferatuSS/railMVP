@@ -236,9 +236,10 @@ namespace RailSwitchMVP.Core
             ApplyHazardSnapshot(vortex,   HazardKind.Vortex,   tier);
             lethal.location = barrier.location = speedUp.location = laneSwap.location = vortex.location = SpawnLocation.DecoyOnly;
 
+            var puEntries = tier.powerUpPool != null ? tier.powerUpPool.entries : null;
             float totalPuWeight = 0f;
-            if (tier.powerUpPool != null)
-                foreach (var w in tier.powerUpPool)
+            if (puEntries != null)
+                foreach (var w in puEntries)
                     if (w.weight > 0f) totalPuWeight += w.weight;
             float chanceForSnapshot = (tier.powerUpChanceOnCritical + tier.powerUpChanceOnDecoy) * 0.5f;
 
@@ -247,7 +248,7 @@ namespace RailSwitchMVP.Core
                 if (go == null) continue;
                 var e = _powerUpEntries[go];
                 e.location = SpawnLocation.Both;
-                float poolWeight = LookupPoolWeightForPrefab(go, tier.powerUpPool);
+                float poolWeight = LookupPoolWeightForPrefab(go, puEntries);
                 if (poolWeight <= 0f || totalPuWeight <= 0f) { e.chance = 0f; continue; }
                 e.chance = Mathf.Clamp01(chanceForSnapshot * (poolWeight / totalPuWeight));
             }
@@ -257,9 +258,10 @@ namespace RailSwitchMVP.Core
         {
             float total = 0f;
             float own = 0f;
-            if (tier.hazardPool != null)
+            var hazEntries = tier.hazardPool != null ? tier.hazardPool.entries : null;
+            if (hazEntries != null)
             {
-                foreach (var w in tier.hazardPool)
+                foreach (var w in hazEntries)
                 {
                     if (w.weight <= 0f) continue;
                     total += w.weight;

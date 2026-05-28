@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 295ed2f670cebec4caf36d58aa609a21, type: 3}
   m_Name: DifficultyConfig_Default
-  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Config.DifficultyConfig
+  m_EditorClassIdentifier: 
   tiers:
   - triggerAtDistance: 0
     maxLanes: 3
@@ -19,41 +19,40 @@ MonoBehaviour:
     maxLanesPerRow: 3
     criticalPathsPerRow: 1
     lanePopulationChance: 0.6
-    playerSpeed: 8
+    playerSpeed: 6
     cameraZoomMin: 12
     cameraZoomMax: 18
     cameraOrthoSizeMin: 4
     cameraOrthoSizeMax: 6
-    coinsPerCriticalTile: 3
-    coinsPerDecoyTile: 0
-    hazardChanceOnDecoy: 0
-    hazardPool: []
+    criticalCoinsMin: 1
+    criticalCoinsMax: 3
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
+    hazardChanceOnDecoy: 0.2
+    hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
+    powerUpPool: {fileID: 11400000, guid: c61002aabbccddee0112233445566711, type: 2}
   - triggerAtDistance: 100
     maxLanes: 5
     minLanesPerRow: 2
     maxLanesPerRow: 4
     criticalPathsPerRow: 1
     lanePopulationChance: 0.55
-    playerSpeed: 10
+    playerSpeed: 8
     cameraZoomMin: 14
     cameraZoomMax: 20
     cameraOrthoSizeMin: 5
     cameraOrthoSizeMax: 7
-    coinsPerCriticalTile: 3
-    coinsPerDecoyTile: 0
-    hazardChanceOnDecoy: 0.22
-    hazardPool:
-    - {kind: 1, weight: 0.15}
-    - {kind: 3, weight: 0.08}
+    criticalCoinsMin: 1
+    criticalCoinsMax: 3
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
+    hazardChanceOnDecoy: 1
+    hazardPool: {fileID: 11400000, guid: b52002aabbccddee0112233445566702, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
-    - {type: 2, weight: 1}
+    powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
   - triggerAtDistance: 250
     maxLanes: 5
     minLanesPerRow: 3
@@ -65,21 +64,15 @@ MonoBehaviour:
     cameraZoomMax: 22
     cameraOrthoSizeMin: 5
     cameraOrthoSizeMax: 8
-    coinsPerCriticalTile: 4
-    coinsPerDecoyTile: 0
+    criticalCoinsMin: 4
+    criticalCoinsMax: 4
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
     hazardChanceOnDecoy: 0.44
-    hazardPool:
-    - {kind: 1, weight: 0.25}
-    - {kind: 2, weight: 0.1}
-    - {kind: 3, weight: 0.12}
-    - {kind: 4, weight: 0.05}
+    hazardPool: {fileID: 11400000, guid: b53003aabbccddee0112233445566703, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
-    - {type: 2, weight: 1}
-    - {type: 1, weight: 1}
-    - {type: 4, weight: 0.5}
+    powerUpPool: {fileID: 11400000, guid: c63004aabbccddee0112233445566713, type: 2}
   - triggerAtDistance: 500
     maxLanes: 7
     minLanesPerRow: 3
@@ -91,24 +84,15 @@ MonoBehaviour:
     cameraZoomMax: 24
     cameraOrthoSizeMin: 6
     cameraOrthoSizeMax: 9
-    coinsPerCriticalTile: 4
-    coinsPerDecoyTile: 0
+    criticalCoinsMin: 4
+    criticalCoinsMax: 4
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
     hazardChanceOnDecoy: 0.63
-    hazardPool:
-    - {kind: 1, weight: 0.35}
-    - {kind: 2, weight: 0.2}
-    - {kind: 3, weight: 0.15}
-    - {kind: 4, weight: 0.1}
-    - {kind: 5, weight: 0.08}
+    hazardPool: {fileID: 11400000, guid: b54004aabbccddee0112233445566704, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
-    - {type: 2, weight: 1}
-    - {type: 1, weight: 1}
-    - {type: 4, weight: 0.5}
-    - {type: 5, weight: 0.7}
-    - {type: 6, weight: 0.7}
+    powerUpPool: {fileID: 11400000, guid: c64005aabbccddee0112233445566714, type: 2}
   - triggerAtDistance: 800
     maxLanes: 7
     minLanesPerRow: 4
@@ -120,26 +104,15 @@ MonoBehaviour:
     cameraZoomMax: 26
     cameraOrthoSizeMin: 7
     cameraOrthoSizeMax: 10
-    coinsPerCriticalTile: 5
-    coinsPerDecoyTile: 0
+    criticalCoinsMin: 5
+    criticalCoinsMax: 5
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
     hazardChanceOnDecoy: 0.74
-    hazardPool:
-    - {kind: 1, weight: 0.45}
-    - {kind: 2, weight: 0.25}
-    - {kind: 3, weight: 0.18}
-    - {kind: 4, weight: 0.12}
-    - {kind: 5, weight: 0.12}
+    hazardPool: {fileID: 11400000, guid: b55005aabbccddee0112233445566705, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
-    - {type: 2, weight: 1}
-    - {type: 1, weight: 1}
-    - {type: 4, weight: 0.5}
-    - {type: 5, weight: 0.7}
-    - {type: 6, weight: 0.7}
-    - {type: 7, weight: 0.5}
-    - {type: 8, weight: 0.4}
+    powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
   - triggerAtDistance: 1200
     maxLanes: 9
     minLanesPerRow: 4
@@ -151,25 +124,12 @@ MonoBehaviour:
     cameraZoomMax: 28
     cameraOrthoSizeMin: 8
     cameraOrthoSizeMax: 12
-    coinsPerCriticalTile: 5
-    coinsPerDecoyTile: 0
+    criticalCoinsMin: 5
+    criticalCoinsMax: 5
+    decoyCoinsMin: 0
+    decoyCoinsMax: 0
     hazardChanceOnDecoy: 0.82
-    hazardPool:
-    - {kind: 1, weight: 0.55}
-    - {kind: 2, weight: 0.3}
-    - {kind: 3, weight: 0.2}
-    - {kind: 4, weight: 0.15}
-    - {kind: 5, weight: 0.15}
+    hazardPool: {fileID: 11400000, guid: b55005aabbccddee0112233445566705, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
-    powerUpPool:
-    - {type: 0, weight: 1}
-    - {type: 2, weight: 1}
-    - {type: 1, weight: 1}
-    - {type: 4, weight: 0.5}
-    - {type: 5, weight: 0.7}
-    - {type: 6, weight: 0.7}
-    - {type: 7, weight: 0.5}
-    - {type: 8, weight: 0.4}
-    - {type: 9, weight: 0.3}
-    - {type: 3, weight: 0.15}
+    powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}

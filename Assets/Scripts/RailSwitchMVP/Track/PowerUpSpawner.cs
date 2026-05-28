@@ -3,44 +3,38 @@ using UnityEngine;
 namespace RailSwitchMVP.Track
 {
     /// <summary>
-    /// Spawna até 1 power-up no meio do tile. Paralelo ao CoinSpawner/
+    /// Spawna até 1 power-up num slot do tile. Paralelo ao CoinSpawner/
     /// ObstacleSpawner. Não conhece o prefab — quem chama (gerador) passa
-    /// qual tipo spawnar.
+    /// tipo e slot. O grid de slots é compartilhado com Coins/Obstacles
+    /// (definido em RailGenConfig), então reservar um slot aqui evita overlap
+    /// com moedas.
     /// </summary>
     public class PowerUpSpawner : MonoBehaviour
     {
-        [Tooltip("Se vazios, o PowerUpSpawner usa os do TrackTile no mesmo GameObject.")]
-        public Transform startPoint;
-        public Transform endPoint;
-
         [Tooltip("Elevação Y do power-up. Um pouco acima dos obstáculos pra distinção visual.")]
         public float spawnHeight = 0.8f;
 
-        void Awake()
+        private TrackTile _tile;
+
+        TrackTile Tile
         {
-            ResolvePointsFromTile();
+            get
+            {
+                if (_tile == null) _tile = GetComponent<TrackTile>();
+                return _tile;
+            }
         }
 
-        void ResolvePointsFromTile()
-        {
-            if (startPoint != null && endPoint != null) return;
-            var tile = GetComponent<TrackTile>();
-            if (tile == null) return;
-            if (startPoint == null) startPoint = tile.StartPoint;
-            if (endPoint == null) endPoint = tile.EndPoint;
-        }
-
-        public GameObject Spawn(GameObject prefab)
+        public GameObject Spawn(GameObject prefab, int slotIndex, int totalSlots, float padding)
         {
             if (prefab == null) return null;
-            if (startPoint == null || endPoint == null)
+            if (Tile == null)
             {
-                Debug.LogWarning($"[PowerUpSpawner] start/end points not set on {name}", this);
+                Debug.LogWarning($"[PowerUpSpawner] TrackTile não encontrado em {name} — não é possível posicionar slot.", this);
                 return null;
             }
 
-            Vector3 pos = Vector3.Lerp(startPoint.position, endPoint.position, 0.5f);
-            pos.y += spawnHeight;
+            Vector3 pos = Tile.GetSlotPosition(slotIndex, totalSlots, padding, spawnHeight);
             return Instantiate(prefab, pos, Quaternion.identity, transform);
         }
     }

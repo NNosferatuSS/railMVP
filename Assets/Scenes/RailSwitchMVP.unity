@@ -4291,10 +4291,10 @@ MonoBehaviour:
     coinsPerCriticalTile: 0
     coinsPerDecoyTile: 0
     hazardChanceOnDecoy: 0
-    hazardPool: []
+    hazardPool: {fileID: 0}
     powerUpChanceOnCritical: 0
     powerUpChanceOnDecoy: 0
-    powerUpPool: []
+    powerUpPool: {fileID: 0}
 --- !u!4 &995310518
 Transform:
   m_ObjectHideFlags: 0
@@ -5150,7 +5150,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 1920, y: 1080}
+  m_ReferenceResolution: {x: 1080, y: 1920}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
@@ -7608,6 +7608,7 @@ MonoBehaviour:
   speedAtMinZoom: 8
   speedAtMaxZoom: 20
   currentZoom: 0
+  currentOrthoSize: 0
 --- !u!114 &1903520836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7669,8 +7670,8 @@ Camera:
   m_GameObject: {fileID: 1903520834}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.13836467, g: 0.13836467, b: 0.13836467, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

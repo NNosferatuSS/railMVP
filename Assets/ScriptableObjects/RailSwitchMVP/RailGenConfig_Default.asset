@@ -16,13 +16,18 @@ MonoBehaviour:
   trackLength: 10
   rowGap: 2
   globalMaxLanes: 9
+  coinSlotsPerTile: 3
+  coinSlotPadding: 0.2
+  hazardSlotStrategy: 1
+  powerUpSlotStrategy: 1
+  coinSlotStrategy: 1
   warmupRowCount: 2
-  warmupSpeedMultiplier: 0.5
-  rowsAhead: 12
+  warmupSpeedMultiplier: 0.9
+  rowsAhead: 6
   rowsBehind: 2
-  cameraTilt: 60.2
+  cameraTilt: 90
   cameraDistance: 6.81
-  cameraLookAhead: 7.77
+  cameraLookAhead: 22
   cameraFieldOfView: 48
   cameraZoomSpeed: 8
   cameraZoomGlobalMultiplier: 2.05

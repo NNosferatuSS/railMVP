@@ -251,5 +251,42 @@ namespace RailSwitchMVP.Track
             float z = row * (config.trackLength + config.rowGap) + config.trackLength * 0.5f;
             return new Vector3(x, 0f, z);
         }
+
+        /// <summary>
+        /// Posição mundial de um slot de spawn ao longo do tile. Slots são pontos
+        /// discretos entre StartPoint e EndPoint, espaçados uniformemente dentro
+        /// da banda <c>[padding, 1-padding]</c>. Coins, hazards e power-ups todos
+        /// usam o mesmo grid de slots — quem reserva um índice impede overlap.
+        ///
+        /// Casos especiais:
+        /// - <c>totalSlots == 1</c>: posição central (t = 0.5).
+        /// - <c>StartPoint</c> ou <c>EndPoint</c> null: usa <c>transform.position</c>
+        ///   apenas com offset Y (gracefully degraded, mas loga warning).
+        /// </summary>
+        public Vector3 GetSlotPosition(int slotIndex, int totalSlots, float padding, float heightOffset)
+        {
+            if (StartPoint == null || EndPoint == null)
+            {
+                Debug.LogWarning($"[TrackTile] StartPoint/EndPoint null em {name} — slot fallback no transform.position.", this);
+                Vector3 fb = transform.position;
+                fb.y += heightOffset;
+                return fb;
+            }
+
+            float t;
+            if (totalSlots <= 1)
+            {
+                t = 0.5f;
+            }
+            else
+            {
+                int clampedIdx = Mathf.Clamp(slotIndex, 0, totalSlots - 1);
+                t = Mathf.Lerp(padding, 1f - padding, clampedIdx / (float)(totalSlots - 1));
+            }
+
+            Vector3 pos = Vector3.Lerp(StartPoint.position, EndPoint.position, t);
+            pos.y += heightOffset;
+            return pos;
+        }
     }
 }

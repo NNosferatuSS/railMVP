@@ -415,14 +415,11 @@ namespace RailSwitchMVP.Core
                     tile.Switch.SetState(initialState);
                 }
 
-                if (!isWarmupRow && tile.Coins != null)
-                {
-                    int coinCount = tile.IsOnCriticalPath
-                        ? tier.coinsPerCriticalTile
-                        : tier.coinsPerDecoyTile;
-                    if (coinCount > 0)
-                        tile.Coins.Spawn(coinCount, tile.IsOnCriticalPath);
-                }
+                // Reserva de slots: hazard primeiro, depois power-up, depois coins
+                // preenchem o que sobrou. Garante zero overlap entre os 3.
+                int totalSlots = Mathf.Max(1, config.coinSlotsPerTile);
+                float slotPadding = Mathf.Clamp(config.coinSlotPadding, 0f, 0.45f);
+                HashSet<int> reservedSlots = null;
 
                 // Hazards: roteado via SpawnOverrideController quando presente.
                 // Master OFF (ou controller ausente) = comportamento clássico (só decoy, cascata Lethal→...→Vortex).
@@ -447,7 +444,11 @@ namespace RailSwitchMVP.Core
 
                     if (hz.prefab != null)
                     {
-                        var hazardGo = tile.Obstacles.Spawn(hz.prefab);
+                        int hazardSlot = PickSlot(config.hazardSlotStrategy, totalSlots, reservedSlots);
+                        if (reservedSlots == null) reservedSlots = new HashSet<int>();
+                        reservedSlots.Add(hazardSlot);
+
+                        var hazardGo = tile.Obstacles.Spawn(hz.prefab, hazardSlot, totalSlots, slotPadding);
                         if (hz.kind == HazardKind.Lethal)
                             AttachWarning(hazardGo, _lethalWarningColor, _lethalWarningSymbol);
                         else if (hz.kind == HazardKind.Barrier)
@@ -464,7 +465,26 @@ namespace RailSwitchMVP.Core
                     GameObject puPrefab = useOverride
                         ? SpawnOverrideController.Instance.ResolvePowerUpPrefabOverride(tile.IsOnCriticalPath, PowerUpPrefabs)
                         : ResolvePowerUpClassic(tile.IsOnCriticalPath, tier);
-                    if (puPrefab != null) tile.PowerUps.Spawn(puPrefab);
+                    if (puPrefab != null)
+                    {
+                        int puSlot = PickSlot(config.powerUpSlotStrategy, totalSlots, reservedSlots);
+                        if (reservedSlots == null) reservedSlots = new HashSet<int>();
+                        reservedSlots.Add(puSlot);
+                        tile.PowerUps.Spawn(puPrefab, puSlot, totalSlots, slotPadding);
+                    }
+                }
+
+                // Coins por último — recebem o set de slots reservados e
+                // a strategy (UniformGrid ou RandomFree).
+                // Slice 2: count é sample em [min, max] por tile.
+                if (!isWarmupRow && tile.Coins != null)
+                {
+                    int coinMin = tile.IsOnCriticalPath ? tier.criticalCoinsMin : tier.decoyCoinsMin;
+                    int coinMax = tile.IsOnCriticalPath ? tier.criticalCoinsMax : tier.decoyCoinsMax;
+                    if (coinMax < coinMin) coinMax = coinMin;
+                    int coinCount = coinMin == coinMax ? coinMin : Random.Range(coinMin, coinMax + 1);
+                    if (coinCount > 0)
+                        tile.Coins.Spawn(coinCount, totalSlots, slotPadding, reservedSlots, config.coinSlotStrategy);
                 }
 
                 row.Tiles[L] = tile;
@@ -529,6 +549,43 @@ namespace RailSwitchMVP.Core
             warning.Setup(color, symbol, leadZ);
         }
 
+        /// <summary>
+        /// Escolhe um slot livre conforme a strategy. Funciona graceful mesmo se
+        /// todos os slots estão reservados (retorna o central — não deveria
+        /// acontecer com slot count saudável, mas evita exception).
+        /// </summary>
+        int PickSlot(SlotPlacement strategy, int totalSlots, HashSet<int> reservedSlots)
+        {
+            if (totalSlots <= 1) return 0;
+            int center = totalSlots / 2;
+
+            bool IsFree(int s) => reservedSlots == null || !reservedSlots.Contains(s);
+
+            if (strategy == SlotPlacement.CenterSlot)
+            {
+                if (IsFree(center)) return center;
+                // Centro reservado: busca o livre mais próximo do centro,
+                // alternando ±1, ±2... pra ter preferência simétrica.
+                for (int d = 1; d < totalSlots; d++)
+                {
+                    int left = center - d;
+                    int right = center + d;
+                    if (left >= 0 && IsFree(left)) return left;
+                    if (right < totalSlots && IsFree(right)) return right;
+                }
+                return center; // todos reservados, fallback
+            }
+
+            // RandomFree
+            // Coleta os livres e sorteia. Lista alocada por chamada — é OK pq
+            // só roda quando há hazard/powerup (raro vs total de tiles).
+            var freeBuf = new List<int>(totalSlots);
+            for (int s = 0; s < totalSlots; s++)
+                if (IsFree(s)) freeBuf.Add(s);
+            if (freeBuf.Count == 0) return center;
+            return freeBuf[Random.Range(0, freeBuf.Count)];
+        }
+
         // Fallback usado quando SpawnOverrideController não está na cena.
         // Modelo: 1 chance global (hazardChanceOnDecoy) + weighted pick no pool.
         HazardResolution ResolveHazardClassic(bool isCritical, DifficultyTier tier)
@@ -538,7 +595,7 @@ namespace RailSwitchMVP.Core
                 return HazardResolution.None;
             if (Random.value >= tier.hazardChanceOnDecoy) return HazardResolution.None;
 
-            HazardKind kind = WeightedPickHazard(tier.hazardPool);
+            HazardKind kind = WeightedPickHazard(tier.hazardPool.entries);
             GameObject prefab = GetHazardPrefab(kind);
             if (prefab == null) return HazardResolution.None;
             return new HazardResolution { prefab = prefab, kind = kind };
@@ -551,7 +608,7 @@ namespace RailSwitchMVP.Core
             if (tier.powerUpPool == null || tier.powerUpPool.Count == 0) return null;
 
             PowerUpType type;
-            if (!TryWeightedPickPowerUp(tier.powerUpPool, out type)) return null;
+            if (!TryWeightedPickPowerUp(tier.powerUpPool.entries, out type)) return null;
             return GetPowerUpPrefab(type);
         }
 

@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Serialization;
 using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Config
 {
     /// <summary>
-    /// Entrada do hazardPool de um tier — define que tipos podem aparecer
-    /// e com que peso relativo (0 = excluído, equivalente a omitir).
-    /// O sorteio é feito quando o tile decoy hit em hazardChanceOnDecoy.
+    /// Entrada do hazardPool — define que tipos podem aparecer e com que
+    /// peso relativo (0 = excluído, equivalente a omitir). Vive dentro de
+    /// um HazardPool ScriptableObject, não diretamente no tier.
     /// </summary>
     [System.Serializable]
     public struct HazardWeight
@@ -17,9 +19,8 @@ namespace RailSwitchMVP.Config
     }
 
     /// <summary>
-    /// Entrada do powerUpPool de um tier — quais power-ups podem dropar e
-    /// com que peso relativo. Único pool por tier (compartilhado entre
-    /// critical e decoy). Type sem prefab registrado no generator é skipado.
+    /// Entrada do powerUpPool — quais power-ups podem dropar e com que peso
+    /// relativo. Type sem prefab registrado no generator é skipado em runtime.
     /// </summary>
     [System.Serializable]
     public struct PowerUpWeight
@@ -31,6 +32,8 @@ namespace RailSwitchMVP.Config
     /// <summary>
     /// Snapshot completo de configuração para um tier de dificuldade.
     /// Cada tier é ativado quando o player atinge triggerAtDistance.
+    /// Pools de hazard e power-up agora são SOs separados (HazardPool / PowerUpPool),
+    /// permitindo reuso entre tiers e edição isolada.
     /// </summary>
     [System.Serializable]
     public struct DifficultyTier
@@ -77,29 +80,34 @@ namespace RailSwitchMVP.Config
         public float cameraOrthoSizeMax;
 
         [Header("Coins")]
-        [Tooltip("Quantidade de moedas em cada tile do critical path")]
-        public int coinsPerCriticalTile;
+        [Tooltip("Mínimo de moedas em cada tile do critical path. Sample uniforme em [min, max+1).")]
+        [FormerlySerializedAs("coinsPerCriticalTile")]
+        public int criticalCoinsMin;
 
-        [Tooltip("Quantidade de moedas em cada tile decoy (0 = sem moedas em decoys)")]
-        public int coinsPerDecoyTile;
+        [Tooltip("Máximo de moedas em cada tile do critical path (inclusivo).")]
+        public int criticalCoinsMax;
+
+        [Tooltip("Mínimo de moedas em cada tile decoy (0 = pode ficar sem moedas).")]
+        [FormerlySerializedAs("coinsPerDecoyTile")]
+        public int decoyCoinsMin;
+
+        [Tooltip("Máximo de moedas em cada tile decoy (inclusivo).")]
+        public int decoyCoinsMax;
 
         [Header("Hazards")]
         [Range(0f, 1f)]
         [Tooltip("Probabilidade de um tile DECOY receber QUALQUER hazard. " +
-            "Critical path NUNCA recebe hazard (design rule). Se hit, o tipo " +
-            "é sorteado por peso em hazardPool. Pool vazio = nenhum hazard, " +
-            "mesmo com chance > 0.")]
+            "Critical path NUNCA recebe hazard (design rule). Pool null/vazio = " +
+            "nenhum hazard, mesmo com chance > 0.")]
         public float hazardChanceOnDecoy;
 
-        [Tooltip("Tipos de hazard elegíveis neste tier e seus pesos relativos " +
-            "(0 = desabilitado, equivalente a omitir). Permite progressão tipo " +
-            "\"tier 1 só letal; tier 3 introduz barrier; tier 5 todos\".")]
-        public List<HazardWeight> hazardPool;
+        [Tooltip("HazardPool SO com tipos elegíveis e pesos. Pode ser compartilhado " +
+            "entre tiers. Null = sem hazards neste tier.")]
+        public HazardPool hazardPool;
 
         [Header("Power-ups")]
         [Range(0f, 1f)]
-        [Tooltip("Probabilidade de um tile do CRITICAL PATH receber um power-up. " +
-            "Se hit, o tipo é sorteado por peso em powerUpPool.")]
+        [Tooltip("Probabilidade de um tile do CRITICAL PATH receber um power-up.")]
         public float powerUpChanceOnCritical;
 
         [Range(0f, 1f)]
@@ -107,10 +115,9 @@ namespace RailSwitchMVP.Config
             "Tile que já recebeu hazard NUNCA recebe power-up.")]
         public float powerUpChanceOnDecoy;
 
-        [Tooltip("Tipos de power-up elegíveis neste tier e seus pesos relativos. " +
-            "Pool único compartilhado entre critical e decoy (chance varia, " +
-            "distribuição não). Type sem binding no generator é skipado.")]
-        public List<PowerUpWeight> powerUpPool;
+        [Tooltip("PowerUpPool SO com tipos elegíveis e pesos. Pode ser compartilhado " +
+            "entre tiers. Null = sem power-ups neste tier.")]
+        public PowerUpPool powerUpPool;
     }
 
     /// <summary>
@@ -118,23 +125,98 @@ namespace RailSwitchMVP.Config
     /// O DifficultyManager avança entre tiers conforme a distância percorrida.
     /// </summary>
     [CreateAssetMenu(fileName = "DifficultyConfig", menuName = "RailSwitchMVP/Difficulty Config")]
-    public class DifficultyConfig : ScriptableObject
+    public class DifficultyConfig : ScriptableObject, IValidatedConfig
     {
         [Tooltip("Lista de tiers em ordem crescente de triggerAtDistance. O tier 0 sempre tem trigger = 0.")]
         public List<DifficultyTier> tiers = new List<DifficultyTier>();
 
         void OnValidate()
         {
-            // Garante que o tier 0 sempre comece em distância 0
-            if (tiers != null && tiers.Count > 0)
+            if (tiers == null || tiers.Count == 0) return;
+
+            for (int i = 0; i < tiers.Count; i++)
             {
-                var t0 = tiers[0];
-                if (t0.triggerAtDistance != 0f)
+                var t = tiers[i];
+                bool changed = false;
+
+                // Tier 0 sempre começa em distância 0.
+                if (i == 0 && t.triggerAtDistance != 0f)
                 {
-                    t0.triggerAtDistance = 0f;
-                    tiers[0] = t0;
+                    t.triggerAtDistance = 0f;
+                    changed = true;
                 }
+
+                // Auto-copia min→max na primeira abertura pós-migração de Slice 2
+                // (FormerlySerializedAs preenche min com o valor antigo; max fica 0).
+                if (t.criticalCoinsMax < t.criticalCoinsMin)
+                {
+                    t.criticalCoinsMax = t.criticalCoinsMin;
+                    changed = true;
+                }
+                if (t.decoyCoinsMax < t.decoyCoinsMin)
+                {
+                    t.decoyCoinsMax = t.decoyCoinsMin;
+                    changed = true;
+                }
+
+                if (changed) tiers[i] = t;
             }
+        }
+
+        public string GetValidationWarnings()
+        {
+            if (tiers == null || tiers.Count == 0)
+                return "• Nenhum tier definido — DifficultyManager vai falhar.";
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                var t = tiers[i];
+                string prefix = $"• Tier {i} (dist {t.triggerAtDistance:0.#}): ";
+
+                // Ordem monotônica
+                if (i > 0 && t.triggerAtDistance <= tiers[i - 1].triggerAtDistance)
+                    sb.AppendLine($"{prefix}triggerAtDistance deve ser > tier anterior ({tiers[i - 1].triggerAtDistance:0.#}).");
+
+                // Coerências básicas
+                if (t.maxLanes < 1)
+                    sb.AppendLine($"{prefix}maxLanes deve ser ≥ 1.");
+                if (t.minLanesPerRow > t.maxLanesPerRow)
+                    sb.AppendLine($"{prefix}minLanesPerRow ({t.minLanesPerRow}) > maxLanesPerRow ({t.maxLanesPerRow}).");
+                if (t.maxLanesPerRow > t.maxLanes)
+                    sb.AppendLine($"{prefix}maxLanesPerRow ({t.maxLanesPerRow}) > maxLanes ({t.maxLanes}).");
+                if (t.criticalPathsPerRow < 1)
+                    sb.AppendLine($"{prefix}criticalPathsPerRow deve ser ≥ 1.");
+                if (t.criticalPathsPerRow > t.minLanesPerRow)
+                    sb.AppendLine($"{prefix}criticalPathsPerRow ({t.criticalPathsPerRow}) > minLanesPerRow ({t.minLanesPerRow}) — impossível garantir lanes críticas em linhas mínimas.");
+                if (t.playerSpeed <= 0f)
+                    sb.AppendLine($"{prefix}playerSpeed deve ser > 0.");
+
+                // Camera ranges
+                if (t.cameraZoomMin > t.cameraZoomMax)
+                    sb.AppendLine($"{prefix}cameraZoomMin ({t.cameraZoomMin}) > cameraZoomMax ({t.cameraZoomMax}).");
+                if (t.cameraOrthoSizeMin > t.cameraOrthoSizeMax)
+                    sb.AppendLine($"{prefix}cameraOrthoSizeMin ({t.cameraOrthoSizeMin}) > cameraOrthoSizeMax ({t.cameraOrthoSizeMax}).");
+
+                // Pool x chance — chance > 0 sem pool é desperdício
+                if (t.hazardChanceOnDecoy > 0f && (t.hazardPool == null || t.hazardPool.Count == 0))
+                    sb.AppendLine($"{prefix}hazardChanceOnDecoy = {t.hazardChanceOnDecoy:0.##} mas hazardPool null/vazio — chance ignorada.");
+                if ((t.powerUpChanceOnCritical > 0f || t.powerUpChanceOnDecoy > 0f) && (t.powerUpPool == null || t.powerUpPool.Count == 0))
+                    sb.AppendLine($"{prefix}powerUpChance > 0 mas powerUpPool null/vazio — chance ignorada.");
+
+                // Coin ranges
+                if (t.criticalCoinsMin < 0)
+                    sb.AppendLine($"{prefix}criticalCoinsMin ({t.criticalCoinsMin}) < 0.");
+                if (t.criticalCoinsMax < t.criticalCoinsMin)
+                    sb.AppendLine($"{prefix}criticalCoinsMax ({t.criticalCoinsMax}) < criticalCoinsMin ({t.criticalCoinsMin}).");
+                if (t.decoyCoinsMin < 0)
+                    sb.AppendLine($"{prefix}decoyCoinsMin ({t.decoyCoinsMin}) < 0.");
+                if (t.decoyCoinsMax < t.decoyCoinsMin)
+                    sb.AppendLine($"{prefix}decoyCoinsMax ({t.decoyCoinsMax}) < decoyCoinsMin ({t.decoyCoinsMin}).");
+            }
+
+            return sb.Length == 0 ? null : sb.ToString().TrimEnd();
         }
 
         /// <summary>

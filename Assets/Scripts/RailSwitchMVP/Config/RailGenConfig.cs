@@ -1,13 +1,38 @@
+using System.Text;
 using UnityEngine;
 
 namespace RailSwitchMVP.Config
 {
     /// <summary>
+    /// Estratégia de escolha do slot ocupado por hazard/power-up quando o tile
+    /// recebe um. Coins ocupam os slots restantes (após reservas).
+    /// </summary>
+    public enum SlotPlacement
+    {
+        /// <summary>Sempre tenta o slot central. Se reservado, pega o livre mais próximo do centro.</summary>
+        CenterSlot,
+        /// <summary>Amostra aleatoriamente entre os slots livres.</summary>
+        RandomFree,
+    }
+
+    /// <summary>
+    /// Estratégia de distribuição das N coins ao longo dos slots do tile.
+    /// Aplica-se apenas a coins (hazard/powerup usam SlotPlacement).
+    /// </summary>
+    public enum CoinPlacement
+    {
+        /// <summary>Posições determinísticas espalhadas uniformemente no grid (ex: 3 coins → slots 0, 2, 4). Coin é skipada se o slot-alvo está reservado.</summary>
+        UniformGrid,
+        /// <summary>Sorteia N slots livres aleatoriamente, sem repetição. Sempre respeita reservas.</summary>
+        RandomFree,
+    }
+
+    /// <summary>
     /// Parâmetros globais do jogo que NÃO variam com dificuldade.
     /// Parâmetros que escalam com progressão vivem em DifficultyConfig (tiers).
     /// </summary>
     [CreateAssetMenu(fileName = "RailGenConfig", menuName = "RailSwitchMVP/Rail Gen Config")]
-    public class RailGenConfig : ScriptableObject
+    public class RailGenConfig : ScriptableObject, IValidatedConfig
     {
         [Header("Track Geometry")]
         [Tooltip("Distância lateral (X) entre lanes adjacentes")]
@@ -24,6 +49,31 @@ namespace RailSwitchMVP.Config
             "as 3 lanes centrais; Tier 5 com maxLanes=9 usa todas as 9). " +
             "Deve ser >= o maxLanes do tier mais alto.")]
         public int globalMaxLanes = 9;
+
+        [Header("Tile Slots")]
+        [Tooltip("Quantos slots de spawn cada tile tem ao longo do comprimento (Z). " +
+            "Coins, hazards e power-ups ocupam slots discretos — slot 0 fica perto do " +
+            "StartPoint, slot N-1 perto do EndPoint. Garante que nada se sobrepõe.")]
+        [Range(1, 15)]
+        public int coinSlotsPerTile = 5;
+
+        [Tooltip("Fração do comprimento mantida livre em cada extremidade do tile. " +
+            "0.1 = primeiro slot fica a 10% do start, último a 90%. " +
+            "Aplica-se a coins, hazards e power-ups (todos compartilham o mesmo grid de slots).")]
+        [Range(0f, 0.45f)]
+        public float coinSlotPadding = 0.1f;
+
+        [Tooltip("Onde o hazard é colocado quando o tile recebe um. " +
+            "CenterSlot = visual previsível (atual). RandomFree = mais variedade.")]
+        public SlotPlacement hazardSlotStrategy = SlotPlacement.CenterSlot;
+
+        [Tooltip("Onde o power-up é colocado quando o tile recebe um.")]
+        public SlotPlacement powerUpSlotStrategy = SlotPlacement.CenterSlot;
+
+        [Tooltip("Como as N coins são distribuídas nos slots do tile. " +
+            "UniformGrid = posições fixas (0,2,4 pra 3 coins) — previsível mas repetitivo. " +
+            "RandomFree = N slots livres sorteados a cada tile — variação visual.")]
+        public CoinPlacement coinSlotStrategy = CoinPlacement.RandomFree;
 
         [Header("Warmup (Idea 1)")]
         [Tooltip("Quantas rows iniciais são warmup (single lane, sem hazards/coins/power-ups). " +
@@ -118,5 +168,34 @@ namespace RailSwitchMVP.Config
 
         [Tooltip("Cor dos tiles decoy (debug)")]
         public Color decoyGizmoColor = new Color(1f, 0.4f, 0.2f, 0.5f);
+
+        public string GetValidationWarnings()
+        {
+            var sb = new StringBuilder();
+
+            if (laneSpacing <= 0f) sb.AppendLine("• laneSpacing deve ser > 0.");
+            if (trackLength <= 0f) sb.AppendLine("• trackLength deve ser > 0.");
+            if (rowGap < 0f) sb.AppendLine("• rowGap não pode ser negativo.");
+            if (globalMaxLanes < 1) sb.AppendLine("• globalMaxLanes deve ser ≥ 1.");
+            if (globalMaxLanes % 2 == 0)
+                sb.AppendLine($"• globalMaxLanes = {globalMaxLanes} é par. Convenção do projeto usa ímpar (3,5,7,9...) pra ter lane central.");
+
+            if (coinSlotsPerTile < 1) sb.AppendLine("• coinSlotsPerTile deve ser ≥ 1.");
+            if (coinSlotPadding < 0f || coinSlotPadding >= 0.5f)
+                sb.AppendLine($"• coinSlotPadding = {coinSlotPadding:0.##} fora do range válido [0, 0.5).");
+
+            if (rowsAhead < 1) sb.AppendLine("• rowsAhead deve ser ≥ 1.");
+            if (rowsBehind < 0) sb.AppendLine("• rowsBehind não pode ser negativo.");
+
+            if (warmupSpeedMultiplier > 1f)
+                sb.AppendLine($"• warmupSpeedMultiplier = {warmupSpeedMultiplier:0.##} > 1 — warmup ficaria MAIS rápido que tier 0.");
+
+            if (cameraDistance < 0f) sb.AppendLine("• cameraDistance não pode ser negativo.");
+            if (cameraZoomGlobalMultiplier <= 0f) sb.AppendLine("• cameraZoomGlobalMultiplier deve ser > 0.");
+            if (cameraFieldOfView < 20f || cameraFieldOfView > 100f)
+                sb.AppendLine($"• cameraFieldOfView = {cameraFieldOfView} fora do range usual [20, 100].");
+
+            return sb.Length == 0 ? null : sb.ToString().TrimEnd();
+        }
     }
 }
