@@ -68,6 +68,24 @@ namespace RailSwitchMVP.Core
         public void TriggerGameOver(GameOverReason reason)
         {
             if (state == GameState.GameOver) return;
+
+            // Camada 3: dá ao ReviveController a chance de oferecer um continue ANTES de
+            // comprometer o game over. Se ele assume (pausa + overlay), o game over só é
+            // confirmado depois — no decline/timeout, via ConfirmGameOver.
+            if (ReviveController.Instance != null && ReviveController.Instance.TryOfferContinue(reason))
+                return;
+
+            ConfirmGameOver(reason);
+        }
+
+        /// <summary>
+        /// Finaliza o game over de fato (state → GameOver + OnGameOver). Chamado por
+        /// TriggerGameOver quando não há revive disponível, ou pelo ReviveController
+        /// quando o jogador recusa/ignora a oferta de continue.
+        /// </summary>
+        public void ConfirmGameOver(GameOverReason reason)
+        {
+            if (state == GameState.GameOver) return;
             state = GameState.GameOver;
             lastReason = reason;
             Debug.Log($"[GameManager] GAME OVER — {reason}");

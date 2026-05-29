@@ -12,6 +12,10 @@ namespace RailSwitchMVP.Obstacles
     {
         protected override void OnPlayerHit(Collider playerCollider)
         {
+            // Grace period pós-revive (Camada 3): ignora o hit letal.
+            if (ReviveController.Instance != null && ReviveController.Instance.IsGracePeriodActive)
+                return;
+
             if (GameManager.Instance != null)
                 GameManager.Instance.TriggerGameOver(GameOverReason.HitObstacle);
             else

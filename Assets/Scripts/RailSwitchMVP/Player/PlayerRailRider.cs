@@ -180,6 +180,9 @@ namespace RailSwitchMVP.Player
                 : currentTile.Lane;
 
             bool isGhost = PowerUpManager.Instance != null && PowerUpManager.Instance.IsGhost;
+            // Grace period pós-revive (Camada 3): trata dead-end/out-of-bounds como
+            // sobrevivência (redireciona) em vez de game over.
+            bool invincible = ReviveController.Instance != null && ReviveController.Instance.IsGracePeriodActive;
 
             RowData nextRow = (RailManager.Instance != null)
                 ? RailManager.Instance.GetRow(currentTile.Row + 1)
@@ -192,11 +195,11 @@ namespace RailSwitchMVP.Player
                 return;
             }
 
-            // OutOfBounds: com Ghost, clamp pra current lane (segue reto).
-            // Sem Ghost, Game Over.
+            // OutOfBounds: com Ghost ou grace, clamp pra current lane (segue reto).
+            // Senão, Game Over.
             if (targetLane < 0 || targetLane >= nextRow.MaxLanesAtSpawn)
             {
-                if (isGhost)
+                if (isGhost || invincible)
                 {
                     targetLane = currentTile.Lane;
                 }
@@ -207,7 +210,8 @@ namespace RailSwitchMVP.Player
                 }
             }
 
-            // DeadEnd: com Ghost, voa sobre. Sem Ghost, Game Over.
+            // DeadEnd: com Ghost, voa sobre. Com grace, redireciona pra lane populada
+            // mais próxima. Senão, Game Over.
             if (!nextRow.HasTile(targetLane))
             {
                 if (isGhost)
@@ -215,8 +219,17 @@ namespace RailSwitchMVP.Player
                     BeginGhostFlight(targetLane);
                     return;
                 }
-                TriggerGameOver(GameOverReason.DeadEnd);
-                return;
+                if (invincible)
+                {
+                    int rescue = FindClosestPopulatedLane(nextRow, targetLane);
+                    if (rescue >= 0) targetLane = rescue;
+                    else { TriggerGameOver(GameOverReason.DeadEnd); return; }
+                }
+                else
+                {
+                    TriggerGameOver(GameOverReason.DeadEnd);
+                    return;
+                }
             }
 
             // OK — preparar gap até o tile destino.
@@ -420,6 +433,24 @@ namespace RailSwitchMVP.Player
         /// muda X pra alinhar com o tile destino. Não funciona durante gap.
         /// Retorna false se a teleportação não pode acontecer.
         /// </summary>
+        /// <summary>
+        /// Reposiciona o player num tile (revive — Camada 3). Reseta o estado de gap/
+        /// ghost flight e teleporta pro StartPoint do tile. Dispara OnTileEntered.
+        /// </summary>
+        public void RespawnAt(TrackTile tile)
+        {
+            if (tile == null || tile.StartPoint == null) return;
+            inGap = false;
+            gapProgress = 0f;
+            targetTile = null;
+            _ghostFlightSkips = 0;
+            currentTile = tile;
+            Vector3 p = tile.StartPoint.position;
+            p.y = _playerY;
+            transform.position = p;
+            OnTileEntered?.Invoke(currentTile);
+        }
+
         public bool TeleportToAdjacent(TrackTile destinationTile)
         {
             if (destinationTile == null || destinationTile.StartPoint == null) return false;
