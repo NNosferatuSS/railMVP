@@ -47,12 +47,23 @@ namespace RailSwitchMVP.UI
         [Tooltip("Botao opcional 'JOGAR DESAFIO' que aparece dentro do panel quando o user ainda nao jogou daily hoje. Deixar null = comportamento antigo (so texto).")]
         [SerializeField] private Button playDailyChallengeButton;
 
+        [Header("Tabs (Diário | Global)")]
+        [Tooltip("Botão da aba Diário (daily challenge).")]
+        [SerializeField] private Button dailyTabButton;
+        [Tooltip("Botão da aba Global (best distance da run normal). Null = sem aba global (só daily).")]
+        [SerializeField] private Button globalTabButton;
+
+        enum Mode { Daily, Global }
+        Mode _mode = Mode.Daily;
+
         readonly List<LeaderboardEntryUI> _spawnedEntries = new List<LeaderboardEntryUI>();
 
         void Awake()
         {
             if (closeButton != null) closeButton.onClick.AddListener(Close);
             if (playDailyChallengeButton != null) playDailyChallengeButton.onClick.AddListener(OnPlayDailyClicked);
+            if (dailyTabButton != null) dailyTabButton.onClick.AddListener(OnDailyTabClicked);
+            if (globalTabButton != null) globalTabButton.onClick.AddListener(OnGlobalTabClicked);
             // Nota: NÃO chamar leaderboardPanel.SetActive(false) aqui — o painel
             // hospeda o próprio componente, então Awake só dispara na primeira
             // SetActive(true). Chamar SetActive(false) aqui desativava o painel
@@ -64,17 +75,35 @@ namespace RailSwitchMVP.UI
         {
             if (closeButton != null) closeButton.onClick.RemoveListener(Close);
             if (playDailyChallengeButton != null) playDailyChallengeButton.onClick.RemoveListener(OnPlayDailyClicked);
+            if (dailyTabButton != null) dailyTabButton.onClick.RemoveListener(OnDailyTabClicked);
+            if (globalTabButton != null) globalTabButton.onClick.RemoveListener(OnGlobalTabClicked);
         }
 
         public void Open()
         {
             if (leaderboardPanel == null) return;
             leaderboardPanel.SetActive(true);
+            // Abre na última aba escolhida. SwitchTab cuida de header + visual + refresh
+            // forçado (submits em outros devices não invalidam nosso cache local).
+            SwitchTab(_mode);
+        }
+
+        void OnDailyTabClicked() => SwitchTab(Mode.Daily);
+        void OnGlobalTabClicked() => SwitchTab(Mode.Global);
+
+        void SwitchTab(Mode mode)
+        {
+            _mode = mode;
+            UpdateTabVisual();
             UpdateHeader();
-            // Sempre força refresh ao abrir — submits em outros devices não invalidam
-            // nosso cache local, então confiar no cache do panel mostraria stale data.
-            // Cache do LeaderboardManager continua útil pra outros consumers (ex: HUD).
             Refresh(forceRefresh: true);
+        }
+
+        // Aba ativa fica não-interactable (feedback de "selecionada").
+        void UpdateTabVisual()
+        {
+            if (dailyTabButton != null) dailyTabButton.interactable = _mode != Mode.Daily;
+            if (globalTabButton != null) globalTabButton.interactable = _mode != Mode.Global;
         }
 
         public void Close()
@@ -85,8 +114,15 @@ namespace RailSwitchMVP.UI
         void UpdateHeader()
         {
             if (headerText == null) return;
-            string today = System.DateTime.UtcNow.ToString("dd/MM/yyyy");
-            headerText.text = $"Daily Challenge — {today}";
+            if (_mode == Mode.Global)
+            {
+                headerText.text = "Recordes Globais — Distância";
+            }
+            else
+            {
+                string today = System.DateTime.UtcNow.ToString("dd/MM/yyyy");
+                headerText.text = $"Daily Challenge — {today}";
+            }
         }
 
         public void Refresh(bool forceRefresh)
@@ -110,17 +146,16 @@ namespace RailSwitchMVP.UI
                 if (pending <= 0) SetLoading(false);
             }
 
-            lb.FetchToday(entries =>
+            if (_mode == Mode.Global)
             {
-                RenderEntries(entries);
-                Done();
-            }, forceRefresh);
-
-            lb.FetchMyRank((rank, distance) =>
+                lb.FetchGlobalTop(entries => { RenderEntries(entries); Done(); }, forceRefresh);
+                lb.FetchMyGlobalRank((rank, distance) => { UpdateMyRankBanner(rank, distance); Done(); }, forceRefresh);
+            }
+            else
             {
-                UpdateMyRankBanner(rank, distance);
-                Done();
-            }, forceRefresh);
+                lb.FetchToday(entries => { RenderEntries(entries); Done(); }, forceRefresh);
+                lb.FetchMyRank((rank, distance) => { UpdateMyRankBanner(rank, distance); Done(); }, forceRefresh);
+            }
         }
 
         void RenderEntries(LeaderboardEntry[] entries)
@@ -146,16 +181,19 @@ namespace RailSwitchMVP.UI
 
         void UpdateMyRankBanner(int rank, int distance)
         {
-            bool hasPlayed = rank > 0;
+            bool hasEntry = rank > 0;
             if (myRankBannerText != null)
             {
-                myRankBannerText.text = hasPlayed
-                    ? $"Você: #{rank} — {distance} m"
-                    : "Você ainda não jogou hoje.";
+                if (hasEntry)
+                    myRankBannerText.text = $"Você: #{rank} — {distance} m";
+                else
+                    myRankBannerText.text = _mode == Mode.Global
+                        ? "Sem recorde ainda. Jogue uma run!"
+                        : "Você ainda não jogou hoje.";
             }
-            // CTA visível só quando user ainda não jogou.
+            // CTA "JOGAR DESAFIO" só na aba Diário, quando ainda não jogou.
             if (playDailyChallengeButton != null)
-                playDailyChallengeButton.gameObject.SetActive(!hasPlayed);
+                playDailyChallengeButton.gameObject.SetActive(_mode == Mode.Daily && !hasEntry);
         }
 
         void OnPlayDailyClicked()

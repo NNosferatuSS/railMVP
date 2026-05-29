@@ -42,6 +42,13 @@ namespace RailSwitchMVP.Meta
         int _myDistanceCache = 0;
         DateTime _myRankCacheAt = DateTime.MinValue;
 
+        // Global leaderboard (best distance da run normal) — caches separados do daily.
+        LeaderboardEntry[] _globalTopCache;
+        DateTime _globalTopCacheAt = DateTime.MinValue;
+        int _myGlobalRankCache = -1;
+        int _myGlobalDistanceCache = 0;
+        DateTime _myGlobalRankCacheAt = DateTime.MinValue;
+
         public LeaderboardEntry[] TopCache => _topCache;
         public int MyRank => _myRankCache;        // -1 = não computado/ausente
         public int MyDistance => _myDistanceCache;
@@ -234,6 +241,122 @@ namespace RailSwitchMVP.Meta
             {
                 LastError = "rank parse: " + ex.Message;
                 Debug.LogWarning($"[LB] FetchMyRank parse error: {ex.Message}\nbody: {result.body}");
+                onComplete?.Invoke(-1, 0);
+            }
+        }
+
+        // ============ Global — best distance da run normal ============
+        // Lê da tabela `players` (best_distance já sincroniza via PDM) através de
+        // RPCs SECURITY DEFINER — não há tabela/submit dedicados. O best distance
+        // sobe no servidor pelo sync normal do PlayerDataManager.
+
+        /// <summary>Top N do ranking global de best distance. callback recebe o array.</summary>
+        public void FetchGlobalTop(Action<LeaderboardEntry[]> onComplete, bool forceRefresh = false)
+        {
+            if (!forceRefresh && CacheValid(_globalTopCacheAt) && _globalTopCache != null)
+            {
+                onComplete?.Invoke(_globalTopCache);
+                return;
+            }
+            StartCoroutine(FetchGlobalTopRoutine(onComplete));
+        }
+
+        IEnumerator FetchGlobalTopRoutine(Action<LeaderboardEntry[]> onComplete)
+        {
+            var auth = AuthManager.Instance;
+            if (auth == null || !auth.IsAuthenticated)
+            {
+                LastError = "global fetch: not authenticated";
+                onComplete?.Invoke(System.Array.Empty<LeaderboardEntry>());
+                yield break;
+            }
+
+            string body = "{\"p_limit\":" + topLimit + "}";
+            SupabaseClient.RequestResult result = null;
+            yield return auth.Client.Post("/rest/v1/rpc/global_distance_top", body, null, r => result = r);
+
+            if (result == null || !result.success)
+            {
+                LastError = result != null ? result.error : "no response";
+                Debug.LogWarning($"[LB] FetchGlobalTop failed: {LastError}");
+                onComplete?.Invoke(System.Array.Empty<LeaderboardEntry>());
+                yield break;
+            }
+
+            try
+            {
+                string respBody = string.IsNullOrEmpty(result.body) ? "[]" : result.body;
+                var wrapper = JsonUtility.FromJson<EntriesWrapper>("{\"items\":" + respBody + "}");
+                _globalTopCache = wrapper != null && wrapper.items != null ? wrapper.items : System.Array.Empty<LeaderboardEntry>();
+                for (int i = 0; i < _globalTopCache.Length; i++) _globalTopCache[i].rank = i + 1;
+                _globalTopCacheAt = DateTime.UtcNow;
+                LastError = "";
+                if (verboseLogs) Debug.Log($"[LB] FetchGlobalTop OK — {_globalTopCache.Length} entries");
+                onComplete?.Invoke(_globalTopCache);
+            }
+            catch (Exception ex)
+            {
+                LastError = "global fetch parse: " + ex.Message;
+                Debug.LogWarning($"[LB] FetchGlobalTop parse error: {ex.Message}\nbody: {result.body}");
+                onComplete?.Invoke(System.Array.Empty<LeaderboardEntry>());
+            }
+        }
+
+        /// <summary>Rank global do user atual. callback recebe (rank, distance). rank == -1 = sem recorde ainda.</summary>
+        public void FetchMyGlobalRank(Action<int, int> onComplete, bool forceRefresh = false)
+        {
+            if (!forceRefresh && CacheValid(_myGlobalRankCacheAt))
+            {
+                onComplete?.Invoke(_myGlobalRankCache, _myGlobalDistanceCache);
+                return;
+            }
+            StartCoroutine(FetchMyGlobalRankRoutine(onComplete));
+        }
+
+        IEnumerator FetchMyGlobalRankRoutine(Action<int, int> onComplete)
+        {
+            var auth = AuthManager.Instance;
+            if (auth == null || !auth.IsAuthenticated)
+            {
+                LastError = "global rank: not authenticated";
+                onComplete?.Invoke(-1, 0);
+                yield break;
+            }
+
+            SupabaseClient.RequestResult result = null;
+            yield return auth.Client.Post("/rest/v1/rpc/my_global_distance_rank", "{}", null, r => result = r);
+
+            if (result == null || !result.success)
+            {
+                LastError = result != null ? result.error : "no response";
+                Debug.LogWarning($"[LB] FetchMyGlobalRank failed: {LastError}");
+                onComplete?.Invoke(-1, 0);
+                yield break;
+            }
+
+            try
+            {
+                string respBody = string.IsNullOrEmpty(result.body) ? "[]" : result.body;
+                var wrapper = JsonUtility.FromJson<MyRankWrapper>("{\"items\":" + respBody + "}");
+                if (wrapper != null && wrapper.items != null && wrapper.items.Length > 0)
+                {
+                    _myGlobalRankCache = wrapper.items[0].rank;
+                    _myGlobalDistanceCache = wrapper.items[0].distance;
+                }
+                else
+                {
+                    _myGlobalRankCache = -1;
+                    _myGlobalDistanceCache = 0;
+                }
+                _myGlobalRankCacheAt = DateTime.UtcNow;
+                LastError = "";
+                if (verboseLogs) Debug.Log($"[LB] FetchMyGlobalRank OK — rank={_myGlobalRankCache} distance={_myGlobalDistanceCache}");
+                onComplete?.Invoke(_myGlobalRankCache, _myGlobalDistanceCache);
+            }
+            catch (Exception ex)
+            {
+                LastError = "global rank parse: " + ex.Message;
+                Debug.LogWarning($"[LB] FetchMyGlobalRank parse error: {ex.Message}\nbody: {result.body}");
                 onComplete?.Invoke(-1, 0);
             }
         }
