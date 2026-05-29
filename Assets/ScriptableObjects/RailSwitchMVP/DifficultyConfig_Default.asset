@@ -26,6 +26,7 @@ MonoBehaviour:
     criticalCoinsMax: 2
     decoyCoinsMin: 0
     decoyCoinsMax: 0
+    decoyCoinChance: 0
     hazardChanceOnDecoy: 0
     hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
     powerUpChanceOnCritical: 0.08
@@ -44,14 +45,15 @@ MonoBehaviour:
     criticalCoinsMax: 3
     decoyCoinsMin: 0
     decoyCoinsMax: 0
+    decoyCoinChance: 0
     hazardChanceOnDecoy: 0.08
     hazardPool: {fileID: 11400000, guid: b52002aabbccddee0112233445566702, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
-  - triggerAtDistance: 150
-    maxLanes: 5
-    minLanesPerRow: 3
+  - triggerAtDistance: 120
+    maxLanes: 4
+    minLanesPerRow: 1
     maxLanesPerRow: 4
     criticalPathsPerRow: 1
     lanePopulationChance: 0.55
@@ -60,48 +62,51 @@ MonoBehaviour:
     cameraZoom: 14
     criticalCoinsMin: 1
     criticalCoinsMax: 3
-    decoyCoinsMin: 1
+    decoyCoinsMin: 0
     decoyCoinsMax: 1
+    decoyCoinChance: 0
     hazardChanceOnDecoy: 0.2
     hazardPool: {fileID: 11400000, guid: b53003aabbccddee0112233445566703, type: 2}
     powerUpChanceOnCritical: 0.1
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c63004aabbccddee0112233445566713, type: 2}
-  - triggerAtDistance: 500
-    maxLanes: 7
+  - triggerAtDistance: 250
+    maxLanes: 5
     minLanesPerRow: 3
     maxLanesPerRow: 5
     criticalPathsPerRow: 1
     lanePopulationChance: 0.5
-    rowsAhead: 14
-    playerSpeed: 14
-    cameraZoom: 11
-    criticalCoinsMin: 4
+    rowsAhead: 8
+    playerSpeed: 10
+    cameraZoom: 15
+    criticalCoinsMin: 1
     criticalCoinsMax: 4
     decoyCoinsMin: 0
-    decoyCoinsMax: 0
-    hazardChanceOnDecoy: 0.63
+    decoyCoinsMax: 2
+    decoyCoinChance: 0
+    hazardChanceOnDecoy: 0.3
     hazardPool: {fileID: 11400000, guid: b54004aabbccddee0112233445566704, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c64005aabbccddee0112233445566714, type: 2}
-  - triggerAtDistance: 800
+  - triggerAtDistance: 400
     maxLanes: 7
-    minLanesPerRow: 4
-    maxLanesPerRow: 6
+    minLanesPerRow: 2
+    maxLanesPerRow: 7
     criticalPathsPerRow: 2
     lanePopulationChance: 0.5
-    rowsAhead: 16
-    playerSpeed: 16
-    cameraZoom: 13
-    criticalCoinsMin: 5
-    criticalCoinsMax: 5
-    decoyCoinsMin: 0
-    decoyCoinsMax: 0
-    hazardChanceOnDecoy: 0.74
+    rowsAhead: 8
+    playerSpeed: 13
+    cameraZoom: 17
+    criticalCoinsMin: 1
+    criticalCoinsMax: 3
+    decoyCoinsMin: 1
+    decoyCoinsMax: 3
+    decoyCoinChance: 0
+    hazardChanceOnDecoy: 0.466
     hazardPool: {fileID: 11400000, guid: b55005aabbccddee0112233445566705, type: 2}
-    powerUpChanceOnCritical: 0.08
-    powerUpChanceOnDecoy: 0.03
+    powerUpChanceOnCritical: 0.165
+    powerUpChanceOnDecoy: 0.12
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
   - triggerAtDistance: 1200
     maxLanes: 9
@@ -116,6 +121,7 @@ MonoBehaviour:
     criticalCoinsMax: 5
     decoyCoinsMin: 0
     decoyCoinsMax: 0
+    decoyCoinChance: 0
     hazardChanceOnDecoy: 0.82
     hazardPool: {fileID: 11400000, guid: b55005aabbccddee0112233445566705, type: 2}
     powerUpChanceOnCritical: 0.08
