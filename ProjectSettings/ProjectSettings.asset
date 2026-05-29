@@ -939,7 +939,7 @@ PlayerSettings:
   cloudProjectId: 1d96aef4-f88f-4bd0-95c3-844856a40247
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: RailMVP
+  projectName: railmvp
   organizationId: nosfera-as-publisher
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

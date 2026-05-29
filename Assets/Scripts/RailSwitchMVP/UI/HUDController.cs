@@ -166,6 +166,13 @@ namespace RailSwitchMVP.UI
         void LateUpdate()
         {
             // LateUpdate garante que PlayerRailRider.Update e GameTimer.Update já rodaram.
+            if (tierText != null)
+            {
+                bool locked = SpawnOverrideController.Instance != null
+                    && SpawnOverrideController.Instance.tierLockEnabled;
+                tierText.color = locked ? Color.red : Color.white;
+            }
+
             if (timer != null && timeText != null)
                 timeText.text = $"Time {timer.FormatMMSS()}";
 

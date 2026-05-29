@@ -59,6 +59,13 @@ namespace RailSwitchMVP.Config
         [Tooltip("Probabilidade de uma lane decoy ser populada")]
         public float lanePopulationChance;
 
+        [Header("Streaming")]
+        [Tooltip("Quantas rows spawnar à frente do player neste tier. " +
+            "Tiers rápidos precisam de mais rows pra evitar pop-in visível. " +
+            "Sobrescreve config.rowsAhead. SpawnOverrideController ainda tem prioridade máxima.")]
+        [Min(1)]
+        public int rowsAhead;
+
         [Header("Player")]
         [Tooltip("Velocidade forward do player neste tier")]
         public float playerSpeed;
@@ -190,6 +197,8 @@ namespace RailSwitchMVP.Config
                     sb.AppendLine($"{prefix}criticalPathsPerRow deve ser ≥ 1.");
                 if (t.criticalPathsPerRow > t.minLanesPerRow)
                     sb.AppendLine($"{prefix}criticalPathsPerRow ({t.criticalPathsPerRow}) > minLanesPerRow ({t.minLanesPerRow}) — impossível garantir lanes críticas em linhas mínimas.");
+                if (t.rowsAhead < 1)
+                    sb.AppendLine($"{prefix}rowsAhead deve ser ≥ 1.");
                 if (t.playerSpeed <= 0f)
                     sb.AppendLine($"{prefix}playerSpeed deve ser > 0.");
 

@@ -59,6 +59,9 @@ namespace RailSwitchMVP.Core
         [Tooltip("Índice do tier a travar (0-based). Clamped ao range do DifficultyConfig.")]
         public int lockedTierIndex = 0;
 
+        [Tooltip("Tecla de atalho para ligar/desligar o Tier Lock sem abrir o painel F2.")]
+        public Key tierLockKey = Key.F3;
+
         [Header("Streaming (rowsAhead override)")]
         [Tooltip("Quando true, sobrescreve config.rowsAhead. Útil pra ver mudanças " +
             "dos sliders aparecerem em poucos tiles. RailManager despawna o excedente " +
@@ -88,7 +91,7 @@ namespace RailSwitchMVP.Core
 
         private bool _show;
         private Vector2 _scroll;
-        private GUIStyle _sectionStyle, _hintStyle, _masterOnStyle;
+        private GUIStyle _sectionStyle, _hintStyle, _masterOnStyle, _tierLockOnStyle;
 
         // Originais do GUI.skin antes do scale.
         private bool _skinOriginalsCaptured;
@@ -115,7 +118,18 @@ namespace RailSwitchMVP.Core
         {
             if (!ShouldRespond) return;
             var kb = Keyboard.current;
-            if (kb != null && kb.f2Key.wasPressedThisFrame) _show = !_show;
+            if (kb == null) return;
+            if (kb.f2Key.wasPressedThisFrame) _show = !_show;
+            if (kb[tierLockKey].wasPressedThisFrame)
+            {
+                if (!tierLockEnabled)
+                {
+                    var dm = DifficultyManager.Instance;
+                    if (dm != null) lockedTierIndex = dm.CurrentTierIndex;
+                }
+                tierLockEnabled = !tierLockEnabled;
+                Debug.Log($"[SpawnOverride] Tier Lock {(tierLockEnabled ? $"ON → tier {lockedTierIndex}" : "OFF")} via {tierLockKey}");
+            }
         }
 
         /// <summary>
@@ -344,10 +358,12 @@ namespace RailSwitchMVP.Core
             var dm = DifficultyManager.Instance;
             int tierCount = (dm != null && dm.Config != null && dm.Config.tiers != null) ? dm.Config.tiers.Count : 0;
             int currentIdx = dm != null ? dm.CurrentTierIndex : -1;
+            var tierLockStyle = tierLockEnabled ? _tierLockOnStyle : GUI.skin.toggle;
             tierLockEnabled = GUILayout.Toggle(tierLockEnabled,
                 tierLockEnabled
-                    ? $"Tier lock: ON → tier {lockedTierIndex} (current: {currentIdx})"
-                    : $"Tier lock: OFF (auto-advance, current: {currentIdx})");
+                    ? $"Tier lock: ON → tier {lockedTierIndex} (current: {currentIdx}) [{tierLockKey}]"
+                    : $"Tier lock: OFF (auto-advance, current: {currentIdx}) [{tierLockKey}]",
+                tierLockStyle);
             if (tierLockEnabled && tierCount > 0)
             {
                 GUILayout.BeginHorizontal();
@@ -444,6 +460,14 @@ namespace RailSwitchMVP.Core
                 _masterOnStyle.onNormal.textColor = new Color(0.4f, 1f, 0.4f);
             }
             _masterOnStyle.fontSize = scaled;
+
+            if (_tierLockOnStyle == null)
+            {
+                _tierLockOnStyle = new GUIStyle(GUI.skin.toggle) { fontStyle = FontStyle.Bold };
+                _tierLockOnStyle.normal.textColor = Color.red;
+                _tierLockOnStyle.onNormal.textColor = Color.red;
+            }
+            _tierLockOnStyle.fontSize = scaled;
         }
 
         // ============ UI scale helpers ============

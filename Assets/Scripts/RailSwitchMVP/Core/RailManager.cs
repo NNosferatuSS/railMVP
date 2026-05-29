@@ -140,10 +140,13 @@ namespace RailSwitchMVP.Core
 
         int GetEffectiveRowsAhead()
         {
-            int defaultAhead = config.rowsAhead;
+            // Prioridade: SpawnOverrideController (debug) > tier.rowsAhead > config.rowsAhead (fallback)
+            int tierAhead = (difficulty != null && difficulty.CurrentTier.rowsAhead >= 1)
+                ? difficulty.CurrentTier.rowsAhead
+                : config.rowsAhead;
             var ov = SpawnOverrideController.Instance;
-            if (ov != null) return ov.GetEffectiveRowsAhead(defaultAhead);
-            return defaultAhead;
+            if (ov != null) return ov.GetEffectiveRowsAhead(tierAhead);
+            return tierAhead;
         }
 
         void ReseedGeneratorFromSurvivingTop()
@@ -156,7 +159,10 @@ namespace RailSwitchMVP.Core
         void BootstrapInitialRows()
         {
             generator.ResetState();
-            int rowsToSpawn = Mathf.Max(2, config.rowsAhead);
+            int tier0Ahead = (difficulty != null && difficulty.CurrentTier.rowsAhead >= 1)
+                ? difficulty.CurrentTier.rowsAhead
+                : config.rowsAhead;
+            int rowsToSpawn = Mathf.Max(2, tier0Ahead);
             for (int i = 0; i < rowsToSpawn; i++)
                 SpawnRow(i);
         }

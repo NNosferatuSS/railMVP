@@ -11,37 +11,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 295ed2f670cebec4caf36d58aa609a21, type: 3}
   m_Name: DifficultyConfig_Default
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   tiers:
   - triggerAtDistance: 0
     maxLanes: 3
-    minLanesPerRow: 2
+    minLanesPerRow: 1
     maxLanesPerRow: 3
     criticalPathsPerRow: 1
-    lanePopulationChance: 0.6
-    playerSpeed: 6
+    lanePopulationChance: 0
+    rowsAhead: 6
+    playerSpeed: 5
     cameraZoomMin: 12
     cameraZoomMax: 18
     cameraOrthoSizeMin: 4
     cameraOrthoSizeMax: 6
-    criticalCoinsMin: 1
-    criticalCoinsMax: 3
+    criticalCoinsMin: 0
+    criticalCoinsMax: 2
     decoyCoinsMin: 0
     decoyCoinsMax: 0
-    hazardChanceOnDecoy: 0.2
+    hazardChanceOnDecoy: 0
     hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c61002aabbccddee0112233445566711, type: 2}
-  - triggerAtDistance: 100
-    maxLanes: 5
+  - triggerAtDistance: 30
+    maxLanes: 3
     minLanesPerRow: 2
-    maxLanesPerRow: 4
+    maxLanesPerRow: 3
     criticalPathsPerRow: 1
     lanePopulationChance: 0.55
-    playerSpeed: 8
-    cameraZoomMin: 14
-    cameraZoomMax: 20
+    rowsAhead: 8
+    playerSpeed: 5
+    cameraZoomMin: 12
+    cameraZoomMax: 18
     cameraOrthoSizeMin: 5
     cameraOrthoSizeMax: 7
     criticalCoinsMin: 1
@@ -53,15 +55,16 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
-  - triggerAtDistance: 250
+  - triggerAtDistance: 150
     maxLanes: 5
     minLanesPerRow: 3
     maxLanesPerRow: 4
     criticalPathsPerRow: 1
     lanePopulationChance: 0.55
-    playerSpeed: 12
-    cameraZoomMin: 15
-    cameraZoomMax: 22
+    rowsAhead: 10
+    playerSpeed: 7
+    cameraZoomMin: 13
+    cameraZoomMax: 20
     cameraOrthoSizeMin: 5
     cameraOrthoSizeMax: 8
     criticalCoinsMin: 4
@@ -79,6 +82,7 @@ MonoBehaviour:
     maxLanesPerRow: 5
     criticalPathsPerRow: 1
     lanePopulationChance: 0.5
+    rowsAhead: 14
     playerSpeed: 14
     cameraZoomMin: 17
     cameraZoomMax: 24
@@ -99,6 +103,7 @@ MonoBehaviour:
     maxLanesPerRow: 6
     criticalPathsPerRow: 2
     lanePopulationChance: 0.5
+    rowsAhead: 16
     playerSpeed: 16
     cameraZoomMin: 19
     cameraZoomMax: 26
@@ -119,6 +124,7 @@ MonoBehaviour:
     maxLanesPerRow: 7
     criticalPathsPerRow: 2
     lanePopulationChance: 0.45
+    rowsAhead: 18
     playerSpeed: 18
     cameraZoomMin: 21
     cameraZoomMax: 28

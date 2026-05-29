@@ -22,12 +22,12 @@ MonoBehaviour:
   powerUpSlotStrategy: 1
   coinSlotStrategy: 1
   warmupRowCount: 2
-  warmupSpeedMultiplier: 0.9
-  rowsAhead: 6
+  warmupSpeedMultiplier: 0.8
+  rowsAhead: 3
   rowsBehind: 2
   cameraTilt: 90
   cameraDistance: 6.81
-  cameraLookAhead: 22
+  cameraLookAhead: 25
   cameraFieldOfView: 48
   cameraZoomSpeed: 8
   cameraZoomGlobalMultiplier: 2.05
