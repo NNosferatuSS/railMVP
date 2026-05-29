@@ -37,6 +37,41 @@ atravessar Home→Game (static var ou manager DontDestroyOnLoad).
 
 ---
 
+## Ranking: tempo × distância [IDEIA / PARECER 2026-05-29]
+
+Ideia: classificar jogadores por uma combinação de tempo e distância, não só distância.
+
+**Parecer (não recomendo score combinado único):** no nosso jogo tempo e distância são
+fortemente correlacionados — a velocidade é ditada pelo TIER (não é escolha do player), e
+o starting tier adaptativo (Camada 1) faz veteranos cobrirem a mesma distância em menos
+tempo, então `distância/tempo` premiaria o sistema, não a skill. Score combinado também
+confunde o jogador ("850m" é intuitivo; "score 12.450" não). **Melhor:** distância como
+score principal; tempo só como **tiebreaker** OU **categorias separadas** ("Maior
+Distância" + "Maior Sobrevivência"). Decisão depende do que o ranking deve premiar.
+
+---
+
+## Warning/Danger markers → UI fixa na tela [IDEIA 2026-05-29]
+
+Hoje os marcadores de warning/danger (hazards) são **world objects** em world position
+(`HazardWarning`, spawnados N rows à frente). Plano futuro: posicioná-los na **UI**, em
+posição **fixa na tela**, na **lane** acima de onde trackeiam o hazard (projeção
+world→screen via Camera.WorldToScreenPoint, com clamp). Melhora legibilidade e consistência
+visual. Fica pra depois.
+
+---
+
+## Analytics — instrumentação [PRÓXIMO 2026-05-29]
+
+Acompanhar comportamento + negócio (sessão, telas, cliques, economia, monetização).
+**Decisão de abordagem (combinada):** preparar AGORA só a **camada fina** (interface
+`IAnalytics` + `AnalyticsManager` com `Track(event, params)`, sink no-op/log), instrumentar
+só KPIs que vão virar decisão (session_start/end, run_start/end, level_up, purchase,
+ad_watched). NÃO instrumentar cada clique enquanto valida. Provider real depois (Firebase
+GA4 ou UGS Analytics; Supabase pra eventos de negócio). Múltiplos sinks via a abstração.
+
+---
+
 ## Tutorial — Contextual Hints (alternativa ao single-step da Fatia 10)
 
 **Premissa:** atual Fatia 10 mostra 1 overlay genérico no início da 1ª run.
