@@ -21,6 +21,8 @@ namespace RailSwitchMVP.UI
     {
         [Header("Top — Player info")]
         [SerializeField] private TMP_Text playerNameText;
+        [Tooltip("Account level do jogador (Camada 1). Ex: 'Lv. 7'. Opcional — auto-skip se vazio.")]
+        [SerializeField] private TMP_Text levelText;
         [SerializeField] private TMP_Text coinsText;
         [SerializeField] private TMP_Text bestDistanceText;
         [SerializeField] private Button playButton;
@@ -165,12 +167,14 @@ namespace RailSwitchMVP.UI
             if (pdm == null)
             {
                 if (playerNameText != null) playerNameText.text = "Player";
+                if (levelText != null) levelText.text = "Lv. 1";
                 if (coinsText != null) coinsText.text = "Coins: 0";
                 if (bestDistanceText != null) bestDistanceText.text = "Best: 0 m";
                 Debug.LogWarning("[Home] PlayerDataManager.Instance null — adicione _PlayerDataManager na HomeScene.");
                 return;
             }
             if (playerNameText != null) playerNameText.text = pdm.PlayerName;
+            if (levelText != null) levelText.text = $"Lv. {pdm.AccountLevel}";
             if (coinsText != null) coinsText.text = $"Coins: {pdm.Coins}";
             if (bestDistanceText != null) bestDistanceText.text = $"Best: {pdm.BestDistance} m";
         }

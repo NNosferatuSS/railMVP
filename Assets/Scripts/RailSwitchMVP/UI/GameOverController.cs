@@ -34,6 +34,12 @@ namespace RailSwitchMVP.UI
             "Padrão: '★ NEW RECORD! Distance Coins Tier Time' (só os batidos).")]
         [SerializeField] private TMP_Text newRecordText;
 
+        [Header("XP / Account Level (Camada 1)")]
+        [Tooltip("XP ganho na run, ex '+120 XP'. Opcional — auto-skip se vazio.")]
+        [SerializeField] private TMP_Text xpGainedText;
+        [Tooltip("Aparece só quando a run faz subir de nível, ex 'LEVEL UP!  Lv 7 → 8'. Opcional.")]
+        [SerializeField] private TMP_Text levelUpText;
+
         [Header("Rewarded Ad — 2x coins (Fatia 5)")]
         [Tooltip("Botão pra dobrar coins do run via rewarded ad. Auto-hide se " +
             "AdsManager ausente ou não pronto. Spec §5.2.")]
@@ -59,6 +65,7 @@ namespace RailSwitchMVP.UI
         private int _runCoins;
         private int _runTier;
         private float _runTime;
+        private int _runXP; // calculado no DeathSequence (display) e reusado no commit
 
         // Mesmo padrão do HUDController: captura baseline no 1º LateUpdate
         // pra exibir distância "limpa" (a partir de 0) mesmo que o player
@@ -75,6 +82,7 @@ namespace RailSwitchMVP.UI
 
             if (panel != null) panel.SetActive(false);
             if (newRecordText != null) newRecordText.gameObject.SetActive(false);
+            if (levelUpText != null) levelUpText.gameObject.SetActive(false);
 
             if (railConfig == null && difficulty != null && difficulty.Config != null)
             {
@@ -118,7 +126,11 @@ namespace RailSwitchMVP.UI
 
         void LateUpdate()
         {
-            if (!_baselineCaptured && player != null)
+            // Captura o baseline de distância só APÓS o warmup (igual o HUDController),
+            // pra que o score NÃO inclua a distância andada durante o warmup — senão
+            // o painel final infla vs o HUD (bug do mismatch de baseline).
+            if (!_baselineCaptured && player != null
+                && (GameManager.Instance == null || !GameManager.Instance.IsWarmup))
             {
                 _distanceBaseline = player.DistanceTraveled;
                 _baselineCaptured = true;
@@ -303,7 +315,39 @@ namespace RailSwitchMVP.UI
             yield return new WaitForSecondsRealtime(duration);
             Time.timeScale = 0f;
 
+            // Calcula o XP agora: o MissionTracker.EndRun já rodou no OnGameOver,
+            // então MissionsCompletedThisRun está consolidado (sem depender da
+            // ordem dos handlers do evento).
+            ComputeAndShowXP();
+
             if (panel != null) panel.SetActive(true);
+        }
+
+        // Calcula o XP da run (display) e prepara os textos +XP / LEVEL UP. O
+        // crédito real acontece em CommitRunToPlayerData (Restart/Home), reusando
+        // _runXP — mesmo padrão das coins (mostradas aqui, creditadas no sair).
+        void ComputeAndShowXP()
+        {
+            int missions = MissionTracker.Instance != null ? MissionTracker.Instance.MissionsCompletedThisRun : 0;
+            _runXP = Mathf.FloorToInt(_runMeters / 10f) + _runCoins + missions * 50;
+
+            if (xpGainedText != null)
+                xpGainedText.text = $"+{_runXP} XP";
+
+            if (levelUpText == null) return;
+            var pdm = PlayerDataManager.Instance;
+            if (pdm != null)
+            {
+                int curLevel = pdm.AccountLevel;
+                int projLevel = pdm.ComputeLevelFromXP(pdm.AccountXP + _runXP);
+                if (projLevel > curLevel)
+                {
+                    levelUpText.text = $"LEVEL UP!  Lv {curLevel} → {projLevel}";
+                    levelUpText.gameObject.SetActive(true);
+                    return;
+                }
+            }
+            levelUpText.gameObject.SetActive(false);
         }
 
         // Reflete a ref de RailGenConfig serializada no PlayerCameraRig — pra evitar
@@ -370,6 +414,11 @@ namespace RailSwitchMVP.UI
             if (pdm == null) return;
             pdm.AddCoins(_runCoins);
             pdm.IncrementTotalRuns();
+
+            // XP de account level (Camada 1) — _runXP já foi calculado no
+            // DeathSequence (ComputeAndShowXP). AddXP é no-op se 0.
+            pdm.AddXP(_runXP);
+
             pdm.Save();
         }
     }

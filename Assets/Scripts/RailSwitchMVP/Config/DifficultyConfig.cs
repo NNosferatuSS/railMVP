@@ -70,21 +70,11 @@ namespace RailSwitchMVP.Config
         [Tooltip("Velocidade forward do player neste tier")]
         public float playerSpeed;
 
-        [Header("Camera — Perspective (altura Y)")]
-        [Tooltip("Altura Y mínima da câmera (player parado / speed = speedAtMinZoom). " +
-            "Usado apenas em modo Perspective.")]
-        public float cameraZoomMin;
-        [Tooltip("Altura Y máxima da câmera (speed = speedAtMaxZoom). Usado apenas em Perspective.")]
-        public float cameraZoomMax;
-
-        [Header("Camera — Orthographic (orthoSize)")]
-        [Tooltip("orthographicSize mínimo deste tier (player lento). " +
-            "Metade da altura vertical da view em unidades de mundo. " +
-            "Usado apenas em modo Orthographic.")]
-        public float cameraOrthoSizeMin;
-        [Tooltip("orthographicSize máximo deste tier (player rápido). Maior = zoom out. " +
-            "Usado apenas em modo Orthographic.")]
-        public float cameraOrthoSizeMax;
+        [Header("Camera")]
+        [Tooltip("Distância da câmera ao foco (player) ao longo do eixo de visão neste tier. " +
+            "Maior = mais longe (zoom out), menor = mais perto (zoom in). Valor único por tier; " +
+            "a câmera sempre olha pro foco, então mudar o zoom NÃO desloca o player na tela.")]
+        public float cameraZoom;
 
         [Header("Coins")]
         [Tooltip("Mínimo de moedas em cada tile do critical path. Sample uniforme em [min, max+1).")]
@@ -128,6 +118,20 @@ namespace RailSwitchMVP.Config
     }
 
     /// <summary>
+    /// Regra de starting tier adaptativo (Camada 1). A partir de minAccountLevel,
+    /// o run começa no startingTierIndex. Lista avaliada em ordem crescente.
+    /// </summary>
+    [System.Serializable]
+    public struct StartingTierRule
+    {
+        [Tooltip("Account level mínimo pra esta regra se aplicar")]
+        public int minAccountLevel;
+
+        [Tooltip("Índice do tier em que o run começa (0-based)")]
+        public int startingTierIndex;
+    }
+
+    /// <summary>
     /// Curva de dificuldade do jogo. Lista ordenada de tiers.
     /// O DifficultyManager avança entre tiers conforme a distância percorrida.
     /// </summary>
@@ -136,6 +140,14 @@ namespace RailSwitchMVP.Config
     {
         [Tooltip("Lista de tiers em ordem crescente de triggerAtDistance. O tier 0 sempre tem trigger = 0.")]
         public List<DifficultyTier> tiers = new List<DifficultyTier>();
+
+        [Header("Adaptive Start (Camada 1)")]
+        [Tooltip("Regras de starting tier por account level, em ordem crescente de minAccountLevel.")]
+        public List<StartingTierRule> startingTierRules = new List<StartingTierRule>();
+
+        [Tooltip("Teto absoluto de starting tier. Nunca começar acima disto, garantindo que " +
+            "sempre haja tiers acima pra acelerar durante o run.")]
+        public int maxStartingTierIndex = 4;
 
         void OnValidate()
         {
@@ -202,11 +214,9 @@ namespace RailSwitchMVP.Config
                 if (t.playerSpeed <= 0f)
                     sb.AppendLine($"{prefix}playerSpeed deve ser > 0.");
 
-                // Camera ranges
-                if (t.cameraZoomMin > t.cameraZoomMax)
-                    sb.AppendLine($"{prefix}cameraZoomMin ({t.cameraZoomMin}) > cameraZoomMax ({t.cameraZoomMax}).");
-                if (t.cameraOrthoSizeMin > t.cameraOrthoSizeMax)
-                    sb.AppendLine($"{prefix}cameraOrthoSizeMin ({t.cameraOrthoSizeMin}) > cameraOrthoSizeMax ({t.cameraOrthoSizeMax}).");
+                // Camera
+                if (t.cameraZoom <= 0f)
+                    sb.AppendLine($"{prefix}cameraZoom ({t.cameraZoom}) deve ser > 0.");
 
                 // Pool x chance — chance > 0 sem pool é desperdício
                 if (t.hazardChanceOnDecoy > 0f && (t.hazardPool == null || t.hazardPool.Count == 0))
@@ -223,6 +233,22 @@ namespace RailSwitchMVP.Config
                     sb.AppendLine($"{prefix}decoyCoinsMin ({t.decoyCoinsMin}) < 0.");
                 if (t.decoyCoinsMax < t.decoyCoinsMin)
                     sb.AppendLine($"{prefix}decoyCoinsMax ({t.decoyCoinsMax}) < decoyCoinsMin ({t.decoyCoinsMin}).");
+            }
+
+            // Adaptive start (Camada 1)
+            if (startingTierRules != null && startingTierRules.Count > 0)
+            {
+                for (int i = 0; i < startingTierRules.Count; i++)
+                {
+                    var r = startingTierRules[i];
+                    string rp = $"• StartingTierRule {i} (minLevel {r.minAccountLevel}): ";
+                    if (i > 0 && r.minAccountLevel <= startingTierRules[i - 1].minAccountLevel)
+                        sb.AppendLine($"{rp}minAccountLevel deve ser > regra anterior ({startingTierRules[i - 1].minAccountLevel}) — lista é avaliada em ordem crescente.");
+                    if (r.startingTierIndex < 0 || r.startingTierIndex >= tiers.Count)
+                        sb.AppendLine($"{rp}startingTierIndex ({r.startingTierIndex}) fora do range de tiers [0,{tiers.Count - 1}].");
+                }
+                if (tiers.Count >= 2 && maxStartingTierIndex > tiers.Count - 2)
+                    sb.AppendLine($"• maxStartingTierIndex ({maxStartingTierIndex}) > penúltimo tier ({tiers.Count - 2}) — será limitado em runtime pra deixar tiers acima pra acelerar.");
             }
 
             return sb.Length == 0 ? null : sb.ToString().TrimEnd();
@@ -266,6 +292,30 @@ namespace RailSwitchMVP.Config
                     break;
             }
             return idx;
+        }
+
+        /// <summary>
+        /// Resolve o starting tier (Camada 1) pra um account level. Aplica o teto
+        /// seguro: nunca passa de maxStartingTierIndex nem do penúltimo tier
+        /// disponível, garantindo que sempre haja tier acima pra acelerar.
+        /// </summary>
+        public int GetStartingTierIndex(int accountLevel)
+        {
+            if (startingTierRules == null || startingTierRules.Count == 0)
+                return 0;
+
+            int result = 0;
+            foreach (var rule in startingTierRules)
+            {
+                if (accountLevel >= rule.minAccountLevel)
+                    result = rule.startingTierIndex;
+                else
+                    break; // lista em ordem crescente de minAccountLevel
+            }
+
+            int safeCeiling = Mathf.Min(maxStartingTierIndex, tiers.Count - 2);
+            safeCeiling = Mathf.Max(0, safeCeiling); // proteção se houver poucos tiers
+            return Mathf.Clamp(result, 0, safeCeiling);
         }
     }
 }

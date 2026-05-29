@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 295ed2f670cebec4caf36d58aa609a21, type: 3}
   m_Name: DifficultyConfig_Default
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   tiers:
   - triggerAtDistance: 0
     maxLanes: 3
@@ -139,3 +139,13 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+  startingTierRules:
+  - minAccountLevel: 1
+    startingTierIndex: 0
+  - minAccountLevel: 5
+    startingTierIndex: 2
+  - minAccountLevel: 10
+    startingTierIndex: 3
+  - minAccountLevel: 15
+    startingTierIndex: 5
+  maxStartingTierIndex: 5

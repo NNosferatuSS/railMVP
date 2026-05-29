@@ -160,10 +160,23 @@ namespace RailSwitchMVP.Meta
         bool _runUsedAnyPowerUp;
         readonly HashSet<string> _runPowerUpsUsed = new HashSet<string>();
 
+        // Snapshot de quais slots já estavam completos no início da run, pra
+        // contar só as missões que VIRARAM completas nesta run (XP de progressão).
+        readonly bool[] _dailyCompleteAtStart = new bool[DailySlots];
+        readonly bool[] _weeklyCompleteAtStart = new bool[WeeklySlots];
+        int _missionsCompletedThisRun;
+
         // Pra deltas em OnCoinsChanged.
         int _lastKnownCoinTotal;
 
         public event Action OnMissionsChanged;
+
+        /// <summary>
+        /// Quantas missões (daily+weekly) viraram completas DESTA run. Snapshot
+        /// tirado em StartRun, diff calculado em EndRun. Consumido pelo XP de
+        /// account level (Camada 1 da progressão adaptativa).
+        /// </summary>
+        public int MissionsCompletedThisRun => _missionsCompletedThisRun;
 
         // ============ Lifecycle ============
 
@@ -390,6 +403,10 @@ namespace RailSwitchMVP.Meta
             _runUsedAnyPowerUp = false;
             _runPowerUpsUsed.Clear();
             _lastKnownCoinTotal = CoinManager.Instance != null ? CoinManager.Instance.Total : 0;
+
+            _missionsCompletedThisRun = 0;
+            for (int i = 0; i < DailySlots; i++) _dailyCompleteAtStart[i] = IsDailyComplete(i);
+            for (int i = 0; i < WeeklySlots; i++) _weeklyCompleteAtStart[i] = IsWeeklyComplete(i);
         }
 
         public void OnCoinsCollected(int amount)
@@ -433,6 +450,13 @@ namespace RailSwitchMVP.Meta
 
             // Verifica "todas as 3 dailies completas hoje" pra weekly mission tipo 8.
             CheckAllDailiesCompleteToday();
+
+            // Conta missões que VIRARAM completas nesta run (diff vs snapshot do StartRun).
+            _missionsCompletedThisRun = 0;
+            for (int i = 0; i < DailySlots; i++)
+                if (!_dailyCompleteAtStart[i] && IsDailyComplete(i)) _missionsCompletedThisRun++;
+            for (int i = 0; i < WeeklySlots; i++)
+                if (!_weeklyCompleteAtStart[i] && IsWeeklyComplete(i)) _missionsCompletedThisRun++;
 
             CommitProgress();
             OnMissionsChanged?.Invoke();

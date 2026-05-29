@@ -28,13 +28,6 @@ namespace RailSwitchMVP.Player
         [SerializeField] private RailGenConfig config;
         [SerializeField] private DifficultyManager difficulty;
 
-        [Header("Zoom Mapping (Speed → Altura)")]
-        [Tooltip("Velocidade do player que mapeia para o zoom mínimo (mais perto)")]
-        [SerializeField] private float speedAtMinZoom = 8f;
-
-        [Tooltip("Velocidade do player que mapeia para o zoom máximo (mais longe)")]
-        [SerializeField] private float speedAtMaxZoom = 20f;
-
         [Header("Lateral Follow (experimento)")]
         [Tooltip("Quando false, X da câmera fica travado em anchoredX e ignora switch de lanes. Toggle ao vivo no Inspector.")]
         [SerializeField] private bool followLateral = false;
@@ -43,8 +36,8 @@ namespace RailSwitchMVP.Player
         [SerializeField] private float anchoredX = 0f;
 
         [Header("Runtime (read-only)")]
+        [Tooltip("Distância atual da câmera ao foco (lerp suave do cameraZoom do tier ativo).")]
         [SerializeField] private float currentZoom;
-        [SerializeField] private float currentOrthoSize;
 
         // Base position usada pra smoothing — separada do transform.position
         // pra que o shake (somado depois) não interfira no Lerp.
@@ -94,16 +87,10 @@ namespace RailSwitchMVP.Player
             if (difficulty == null)
                 Debug.LogError("[PlayerCameraRig] DifficultyManager not assigned.");
 
-            if (difficulty != null)
-            {
-                currentZoom = difficulty.CurrentTier.cameraZoomMin;
-                currentOrthoSize = difficulty.CurrentTier.cameraOrthoSizeMin;
-            }
-            else
-            {
-                currentZoom = 15f;
-                currentOrthoSize = 6f;
-            }
+            // Só perspective (ortho removida).
+            if (_cam != null) _cam.orthographic = false;
+
+            currentZoom = difficulty != null ? difficulty.CurrentTier.cameraZoom : 12f;
 
             SubscribeEvents();
         }
@@ -147,58 +134,35 @@ namespace RailSwitchMVP.Player
             if (player == null || config == null || difficulty == null) return;
 
             var tier = difficulty.CurrentTier;
-            bool isOrtho = _cam != null && _cam.orthographic;
 
-            // LookAhead escala com playerSpeed pra manter horizonte temporal constante
-            // (mesmos ~N segundos à frente em todos os tiers, em vez de N unidades fixas).
-            // Referência: speedAtMinZoom (o "baseline" do mapping de altura).
-            // Funciona idêntico em perspective e ortho.
-            float speedRatio = speedAtMinZoom > 0f ? (tier.playerSpeed / speedAtMinZoom) : 1f;
-            float effectiveLookAhead = config.cameraLookAhead * speedRatio;
             float targetX = followLateral ? player.position.x : anchoredX;
-            Vector3 anchorBase = new Vector3(targetX, player.position.y, player.position.z);
-            Vector3 target = anchorBase + Vector3.forward * effectiveLookAhead;
+            Vector3 playerPos = new Vector3(targetX, player.position.y, player.position.z);
 
-            // Per-tier interp por speed — usado nos dois modos (cada um lê seus campos).
-            float speedFactor = Mathf.InverseLerp(speedAtMinZoom, speedAtMaxZoom, tier.playerSpeed);
+            // Zoom = distância da câmera ao player. Um valor único por tier (lerp suave nas
+            // trocas), escalado pelo multiplier global. Maior = mais longe.
             float globalZoom = Mathf.Max(0.01f, config.cameraZoomGlobalMultiplier);
+            float targetZoom = tier.cameraZoom * globalZoom;
+            currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * config.cameraZoomSpeed);
 
-            if (isOrtho)
-            {
-                // === ORTHOGRAPHIC: zoom real é via orthographicSize ===
-                // Per-tier ortho size × globalZoom (multiplier vira zoom verdadeiro aqui).
-                float targetOrtho = Mathf.Lerp(tier.cameraOrthoSizeMin, tier.cameraOrthoSizeMax, speedFactor) * globalZoom;
-                currentOrthoSize = Mathf.Lerp(currentOrthoSize, targetOrtho, Time.deltaTime * config.cameraZoomSpeed);
-                _cam.orthographicSize = Mathf.Max(0.1f, currentOrthoSize - config.deathCamOrthoSizeDelta * _deathCamFactor);
-                // currentZoom (altura Y) ainda usado pra posicionar — não afeta zoom visual em ortho.
-                float targetZoomY = Mathf.Lerp(tier.cameraZoomMin, tier.cameraZoomMax, speedFactor);
-                currentZoom = Mathf.Lerp(currentZoom, targetZoomY, Time.deltaTime * config.cameraZoomSpeed);
-            }
-            else
-            {
-                // === PERSPECTIVE: FOV + altura/distance ===
-                if (_cam != null && !Mathf.Approximately(_cam.fieldOfView, config.cameraFieldOfView))
-                    _cam.fieldOfView = config.cameraFieldOfView;
-                float targetZoom = Mathf.Lerp(tier.cameraZoomMin, tier.cameraZoomMax, speedFactor);
-                currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * config.cameraZoomSpeed);
-            }
-
-            // Death cam aplica delta no distance/tilt (afeta posição nos dois modos).
-            float effectiveDistance = config.cameraDistance - config.deathCamZoomDelta * _deathCamFactor;
+            // Death cam: aproxima (reduz zoom) e aumenta o tilt.
+            float effectiveZoom = Mathf.Max(0.1f, currentZoom - config.deathCamZoomDelta * _deathCamFactor);
             float effectiveTilt = config.cameraTilt + config.deathCamTiltDelta * _deathCamFactor;
 
-            // Distance escala com speedRatio junto com lookAhead — caso contrário, ao
-            // crescer lookAhead sem crescer distance, a câmera ultrapassa o player
-            // (camZ = player + lookAhead − distance fica positivo). Vale nos dois modos:
-            // em ortho não afeta zoom visual, mas mantém invariante "câmera atrás do player".
-            float effectiveDistanceScaled = effectiveDistance * speedRatio;
+            // FOV fixo (perspective).
+            if (_cam != null && !Mathf.Approximately(_cam.fieldOfView, config.cameraFieldOfView))
+                _cam.fieldOfView = config.cameraFieldOfView;
 
-            // Em ortho, globalZoom já foi aplicado no orthoSize — não escalar posição também.
-            // Em perspective, globalZoom escala distance+altura (preserva ângulo).
-            float positionScale = isOrtho ? 1f : globalZoom;
-            Vector3 desiredPos = target
-                + Vector3.back * (effectiveDistanceScaled * positionScale)
-                + Vector3.up * (currentZoom * positionScale);
+            Quaternion rot = Quaternion.Euler(effectiveTilt, 0f, 0f);
+            Vector3 viewDir = rot * Vector3.forward;
+            Vector3 camUp = rot * Vector3.up;
+
+            // LookAhead COMPENSADO: a câmera mira num ponto deslocado do player na direção
+            // camUp (pra baixo na tela → vê-se mais à frente), MAS o deslocamento ESCALA com
+            // a distância (effectiveZoom). Como o ângulo do player = atan(offset/distância) e
+            // offset = distância·k, o ângulo fica CONSTANTE → o player aparece sempre no mesmo
+            // ponto da tela em qualquer zoom/tier. k = config.cameraLookAhead (0 = centro).
+            Vector3 focus = playerPos + camUp * (effectiveZoom * config.cameraLookAhead);
+            Vector3 desiredPos = focus - viewDir * effectiveZoom;
 
             // Smoothing: lerp _basePos pra desiredPos. Primeira vez teleporta.
             if (!_hasBasePos)
@@ -218,7 +182,7 @@ namespace RailSwitchMVP.Player
             // Aplica shake como offset depois do smoothing — não polui o base.
             Vector3 shakeOffset = ComputeShakeOffset();
             transform.position = _basePos + shakeOffset;
-            transform.rotation = Quaternion.Euler(effectiveTilt, 0f, 0f);
+            transform.rotation = rot;
         }
 
         // ============ Shake ============

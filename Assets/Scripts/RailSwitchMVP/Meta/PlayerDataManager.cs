@@ -32,6 +32,8 @@ namespace RailSwitchMVP.Meta
         const string KeyOwnedChars   = "RailMVP.OwnedChars";   // CSV "0,1,2"
         const string KeyEquippedChar = "RailMVP.EquippedChar";
         const string KeyPlayerName   = "RailMVP.PlayerName";
+        const string KeyAccountXp    = "RailMVP.AccountXP";
+        const string KeyAccountLevel = "RailMVP.AccountLevel";  // derivado do XP; salvo só pra inspector/debug
 
         [Header("Runtime (read-only)")]
         [SerializeField] private int coins;
@@ -42,6 +44,8 @@ namespace RailSwitchMVP.Meta
         [SerializeField] private int totalRuns;
         [SerializeField] private int equippedChar;
         [SerializeField] private string playerName = "Player";
+        [SerializeField] private int accountXp;
+        [SerializeField] private int accountLevel = 1;
 
         // Set-based pra checagem O(1). Persistido como CSV.
         private readonly HashSet<int> _ownedChars = new HashSet<int>();
@@ -54,6 +58,8 @@ namespace RailSwitchMVP.Meta
         public int TotalRuns => totalRuns;
         public int EquippedChar => equippedChar;
         public string PlayerName => playerName;
+        public int AccountXP => accountXp;
+        public int AccountLevel => accountLevel;
 
         /// <summary>Resultado de UpdateBests — diz quais records foram batidos.</summary>
         public struct RecordResult
@@ -68,6 +74,9 @@ namespace RailSwitchMVP.Meta
 
         /// <summary>Disparado quando PlayerName muda via SetPlayerName (Fatia 9). UI escuta pra atualizar texts inline.</summary>
         public event System.Action<string> OnPlayerNameChanged;
+
+        /// <summary>Disparado quando AddXP faz o account level subir. Payload = novo nível (Camada 1 da progressão adaptativa).</summary>
+        public event System.Action<int> OnAccountLevelUp;
 
         /// <summary>
         /// Disparado após ApplyRemoteState — sinaliza pra UI "re-leia TUDO do PDM"
@@ -125,6 +134,8 @@ namespace RailSwitchMVP.Meta
             totalRuns    = PlayerPrefs.GetInt(KeyTotalRuns, 0);
             equippedChar = PlayerPrefs.GetInt(KeyEquippedChar, 0);
             playerName   = PlayerPrefs.GetString(KeyPlayerName, "Player");
+            accountXp    = PlayerPrefs.GetInt(KeyAccountXp, 0);
+            accountLevel = ComputeLevelFromXP(accountXp);  // XP é a fonte da verdade; level é derivado
 
             _ownedChars.Clear();
             // Default: char 0 (Runner) sempre owned.
@@ -136,7 +147,7 @@ namespace RailSwitchMVP.Meta
                     _ownedChars.Add(idx);
             }
 
-            Debug.Log($"[PDM] Loaded: coins={coins} bestDist={bestDistance}m runs={totalRuns} equipped={equippedChar} owned=[{string.Join(",", _ownedChars)}]");
+            Debug.Log($"[PDM] Loaded: coins={coins} bestDist={bestDistance}m runs={totalRuns} lvl={accountLevel} xp={accountXp} equipped={equippedChar} owned=[{string.Join(",", _ownedChars)}]");
         }
 
         public void Save()
@@ -149,6 +160,8 @@ namespace RailSwitchMVP.Meta
             PlayerPrefs.SetInt(KeyTotalRuns, totalRuns);
             PlayerPrefs.SetInt(KeyEquippedChar, equippedChar);
             PlayerPrefs.SetString(KeyPlayerName, playerName);
+            PlayerPrefs.SetInt(KeyAccountXp, accountXp);
+            PlayerPrefs.SetInt(KeyAccountLevel, accountLevel);
             PlayerPrefs.SetString(KeyOwnedChars, string.Join(",", _ownedChars));
             PlayerPrefs.Save();
 
@@ -293,6 +306,43 @@ namespace RailSwitchMVP.Meta
             return true;
         }
 
+        // ============ Account Level / XP (Camada 1 — Progressão Adaptativa) ============
+
+        /// <summary>XP necessário pra subir DO nível dado pro próximo. Curva: 100 * level * 1.5.</summary>
+        public static int XpForNextLevel(int level) => Mathf.RoundToInt(100 * level * 1.5f);
+
+        /// <summary>Recalcula o nível a partir do XP total acumulado (nível mínimo 1).</summary>
+        public int ComputeLevelFromXP(int totalXP)
+        {
+            int level = 1;
+            int xpRemaining = Mathf.Max(0, totalXP);
+            while (xpRemaining >= XpForNextLevel(level))
+            {
+                xpRemaining -= XpForNextLevel(level);
+                level++;
+            }
+            return level;
+        }
+
+        /// <summary>
+        /// Soma XP lifetime e recalcula o account level. Persiste (Save) e dispara
+        /// OnAccountLevelUp se o nível subiu. Chamado no fim de cada run. No-op se
+        /// amount <= 0 (não persiste — caller cuida do Save se precisar).
+        /// </summary>
+        public void AddXP(int amount)
+        {
+            if (amount <= 0) return;
+            int prevLevel = accountLevel;
+            accountXp += amount;
+            accountLevel = ComputeLevelFromXP(accountXp);
+            Save();
+            if (accountLevel > prevLevel)
+            {
+                Debug.Log($"[PDM] Account level up: {prevLevel} → {accountLevel} (xp={accountXp})");
+                OnAccountLevelUp?.Invoke(accountLevel);
+            }
+        }
+
         // ============ Characters ============
 
         public bool IsCharacterOwned(int index) => _ownedChars.Contains(index);
@@ -328,6 +378,54 @@ namespace RailSwitchMVP.Meta
             Debug.Log("[PDM] Characters reset (Runner only).");
         }
 
+        /// <summary>XP total acumulado necessário pra ESTAR no nível dado (soma das curvas anteriores).</summary>
+        public int XpRequiredForLevel(int level)
+        {
+            int total = 0;
+            for (int k = 1; k < Mathf.Max(1, level); k++)
+                total += XpForNextLevel(k);
+            return total;
+        }
+
+        /// <summary>
+        /// Debug: define o XP absoluto (clamp >= 0), recalcula o nível, salva e
+        /// dispara OnAccountLevelUp se subiu. Base dos demais helpers de debug.
+        /// Pra testar account level / starting tier adaptativo sem grind.
+        /// </summary>
+        public void DebugSetXP(int totalXp)
+        {
+            int prevLevel = accountLevel;
+            accountXp = Mathf.Max(0, totalXp);
+            accountLevel = ComputeLevelFromXP(accountXp);
+            Save();
+            Debug.Log($"[PDM] DebugSetXP → xp={accountXp} lvl={accountLevel} (era {prevLevel})");
+            if (accountLevel > prevLevel) OnAccountLevelUp?.Invoke(accountLevel);
+        }
+
+        /// <summary>Debug: soma (ou subtrai, se negativo) XP. Clampa em 0.</summary>
+        public void DebugAddXP(int delta) => DebugSetXP(accountXp + delta);
+
+        /// <summary>Debug: pula direto pro XP mínimo do nível dado (nível >= 1).</summary>
+        public void DebugSetLevel(int level) => DebugSetXP(XpRequiredForLevel(level));
+
+        [Header("Debug — XP/Level (use o menu de contexto ⋮ do componente)")]
+        [Tooltip("Valor usado pelos itens 'Add XP' / 'Remove XP' do menu de contexto.")]
+        [SerializeField] private int debugXpAmount = 10000;
+        [Tooltip("Nível usado pelo item 'Set Level' do menu de contexto.")]
+        [SerializeField] private int debugLevelTarget = 20;
+
+        [ContextMenu("Debug/Add XP")]
+        void DebugAddXpFromInspector() => DebugAddXP(debugXpAmount);
+
+        [ContextMenu("Debug/Remove XP")]
+        void DebugRemoveXpFromInspector() => DebugAddXP(-debugXpAmount);
+
+        [ContextMenu("Debug/Set Level")]
+        void DebugSetLevelFromInspector() => DebugSetLevel(debugLevelTarget);
+
+        [ContextMenu("Debug/Reset XP (Level 1)")]
+        void DebugResetXpFromInspector() => DebugSetXP(0);
+
         /// <summary>Apaga todos os dados (debug). Sem confirmação.</summary>
         public void WipeAll()
         {
@@ -339,6 +437,8 @@ namespace RailSwitchMVP.Meta
             totalRuns = 0;
             equippedChar = 0;
             playerName = "Player";
+            accountXp = 0;
+            accountLevel = 1;
             _ownedChars.Clear();
             _ownedChars.Add(0);
 
@@ -350,6 +450,8 @@ namespace RailSwitchMVP.Meta
             PlayerPrefs.DeleteKey(KeyTotalRuns);
             PlayerPrefs.DeleteKey(KeyEquippedChar);
             PlayerPrefs.DeleteKey(KeyPlayerName);
+            PlayerPrefs.DeleteKey(KeyAccountXp);
+            PlayerPrefs.DeleteKey(KeyAccountLevel);
             PlayerPrefs.DeleteKey(KeyOwnedChars);
             PlayerPrefs.Save();
 
