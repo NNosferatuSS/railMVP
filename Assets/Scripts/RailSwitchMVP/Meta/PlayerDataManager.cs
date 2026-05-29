@@ -188,6 +188,8 @@ namespace RailSwitchMVP.Meta
             totalRuns    = s.total_runs;
             equippedChar = s.equipped_char;
             playerName   = string.IsNullOrEmpty(s.player_name) ? "Player" : s.player_name;
+            accountXp    = Mathf.Max(0, s.account_xp);
+            accountLevel = ComputeLevelFromXP(accountXp);  // level derivado do XP
 
             _ownedChars.Clear();
             _ownedChars.Add(0);
@@ -224,6 +226,7 @@ namespace RailSwitchMVP.Meta
             target.equipped_char = equippedChar;
             target.owned_chars   = string.Join(",", _ownedChars);
             target.player_name   = playerName;
+            target.account_xp    = accountXp;
         }
 
         // ============ Coins ============

@@ -27,6 +27,7 @@ namespace RailSwitchMVP.Net
         public int equipped_char;
         public string owned_chars = "0";  // CSV
         public string player_name = "Player";
+        public int account_xp;            // Camada 1 (progressão adaptativa); level é derivado no cliente
 
         // Daily Challenge
         public string daily_today_date;
