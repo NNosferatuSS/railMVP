@@ -21,10 +21,7 @@ MonoBehaviour:
     lanePopulationChance: 0
     rowsAhead: 6
     playerSpeed: 5
-    cameraZoomMin: 12
-    cameraZoomMax: 18
-    cameraOrthoSizeMin: 4
-    cameraOrthoSizeMax: 6
+    cameraZoom: 10
     criticalCoinsMin: 0
     criticalCoinsMax: 2
     decoyCoinsMin: 0
@@ -42,10 +39,7 @@ MonoBehaviour:
     lanePopulationChance: 0.55
     rowsAhead: 8
     playerSpeed: 5
-    cameraZoomMin: 12
-    cameraZoomMax: 18
-    cameraOrthoSizeMin: 5
-    cameraOrthoSizeMax: 7
+    cameraZoom: 12
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -62,11 +56,8 @@ MonoBehaviour:
     criticalPathsPerRow: 1
     lanePopulationChance: 0.55
     rowsAhead: 10
-    playerSpeed: 7
-    cameraZoomMin: 13
-    cameraZoomMax: 20
-    cameraOrthoSizeMin: 5
-    cameraOrthoSizeMax: 8
+    playerSpeed: 9
+    cameraZoom: 15
     criticalCoinsMin: 4
     criticalCoinsMax: 4
     decoyCoinsMin: 0
@@ -84,10 +75,7 @@ MonoBehaviour:
     lanePopulationChance: 0.5
     rowsAhead: 14
     playerSpeed: 14
-    cameraZoomMin: 17
-    cameraZoomMax: 24
-    cameraOrthoSizeMin: 6
-    cameraOrthoSizeMax: 9
+    cameraZoom: 11
     criticalCoinsMin: 4
     criticalCoinsMax: 4
     decoyCoinsMin: 0
@@ -105,10 +93,7 @@ MonoBehaviour:
     lanePopulationChance: 0.5
     rowsAhead: 16
     playerSpeed: 16
-    cameraZoomMin: 19
-    cameraZoomMax: 26
-    cameraOrthoSizeMin: 7
-    cameraOrthoSizeMax: 10
+    cameraZoom: 13
     criticalCoinsMin: 5
     criticalCoinsMax: 5
     decoyCoinsMin: 0
@@ -126,10 +111,7 @@ MonoBehaviour:
     lanePopulationChance: 0.45
     rowsAhead: 18
     playerSpeed: 18
-    cameraZoomMin: 21
-    cameraZoomMax: 28
-    cameraOrthoSizeMin: 8
-    cameraOrthoSizeMax: 12
+    cameraZoom: 15
     criticalCoinsMin: 5
     criticalCoinsMax: 5
     decoyCoinsMin: 0

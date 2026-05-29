@@ -80,3 +80,4 @@ desktop.ini
 *.swp
 *.swo
 *~
+.utmp
