@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-28 — **Sessão de difficulty tools.** `DifficultyTierDrawer`: foldouts com label `Tier N — X m | speed Y | A-B/row | pop Z%` no Inspector. Tier Lock (F3 configurável): trava no tier atual ao pressionar, destrava voltando ao auto-advance por distância; HUD exibe `tierText` em vermelho quando travado. `rowsAhead` por tier em `DifficultyTier` — RailManager usa tier > config como fallback; SpawnOverride ainda tem prioridade máxima. Defaults 6→18 rows no asset. Anterior: **Sessão de tuning tools.** Slot System (Slices 1+2) implementado: coins/hazards/power-ups num grid de slots discretos (default 5), coin spawner skipa reservados pra stride uniforme, coin count vira range `[min, max]` por tier. + `CoinPlacement` enum (UniformGrid/RandomFree, default RandomFree). + `PlayerCameraRig.followLateral` toggle (default false — câmera não segue lateralmente, experimento). + `DifficultyManager.CurrentTier` lê live do SO no Editor (`#if UNITY_EDITOR`) pra que edits no Inspector propaguem sem precisar transição de tier. + arquivos `HazardPool`/`PowerUpPool`/`IValidatedConfig`/`ValidatedConfigInspector` finalmente commitados (commit anterior `c139450` referenciava mas tinha esquecido os .cs). Detalhes em `Docs/SlotSystem_Refactor.md`. Anterior: Fatia 5 — Rewarded Ads ✅ VALIDADA.
+**Última atualização:** 2026-05-29 — **Progressão Adaptativa** (`Docs/RailSwitch_AdaptiveProgression.md`). Camada 1 (speed floor por account level), rework de câmera (mira no player, zoom único por tier, ortho removida) e Camada 3 (revive/continue após morte) — validadas e pushadas (commits `f74ac78`, `b314299`, `235549f`). **Pendente:** XP→Supabase, Camada 2 (head start), polish UI Camada 3. Anterior (2026-05-28): **Sessão de difficulty tools.** `DifficultyTierDrawer`: foldouts com label `Tier N — X m | speed Y | A-B/row | pop Z%` no Inspector. Tier Lock (F3 configurável): trava no tier atual ao pressionar, destrava voltando ao auto-advance por distância; HUD exibe `tierText` em vermelho quando travado. `rowsAhead` por tier em `DifficultyTier` — RailManager usa tier > config como fallback; SpawnOverride ainda tem prioridade máxima. Defaults 6→18 rows no asset. Anterior: **Sessão de tuning tools.** Slot System (Slices 1+2) implementado: coins/hazards/power-ups num grid de slots discretos (default 5), coin spawner skipa reservados pra stride uniforme, coin count vira range `[min, max]` por tier. + `CoinPlacement` enum (UniformGrid/RandomFree, default RandomFree). + `PlayerCameraRig.followLateral` toggle (default false — câmera não segue lateralmente, experimento). + `DifficultyManager.CurrentTier` lê live do SO no Editor (`#if UNITY_EDITOR`) pra que edits no Inspector propaguem sem precisar transição de tier. + arquivos `HazardPool`/`PowerUpPool`/`IValidatedConfig`/`ValidatedConfigInspector` finalmente commitados (commit anterior `c139450` referenciava mas tinha esquecido os .cs). Detalhes em `Docs/SlotSystem_Refactor.md`. Anterior: Fatia 5 — Rewarded Ads ✅ VALIDADA.
 **Engine:** Unity 6000.4.7f1 (6.4 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -14,9 +14,49 @@
 
 ## 🟢 Próxima sessão: começe AQUI
 
-**Estado: gameplay completo (MVP1+MVP2+pós-MVP2 todo) + meta-game (Fatias 1-5).
-Iteração ATUAL: refactor do sistema de spawn (slot system) pra dar granularidade
-de balanço.**
+**Estado: gameplay completo + meta-game + PROGRESSÃO ADAPTATIVA Camadas 1 e 3 +
+rework de câmera (validadas/pushadas 2026-05-29). Próximo: XP→Supabase, depois
+Camada 2 (head start) + polish UI Camada 3.**
+
+### ✅ Progressão Adaptativa — Camadas 1 e 3 + câmera (2026-05-29)
+
+Spec em `Docs/RailSwitch_AdaptiveProgression.md` (3 camadas; objetivo: matar o
+"re-onboarding tax" — veterano não recomeça sempre do tier lento e fácil).
+
+- ✅ **Camada 1 — Speed Floor por account level** (`f74ac78`). XP/level no
+  `PlayerDataManager` (`AddXP`/`ComputeLevelFromXP`/`XpForNextLevel` + debug L/K/J),
+  `StartingTierRule`+`GetStartingTierIndex` no DifficultyConfig, rampa de starting tier
+  pós-warmup no DifficultyManager (1º degrau imediato; ao atingir o piso, adianta a
+  distância pro trigger). `+XP`/`LEVEL UP` no GameOver, `Lv. N` na Home. XP por run =
+  `floor(dist/10)+coins+missões*50`. Fix: distância do warmup não conta mais no score.
+- ✅ **Rework de câmera** (`f74ac78`). `PlayerCameraRig` mira no player (player travado
+  na tela em qualquer zoom/tier); zoom = distância única por tier
+  (`DifficultyTier.cameraZoom`); `cameraLookAhead` virou fator de compensação (offset
+  escala com o zoom); **ortográfica removida**.
+- ✅ **Camada 3 — Continue após Morte (revive)** (`235549f`). `ReviveController`
+  intercepta o game over (`GameManager.TryOfferContinue`/`ConfirmGameOver`), overlay
+  ad/coins + countdown; revive recua metros pro critical path + grace de invencibilidade
+  (cobre letal/dead-end/oob). `ReviveConfig` SO. Setup: `Docs/Revive_Camada3_Setup.md`.
+
+### ⏳ Próximos passos (ordem combinada)
+
+1. **XP / account level → Supabase.** Hoje é LOCAL-ONLY (`PlayerRemoteState` sem
+   `account_xp`). Falta: coluna `account_xp` em `public.players` (SQL); campo no
+   `PlayerRemoteState`; incluir em `CopyToRemoteState` (push) + `ApplyRemoteState`
+   (pull); recalcular level pós-pull (last-write-wins, igual coins).
+2. **Camada 2 — Head Start.** Pular pra tier mais alto antes do run (coins/ad),
+   desbloqueio por best distance ≥ 500. `HeadStartController` + UI pré-run.
+   `DifficultyManager.StartRunWithAdaptiveTier(level, headStartOverride)` já aceita o override.
+3. **Polish de UI da Camada 3.** Fade/scale do overlay, animação do countdown,
+   feedback visual do grace (player piscar).
+
+> ⚠️ **Pré-launch:** `AdsManager.useMockAds` está **true** (backend sem inventory) —
+> desligar mock + `testMode` antes de build de produção. Ver `Docs/Pre_Launch_Checklist.md`.
+
+---
+
+_As seções abaixo são de sessões anteriores — setup/validação no Unity ainda pendente
+em alguns itens (slot system, mobile input, `_SpawnOverride`)._
 
 ### Slot System — Slices 1 + 2 ⏳ implementados 2026-05-28, falta validar
 

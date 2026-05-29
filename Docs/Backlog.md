@@ -8,6 +8,35 @@
 
 ---
 
+## Progressão Adaptativa — Camada 2 (Head Start) [ADIADA 2026-05-29]
+
+Terceira e última camada da spec `Docs/RailSwitch_AdaptiveProgression.md`. Camadas 1
+(speed floor) e 3 (revive) já FEITAS. Camada 2 adiada a pedido do user — não é
+prioridade agora.
+
+**O que é:** opção *paga e opcional* (antes do run) de começar num tier **mais alto**
+que o piso natural da Camada 1, com coins ou rewarded ad. Dá agência ao veterano +
+sink de coins / receita.
+
+**Regras (spec §2):**
+- Desbloqueio: só aparece com `best_distance >= 500` (configurável) — protege o novato.
+- Opções: **+1 tier** (200 coins OU 1 ad) / **+2 tiers** (500 coins, sem ad).
+- Respeita o teto seguro da Camada 1 (nunca o último tier).
+
+**O que falta implementar:**
+- `HeadStartController` (Meta/) + UI pré-run (opções +1/+2, custos, botão ad).
+- Desbloqueio por best distance; debitar coins / disparar ad.
+- **Já pronto:** `DifficultyManager.StartRunWithAdaptiveTier(level, headStartOverride)`
+  aceita o override. Falta só calcular o tier escolhido e passá-lo.
+
+**Decisão de arquitetura pendente:** o Head Start é escolhido na Home, mas o
+DifficultyManager vive na GameScene (recriado por cena). O tier escolhido precisa
+atravessar Home→Game (static var ou manager DontDestroyOnLoad).
+
+**Esforço estimado:** ~1 sessão (lógica + UI + wiring).
+
+---
+
 ## Tutorial — Contextual Hints (alternativa ao single-step da Fatia 10)
 
 **Premissa:** atual Fatia 10 mostra 1 overlay genérico no início da 1ª run.
