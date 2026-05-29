@@ -23,6 +23,8 @@ namespace RailSwitchMVP.Core
         // PostMVP2.5 — debuffs (obstáculos não-letais):
         SpeedUpDebuff,
         LaneSwapDebuff,
+        // Caixa surpresa: ao coletar, concede um power-up aleatório do pool do tier.
+        MysteryBox,
     }
 
     /// <summary>
@@ -266,6 +268,31 @@ namespace RailSwitchMVP.Core
             Debug.Log($"[PowerUpManager] +LaneSwapDebuff (tiles={laneSwapDebuffTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.LaneSwapDebuff);
             OnPowerUpTick?.Invoke(PowerUpType.LaneSwapDebuff, laneSwapDebuffTilesRemaining);
+        }
+
+        /// <summary>
+        /// Concede um power-up pelo tipo, com a duração default de cada um. Usado
+        /// pela caixa surpresa (MysteryBox) pra conceder o tipo sorteado. Debuffs e
+        /// MysteryBox não são concedíveis aqui (debuffs vêm de hazards).
+        /// </summary>
+        public void GrantByType(PowerUpType type)
+        {
+            switch (type)
+            {
+                case PowerUpType.Shield:             GrantShield(); break;
+                case PowerUpType.SlowDown:           GrantSlowDown(slowDownDefaultTiles); break;
+                case PowerUpType.Magnet:             GrantMagnet(magnetDefaultTiles); break;
+                case PowerUpType.DifficultyReset:    GrantDifficultyReset(); break;
+                case PowerUpType.DoubleCoins:        GrantDoubleCoins(doubleCoinsDefaultTiles); break;
+                case PowerUpType.Ghost:              GrantGhost(ghostDefaultTiles); break;
+                case PowerUpType.LanePreview:        GrantLanePreview(lanePreviewDefaultTiles); break;
+                case PowerUpType.CoinRadar:          GrantCoinRadar(coinRadarDefaultTiles); break;
+                case PowerUpType.Teleport:           GrantTeleport(teleportDefaultTiles); break;
+                case PowerUpType.AutoCriticalFollow: GrantAutoCriticalFollow(autoCriticalFollowDefaultTiles); break;
+                default:
+                    Debug.LogWarning($"[PowerUpManager] GrantByType: tipo {type} não concedível (debuff/mystery). Ignorado.");
+                    break;
+            }
         }
 
         /// <summary>

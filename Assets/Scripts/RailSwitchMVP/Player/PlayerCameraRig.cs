@@ -229,6 +229,48 @@ namespace RailSwitchMVP.Player
 
         // ============ Death cam ============
 
+        // ============ Shield impact slow-mo ============
+
+        Coroutine _impactCo;
+
+        /// <summary>
+        /// Slow-mo breve e reversível de impacto — chamado quando o Shield absorve
+        /// uma barreira que mataria o player. Dá peso ao "ufa, escapei". timeScale
+        /// mergulha pra shieldImpactSlowMo e faz lerp de volta a 1. Acompanha um
+        /// shake médio. Não atropela o game over (se já morreu, não faz nada).
+        /// </summary>
+        public void ImpactSlowmo()
+        {
+            if (config == null) return;
+            if (GameManager.Instance != null && !GameManager.Instance.IsActive) return;
+            if (_impactCo != null) StopCoroutine(_impactCo);
+            _impactCo = StartCoroutine(ImpactSlowmoRoutine());
+            ShakeMedium();
+        }
+
+        IEnumerator ImpactSlowmoRoutine()
+        {
+            float scale = Mathf.Clamp(config.shieldImpactSlowMo, 0.05f, 1f);
+            float dur = Mathf.Max(0.05f, config.shieldImpactDuration);
+            float hold = dur * 0.35f;
+            float recover = dur - hold;
+
+            Time.timeScale = scale;
+            yield return new WaitForSecondsRealtime(hold);
+
+            float t = 0f;
+            while (t < recover)
+            {
+                // Se um game over começou no meio, deixa a death cam controlar o timeScale.
+                if (GameManager.Instance != null && !GameManager.Instance.IsActive) { _impactCo = null; yield break; }
+                t += Time.unscaledDeltaTime;
+                Time.timeScale = Mathf.Lerp(scale, 1f, recover > 0f ? t / recover : 1f);
+                yield return null;
+            }
+            Time.timeScale = 1f;
+            _impactCo = null;
+        }
+
         IEnumerator DeathCamSequence()
         {
             if (_deathSequenceRunning) yield break;

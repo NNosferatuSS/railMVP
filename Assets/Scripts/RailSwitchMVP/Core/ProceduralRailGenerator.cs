@@ -479,12 +479,18 @@ namespace RailSwitchMVP.Core
                 // Slice 2: count é sample em [min, max] por tile.
                 if (!isWarmupRow && tile.Coins != null)
                 {
-                    int coinMin = tile.IsOnCriticalPath ? tier.criticalCoinsMin : tier.decoyCoinsMin;
-                    int coinMax = tile.IsOnCriticalPath ? tier.criticalCoinsMax : tier.decoyCoinsMax;
-                    if (coinMax < coinMin) coinMax = coinMin;
-                    int coinCount = coinMin == coinMax ? coinMin : Random.Range(coinMin, coinMax + 1);
-                    if (coinCount > 0)
-                        tile.Coins.Spawn(coinCount, totalSlots, slotPadding, reservedSlots, config.coinSlotStrategy);
+                    // Decoy passa por uma chance configurável de receber coins (controle
+                    // granular por tier). Critical path sempre recebe.
+                    bool decoySkipsCoins = !tile.IsOnCriticalPath && Random.value >= tier.decoyCoinChance;
+                    if (!decoySkipsCoins)
+                    {
+                        int coinMin = tile.IsOnCriticalPath ? tier.criticalCoinsMin : tier.decoyCoinsMin;
+                        int coinMax = tile.IsOnCriticalPath ? tier.criticalCoinsMax : tier.decoyCoinsMax;
+                        if (coinMax < coinMin) coinMax = coinMin;
+                        int coinCount = coinMin == coinMax ? coinMin : Random.Range(coinMin, coinMax + 1);
+                        if (coinCount > 0)
+                            tile.Coins.Spawn(coinCount, totalSlots, slotPadding, reservedSlots, config.coinSlotStrategy);
+                    }
                 }
 
                 row.Tiles[L] = tile;

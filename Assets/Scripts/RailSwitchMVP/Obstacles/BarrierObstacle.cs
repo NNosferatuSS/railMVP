@@ -1,5 +1,6 @@
 using UnityEngine;
 using RailSwitchMVP.Core;
+using RailSwitchMVP.Player;
 
 namespace RailSwitchMVP.Obstacles
 {
@@ -18,6 +19,9 @@ namespace RailSwitchMVP.Obstacles
         {
             if (PowerUpManager.Instance != null && PowerUpManager.Instance.ConsumeShield())
             {
+                // Shield salvou o player — slow-mo de impacto pra dar peso ao momento.
+                if (PlayerCameraRig.Instance != null)
+                    PlayerCameraRig.Instance.ImpactSlowmo();
                 Destroy(gameObject);
                 return;
             }

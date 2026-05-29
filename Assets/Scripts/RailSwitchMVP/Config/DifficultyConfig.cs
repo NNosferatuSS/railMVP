@@ -91,6 +91,12 @@ namespace RailSwitchMVP.Config
         [Tooltip("Máximo de moedas em cada tile decoy (inclusivo).")]
         public int decoyCoinsMax;
 
+        [Range(0f, 1f)]
+        [Tooltip("Probabilidade de um tile DECOY receber moedas (controle granular por tier). " +
+            "1 = todo decoy recebe (comportamento antigo); 0 = decoys nunca recebem. Critical path " +
+            "sempre recebe. ATENÇÃO: vem 0 por default ao adicionar o campo — setar nos tiers!")]
+        public float decoyCoinChance;
+
         [Header("Hazards")]
         [Range(0f, 1f)]
         [Tooltip("Probabilidade de um tile DECOY receber QUALQUER hazard. " +

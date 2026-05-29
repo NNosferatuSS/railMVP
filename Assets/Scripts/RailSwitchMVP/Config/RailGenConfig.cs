@@ -152,6 +152,15 @@ namespace RailSwitchMVP.Config
         [Range(-30f, 30f)]
         public float deathCamTiltDelta = 5f;
 
+        [Header("Camera — Shield impact slow-mo")]
+        [Tooltip("timeScale no pico do slow-mo quando o Shield absorve uma barreira. Menor = mais lento/dramático.")]
+        [Range(0.05f, 1f)]
+        public float shieldImpactSlowMo = 0.35f;
+
+        [Tooltip("Duração total (segundos REAIS) do slow-mo de impacto do Shield: segura um instante e faz lerp de volta a 1.")]
+        [Range(0.05f, 2f)]
+        public float shieldImpactDuration = 0.45f;
+
         [Header("Debug")]
         [Tooltip("Desenhar Gizmos do critical path no editor")]
         public bool debugDrawCriticalPath = true;
