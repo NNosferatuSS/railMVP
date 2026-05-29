@@ -6,6 +6,40 @@
 
 ---
 
+## ✅ Investigação da API Supabase (2026-05-29 — viabilidade confirmada)
+
+Resolve a **Open Question #1** (no fim deste doc). Resumo do que a investigação achou:
+
+- **Viável:** dá pra linkar uma identidade OAuth (Google) a um user **anônimo** via
+  `linkIdentity` — e, crucial pra mobile/Unity, **com ID token nativo** (sem redirect de
+  browser): `supabase.auth.linkIdentity({ provider: 'google', token: idToken, access_token })`
+  (a.k.a. `linkIdentityWithIdToken`). Suporte a idToken no link foi adicionado no
+  **supabase-js v2.78.0**. O `user_id` é preservado (linka ao anon, não cria novo).
+- **⚠️ Pré-requisito NOVO (a spec não enfatizava):** **"Enable Manual Linking"** tem que
+  estar ligado no dashboard do Supabase (Authentication → settings; self-host:
+  `GOTRUE_SECURITY_MANUAL_LINKING_ENABLED=true`). Sem isso, `linkIdentity` falha. Entra na
+  Fase 0 (setup), junto com habilitar o provider Google.
+- **⚠️ Armadilha do nonce (Google id_token):** known issue do GoTrue — ele hasheia o nonce
+  (SHA-256 hex) e compara com o do id_token, mas o id_token do Google não traz nonce
+  hasheado e o Google não exige nonce no fluxo de id_token. Tende a dar "nonces mismatch".
+  Mitigação usual: **omitir o nonce**. Tratar com cuidado na implementação.
+- **⚠️ Unlink exige ≥ 2 identidades:** `unlinkIdentity` só funciona se o user tiver pelo
+  menos 2 identidades linkadas. Um user anon+Google pode ter só a identidade Google →
+  **talvez não dê pra "Desvincular Google"** (ficaria sem identidade). Validar; a UI de
+  Desvincular pode precisar ser condicional ou não-oferecida nesse caso.
+- **Cliente Unity é REST cru** (não usa supabase-js): o `signInWithIdToken` mapeia pra
+  `POST /auth/v1/token?grant_type=id_token` (com `provider`, `id_token`, `nonce`). O
+  endpoint REST exato do **link com id_token** NÃO está na doc pública — **confirmar no
+  source do auth-js (`GoTrueClient._linkIdentity`) v2.78+ ou no GoTrue** na hora de codar.
+
+Fontes: [Identity Linking](https://supabase.com/docs/guides/auth/auth-identity-linking),
+[Anonymous Sign-Ins](https://supabase.com/docs/guides/auth/auth-anonymous),
+[Sign in with ID token](https://supabase.com/docs/reference/javascript/auth-signinwithidtoken),
+[linkIdentity ref](https://supabase.com/docs/reference/javascript/auth-linkidentity),
+[GoTrue nonce issue #412](https://github.com/supabase/auth/issues/412).
+
+---
+
 ## Problema
 
 Anon Auth atual cria um `user_id` UUID único **por device/instalação**. Consequências:
