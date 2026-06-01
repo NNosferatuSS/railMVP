@@ -30,7 +30,10 @@ namespace RailSwitchMVP.PowerUps
         PowerUpType PickType()
         {
             var dm = DifficultyManager.Instance;
-            var pool = dm != null ? dm.CurrentTier.powerUpPool : null;
+            // Pool DEDICADO da Mystery Box (controle de quais power-ups podem sair).
+            // Fallback: se não setado, usa o powerUpPool normal do tier.
+            var pool = dm != null ? dm.CurrentTier.mysteryBoxPool : null;
+            if (pool == null) pool = dm != null ? dm.CurrentTier.powerUpPool : null;
 
             if (pool == null || pool.entries == null || pool.entries.Count == 0)
                 return Fallback[Random.Range(0, Fallback.Length)];

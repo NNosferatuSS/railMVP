@@ -4939,6 +4939,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0
     powerUpChanceOnDecoy: 0
     powerUpPool: {fileID: 0}
+    mysteryBoxPool: {fileID: 0}
 --- !u!4 &995310518
 Transform:
   m_ObjectHideFlags: 0

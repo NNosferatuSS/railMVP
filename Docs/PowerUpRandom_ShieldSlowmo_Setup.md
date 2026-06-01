@@ -6,12 +6,15 @@ Três features implementadas em 2026-05-29. Código pronto; aqui o wiring/tuning
 
 ## 1. Power-up Random (Mystery Box) 🎁
 
-Pickup "? box" que, ao coletar, **sorteia um power-up aleatório do pool do tier atual**
-(ponderado) e concede. Exclui a própria MysteryBox e os debuffs do sorteio. O feedback de
-qual saiu vem dos indicadores normais do HUD.
+Pickup "? box" que, ao coletar, **sorteia um power-up aleatório** (ponderado) e concede.
+Exclui a própria MysteryBox e os debuffs do sorteio. O feedback de qual saiu vem dos
+indicadores normais do HUD.
+
+**De onde sai o conteúdo:** do **`mysteryBoxPool` dedicado** do tier (você escolhe o que
+pode sair); se esse campo estiver vazio, cai no `powerUpPool` normal do tier.
 
 **Código (pronto):** `PowerUpType.MysteryBox` (enum), `PowerUpManager.GrantByType(type)`,
-`MysteryBoxPickup : PowerUpBase`.
+`MysteryBoxPickup : PowerUpBase`, `DifficultyTier.mysteryBoxPool`.
 
 **Wiring no Unity:**
 1. **Criar o prefab** `Prefab_MysteryBox` (espelhe um pickup existente tipo
@@ -19,8 +22,16 @@ qual saiu vem dos indicadores normais do HUD.
    componente **MysteryBoxPickup**. Tag não importa (o trigger checa a tag do player).
 2. **Registrar no gerador:** no `ProceduralRailGenerator` (componente na cena), no array
    **Power Up Prefabs**, adicione um binding: `Type = MysteryBox`, `Prefab = Prefab_MysteryBox`.
-3. **Adicionar ao pool:** nos `PowerUpPool` (SO) dos tiers onde quer que apareça, adicione
-   uma entrada `MysteryBox` com um peso (ex 1–2). Ele compete com os outros power-ups.
+3. **Fazer a caixa SPAWNAR:** nos `PowerUpPool` (SO) dos tiers onde quer que ela apareça,
+   adicione uma entrada `MysteryBox` com um peso (ex 1–2). Compete com os outros power-ups.
+4. **Escolher o CONTEÚDO da caixa (controle):** crie um `PowerUpPool`
+   (Create → RailSwitchMVP → PowerUp Pool), ex `PowerUpPool_MysteryBox`, com **só os tipos
+   que você quer que saiam** + pesos. Arraste-o no campo **Mystery Box Pool** de cada tier
+   (o mesmo SO em todos = controle global; SOs diferentes = varia por tier). Deixar vazio =
+   a caixa usa o `powerUpPool` normal do tier.
+
+> Importante: **não** coloque `MysteryBox` dentro do `mysteryBoxPool` (já é filtrada no
+> sorteio, mas evite confusão). Debuffs também são ignorados se aparecerem.
 
 **Testar:** num tier com MysteryBox no pool, colete a caixinha → um power-up aleatório do
 pool é concedido (aparece no HUD). Repita — deve variar.
