@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using RailSwitchMVP.Meta;
+using RailSwitchMVP.Economy;
 
 namespace RailSwitchMVP.Net
 {
@@ -85,6 +86,9 @@ namespace RailSwitchMVP.Net
 
             var daily = DailyChallengeManager.Instance;
             if (daily != null) daily.OnDataChanged += HandleLocalDataChanged;
+
+            var currency = CurrencyManager.Instance;
+            if (currency != null) currency.OnDataChanged += HandleLocalDataChanged;
 
             // Se auth já estava pronta antes do nosso Start (ordem dos Awake na cena),
             // dispara o handler manualmente — eventos perdidos.
@@ -206,6 +210,8 @@ namespace RailSwitchMVP.Net
             if (pdm != null) pdm.ApplyRemoteState(row);
             var daily = DailyChallengeManager.Instance;
             if (daily != null) daily.ApplyRemoteState(row);
+            var currency = CurrencyManager.Instance;
+            if (currency != null) currency.ApplyRemoteState(row);
         }
 
         // ============ Push ============
@@ -226,6 +232,8 @@ namespace RailSwitchMVP.Net
             if (pdm != null) pdm.CopyToRemoteState(state);
             var daily = DailyChallengeManager.Instance;
             if (daily != null) daily.CopyToRemoteState(state);
+            var currency = CurrencyManager.Instance;
+            if (currency != null) currency.CopyToRemoteState(state);
 
             string json = JsonUtility.ToJson(state);
             // updated_at é mantido pelo trigger server-side — remove do payload

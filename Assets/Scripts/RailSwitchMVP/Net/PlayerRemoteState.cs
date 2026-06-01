@@ -28,6 +28,7 @@ namespace RailSwitchMVP.Net
         public string owned_chars = "0";  // CSV
         public string player_name = "Player";
         public int account_xp;            // Camada 1 (progressão adaptativa); level é derivado no cliente
+        public int gems;                  // Currency premium (CurrencyManager é a fonte; coins vão pelos campos do PDM)
 
         // Daily Challenge
         public string daily_today_date;
