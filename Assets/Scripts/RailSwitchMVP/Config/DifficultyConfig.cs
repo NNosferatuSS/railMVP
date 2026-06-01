@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Sirenix.OdinInspector;
 using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.Config
@@ -75,6 +76,22 @@ namespace RailSwitchMVP.Config
             "Maior = mais longe (zoom out), menor = mais perto (zoom in). Valor único por tier; " +
             "a câmera sempre olha pro foco, então mudar o zoom NÃO desloca o player na tela.")]
         public float cameraZoom;
+
+        [Tooltip("Se true, este tier SOBRESCREVE o tilt e o FOV globais do RailGenConfig " +
+            "(pra tunar o ângulo/lente da câmera por dificuldade). False = usa os globais.")]
+        public bool overrideCameraAngle;
+
+        [ShowIf(nameof(overrideCameraAngle))]
+        [Range(0f, 90f)]
+        [Tooltip("Inclinação da câmera em graus deste tier (0 = top-down, 90 = lateral). " +
+            "Só aplicado se overrideCameraAngle = true.")]
+        public float cameraTilt;
+
+        [ShowIf(nameof(overrideCameraAngle))]
+        [Range(20f, 100f)]
+        [Tooltip("Campo de visão / FOV deste tier (60 = default). Menor = lente tele/zoom; " +
+            "maior = grande angular. Só aplicado se overrideCameraAngle = true.")]
+        public float cameraFieldOfView;
 
         [Header("Coins")]
         [Tooltip("Mínimo de moedas em cada tile do critical path. Sample uniforme em [min, max+1).")]

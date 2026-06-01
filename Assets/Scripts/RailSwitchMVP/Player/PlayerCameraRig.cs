@@ -144,13 +144,18 @@ namespace RailSwitchMVP.Player
             float targetZoom = tier.cameraZoom * globalZoom;
             currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * config.cameraZoomSpeed);
 
+            // Tilt e FOV: globais do RailGenConfig por padrão; o tier pode sobrescrever
+            // (overrideCameraAngle) pra tunar ângulo/lente por dificuldade.
+            float baseTilt = tier.overrideCameraAngle ? tier.cameraTilt : config.cameraTilt;
+            float fov      = tier.overrideCameraAngle ? tier.cameraFieldOfView : config.cameraFieldOfView;
+
             // Death cam: aproxima (reduz zoom) e aumenta o tilt.
             float effectiveZoom = Mathf.Max(0.1f, currentZoom - config.deathCamZoomDelta * _deathCamFactor);
-            float effectiveTilt = config.cameraTilt + config.deathCamTiltDelta * _deathCamFactor;
+            float effectiveTilt = baseTilt + config.deathCamTiltDelta * _deathCamFactor;
 
-            // FOV fixo (perspective).
-            if (_cam != null && !Mathf.Approximately(_cam.fieldOfView, config.cameraFieldOfView))
-                _cam.fieldOfView = config.cameraFieldOfView;
+            // FOV (perspective) — por tier se override, senão global.
+            if (_cam != null && !Mathf.Approximately(_cam.fieldOfView, fov))
+                _cam.fieldOfView = fov;
 
             Quaternion rot = Quaternion.Euler(effectiveTilt, 0f, 0f);
             Vector3 viewDir = rot * Vector3.forward;
