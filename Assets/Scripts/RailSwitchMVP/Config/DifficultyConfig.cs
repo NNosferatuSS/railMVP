@@ -121,6 +121,11 @@ namespace RailSwitchMVP.Config
         [Tooltip("PowerUpPool SO com tipos elegíveis e pesos. Pode ser compartilhado " +
             "entre tiers. Null = sem power-ups neste tier.")]
         public PowerUpPool powerUpPool;
+
+        [Tooltip("Pool DEDICADO da Mystery Box (caixa surpresa): quais power-ups podem sair " +
+            "dela e com que peso. Pode ser um SO compartilhado entre tiers (controle global) " +
+            "ou um por tier (varia). Null = a Mystery Box cai no powerUpPool normal do tier.")]
+        public PowerUpPool mysteryBoxPool;
     }
 
     /// <summary>
