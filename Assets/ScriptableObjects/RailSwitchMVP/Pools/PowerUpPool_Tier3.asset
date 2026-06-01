@@ -11,11 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4b5c6d7e8f900112233445566778899, type: 3}
   m_Name: PowerUpPool_Tier3
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   entries:
-  - {type: 0, weight: 1}
-  - {type: 2, weight: 1}
-  - {type: 1, weight: 1}
-  - {type: 4, weight: 0.5}
-  - {type: 5, weight: 0.7}
-  - {type: 6, weight: 0.7}
+  - type: 0
+    weight: 1
+  - type: 2
+    weight: 1
+  - type: 4
+    weight: 0.5
+  - type: 5
+    weight: 0.7
+  - type: 6
+    weight: 0.7

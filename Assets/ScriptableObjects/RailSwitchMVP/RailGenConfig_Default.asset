@@ -25,7 +25,7 @@ MonoBehaviour:
   warmupSpeedMultiplier: 0.8
   rowsAhead: 3
   rowsBehind: 2
-  cameraTilt: 75
+  cameraTilt: 80
   cameraLookAhead: 0.35
   cameraFieldOfView: 48
   cameraZoomSpeed: 8
