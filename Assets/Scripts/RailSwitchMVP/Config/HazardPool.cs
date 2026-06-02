@@ -22,6 +22,59 @@ namespace RailSwitchMVP.Config
 
         public int Count => entries == null ? 0 : entries.Count;
 
+        /// <summary>
+        /// Descrição central do que cada hazard faz. Fonte única — usada pelo
+        /// InfoBox do editor (e disponível pra qualquer outra UI).
+        /// </summary>
+        public static string Describe(HazardKind kind)
+        {
+            switch (kind)
+            {
+                case HazardKind.Lethal:
+                    return "Lethal — mata na hora. Shield NÃO salva; só dá pra desviar pelo switch.";
+                case HazardKind.Barrier:
+                    return "Barrier — bloqueia. Com Shield: absorve 1 carga e passa. Sem Shield: Game Over.";
+                case HazardKind.SpeedUp:
+                    return "SpeedUp — acelera o player (~1.5x) por ~6 tiles. Não mata; reduz o tempo de reação.";
+                case HazardKind.LaneSwap:
+                    return "LaneSwap — inverte os controles ←/→ por ~2 tiles. Não mata; trap mental.";
+                case HazardKind.Vortex:
+                    return "Vortex — rouba sua escolha de switch (te empurra pra outra lane válida). Não mata.";
+                case HazardKind.None:
+                    return "None — nenhum hazard (não usar no pool).";
+                default:
+                    return kind.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Texto (multi-linha) listando o que cada hazard presente no pool faz.
+        /// Usado pelo InfoBox do Inspector normal (ValidatedConfigInspector) e
+        /// pelo [OnInspectorGUI] do Odin (Control Panel). null = pool vazio.
+        /// </summary>
+        public string GetEntriesInfo()
+        {
+            if (entries == null || entries.Count == 0) return null;
+            var seen = new HashSet<HazardKind>();
+            var sb = new System.Text.StringBuilder("O que cada hazard deste pool faz:\n");
+            foreach (var e in entries)
+                if (seen.Add(e.kind))
+                    sb.AppendLine("• " + Describe(e.kind));
+            return sb.ToString().TrimEnd();
+        }
+
+#if UNITY_EDITOR
+        // InfoBox no Control Panel / Odin (que processa [OnInspectorGUI]).
+        // PropertyOrder alto = depois da lista de entries.
+        [Sirenix.OdinInspector.OnInspectorGUI, Sirenix.OdinInspector.PropertyOrder(100)]
+        void DrawHazardDescriptions()
+        {
+            var info = GetEntriesInfo();
+            if (!string.IsNullOrEmpty(info))
+                UnityEditor.EditorGUILayout.HelpBox(info, UnityEditor.MessageType.Info);
+        }
+#endif
+
         public string GetValidationWarnings()
         {
             if (entries == null || entries.Count == 0)

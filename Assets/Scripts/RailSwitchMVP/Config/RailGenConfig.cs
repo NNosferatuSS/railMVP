@@ -75,6 +75,21 @@ namespace RailSwitchMVP.Config
             "RandomFree = N slots livres sorteados a cada tile — variação visual.")]
         public CoinPlacement coinSlotStrategy = CoinPlacement.RandomFree;
 
+        [Header("Power-up spawn gating")]
+        [Tooltip("Gap GLOBAL em rows entre power-ups: após QUALQUER power-up spawnar, " +
+            "as próximas N rows não recebem nenhum power-up (evita power-up em rows " +
+            "seguidas). 0 = sem gap. Vale por cima do cooldown por tipo (PowerUpPool).")]
+        [Min(0)]
+        public int powerUpMinRowGap = 3;
+
+        [Header("Hazard spawn gating")]
+        [Tooltip("Gap GLOBAL em rows entre hazards: após QUALQUER hazard spawnar, " +
+            "as próximas N rows não recebem nenhum hazard. 0 = sem gap (comportamento " +
+            "atual). CUIDADO: valores altos deixam o jogo mais fácil. Vale por cima do " +
+            "cooldown por tipo (HazardPool).")]
+        [Min(0)]
+        public int hazardMinRowGap = 0;
+
         [Header("Warmup (Idea 1)")]
         [Tooltip("Quantas rows iniciais são warmup (single lane, sem hazards/coins/power-ups). " +
             "Player atravessa elas em modo \"calmaria\" antes do jogo real começar.")]
@@ -160,6 +175,17 @@ namespace RailSwitchMVP.Config
         [Tooltip("Duração total (segundos REAIS) do slow-mo de impacto do Shield: segura um instante e faz lerp de volta a 1.")]
         [Range(0.05f, 2f)]
         public float shieldImpactDuration = 0.45f;
+
+        [Header("Shield impact — player slowdown (decay)")]
+        [Tooltip("Quando o Shield absorve uma barreira, a VELOCIDADE DO PLAYER cai pra esta " +
+            "fração no impacto e recupera com decay (simula a batida/perda de momentum). " +
+            "0.3 = cai pra 30% e volta. NÃO mexe no Time.timeScale (mundo segue normal).")]
+        [Range(0.05f, 1f)]
+        public float shieldImpactSpeedFactor = 0.3f;
+
+        [Tooltip("Segundos (reais) pra velocidade recuperar do impacto de volta ao normal.")]
+        [Range(0.1f, 3f)]
+        public float shieldImpactRecoverSeconds = 1f;
 
         [Header("Debug")]
         [Tooltip("Desenhar Gizmos do critical path no editor")]

@@ -26,6 +26,17 @@ namespace RailSwitchMVP.EditorTools
                 }
             }
             DrawDefaultInspector();
+
+            // Descrição do que cada hazard/power-up do pool faz (Inspector normal).
+            // No Control Panel/Odin o mesmo texto aparece via [OnInspectorGUI].
+            string info = null;
+            if (target is HazardPool hp) info = hp.GetEntriesInfo();
+            else if (target is PowerUpPool pp) info = pp.GetEntriesInfo();
+            if (!string.IsNullOrEmpty(info))
+            {
+                EditorGUILayout.Space(2);
+                EditorGUILayout.HelpBox(info, MessageType.Info);
+            }
         }
     }
 

@@ -17,6 +17,11 @@ namespace RailSwitchMVP.Config
     {
         public HazardKind kind;
         [Range(0f, 10f)] public float weight;
+
+        [Tooltip("Cooldown EM ROWS deste hazard: após spawnar, ele não volta a spawnar " +
+            "por este nº de rows (outros tipos podem). 0 = sem cooldown próprio. " +
+            "O gap global (RailGenConfig.hazardMinRowGap) vale por cima disto.")]
+        [Min(0)] public int cooldownRows;
     }
 
     /// <summary>
@@ -28,6 +33,11 @@ namespace RailSwitchMVP.Config
     {
         public PowerUpType type;
         [Range(0f, 10f)] public float weight;
+
+        [Tooltip("Cooldown EM ROWS deste tipo: após spawnar, ele não volta a spawnar " +
+            "por este nº de rows (outros tipos podem). 0 = sem cooldown próprio. " +
+            "O gap global (RailGenConfig.powerUpMinRowGap) vale por cima disto.")]
+        [Min(0)] public int cooldownRows;
     }
 
     /// <summary>

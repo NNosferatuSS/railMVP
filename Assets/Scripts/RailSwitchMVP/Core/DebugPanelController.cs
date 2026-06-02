@@ -142,8 +142,6 @@ namespace RailSwitchMVP.Core
             GUILayout.Space(6);
             DrawMissionsSection();
             GUILayout.Space(6);
-            DrawActiveItemSection();
-            GUILayout.Space(6);
             DrawPowerUpSection();
             GUILayout.Space(6);
             DrawDifficultySection();
@@ -416,20 +414,6 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("Reset All Player Data")) pdm.WipeAll();
         }
 
-        void DrawActiveItemSection()
-        {
-            GUILayout.Label("Active item slot", _sectionStyle);
-            var slot = ActiveItemSlot.Instance;
-            if (slot == null)
-            {
-                GUILayout.Label("(ActiveItemSlot not in scene)", _hintStyle);
-                return;
-            }
-            GUILayout.Label($"Slot: {slot.HeldItem}", _hintStyle);
-            if (GUILayout.Button("Grant TimeFreeze")) slot.SetItem(ActiveItemType.TimeFreeze);
-            if (GUILayout.Button("Use (Space)")) slot.UseItem();
-        }
-
         void DrawPowerUpSection()
         {
             GUILayout.Label("Power-ups", _sectionStyle);
@@ -449,10 +433,7 @@ namespace RailSwitchMVP.Core
             GrantSpawnRow("Coin Radar",        () => pum.GrantCoinRadar(pum.CoinRadarDefaultTiles), coinRadarPickupPrefab, null);
             GrantSpawnRow("Teleport",          () => pum.GrantTeleport(pum.TeleportDefaultTiles), teleportPickupPrefab, null);
             GrantSpawnRow("AutoFollow",        () => pum.GrantAutoCriticalFollow(pum.AutoCriticalFollowDefaultTiles), autoFollowPickupPrefab, null);
-            GrantSpawnRow("TimeFreeze",        () => {
-                if (ActiveItemSlot.Instance != null)
-                    ActiveItemSlot.Instance.SetItem(ActiveItemType.TimeFreeze);
-            }, timeFreezePickupPrefab, null);
+            GrantSpawnRow("TimeFreeze",        () => pum.GrantTimeFreeze(), timeFreezePickupPrefab, null);
             GUILayout.Space(4);
             GUILayout.Label("Debuffs (PostMVP2.5)", _hintStyle);
             GrantSpawnRow("SpeedUp Debuff",    () => pum.GrantSpeedUpDebuff(pum.SpeedUpDebuffDefaultTiles), speedUpZonePrefab, null);

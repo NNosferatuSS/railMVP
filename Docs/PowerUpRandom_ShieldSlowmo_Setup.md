@@ -38,24 +38,32 @@ pool é concedido (aparece no HUD). Repita — deve variar.
 
 ---
 
-## 2. Shield Slow-mo de impacto
+## 2. Shield impact — desaceleração de velocidade COM DECAY (atualizado 2026-06-02)
 
-Quando o **Shield absorve uma barreira** (que mataria o player), dá um **slow-mo breve +
-shake** pra dar peso ao "escapei", e volta à velocidade normal.
+Quando o **Shield absorve uma barreira** (que mataria o player), a **velocidade do PLAYER**
+cai pra uma fração e **recupera com decay** (perda de momentum, simula a batida) + shake.
+**NÃO** mexe mais no `Time.timeScale` — o mundo segue em tempo normal.
 
-**Código (pronto):** `PlayerCameraRig.ImpactSlowmo()`, chamado de `BarrierObstacle` quando
-`ConsumeShield()` tem sucesso.
+> **Mudança:** antes era um slow-mo GLOBAL (`PlayerCameraRig.ImpactSlowmo`, timeScale). O user
+> preferiu a desaceleração só do player. O `ImpactSlowmo` continua no `PlayerCameraRig`
+> **disponível pra reuso** (revive, momentos dramáticos), só não está mais plugado no Barrier.
+
+**Código (pronto):** `PlayerRailRider.ApplyImpactSlowdown()` (decay via `SmoothStep`), chamado de
+`BarrierObstacle` quando `ConsumeShield()` tem sucesso, + `PlayerCameraRig.ShakeMedium()`.
 
 **Wiring:** nenhum — automático. Requer `PlayerCameraRig.Instance` na cena (já está).
 
-**Tunáveis (RailGenConfig_Default, header "Camera — Shield impact slow-mo"):**
+**Tunáveis (RailGenConfig_Default, header "Shield impact — player slowdown (decay)"):**
 | Campo | Default | O quê |
 |---|---|---|
-| Shield Impact Slow Mo | 0.35 | `timeScale` no pico (menor = mais lento/dramático) |
-| Shield Impact Duration | 0.45 | duração total em segundos reais (segura + volta) |
+| Shield Impact Speed Factor | 0.3 | velocidade no impacto (fração; 0.3 = cai pra 30% e recupera) |
+| Shield Impact Recover Seconds | 1.0 | segundos reais pra recuperar a velocidade ao normal |
 
-**Testar:** pegue um Shield, bata numa Barrier → o jogo desacelera por ~0.45s com shake e
-volta ao normal; a barreira é destruída e você passa. (Não dispara contra obstáculo Lethal,
+(Os campos antigos `Shield Impact Slow Mo` / `Duration` continuam no config — são do
+`ImpactSlowmo` global, agora reservado pra reuso.)
+
+**Testar:** pegue um Shield, bata numa Barrier → o player **desacelera bruscamente e reacelera**
+ao longo de ~1s, com shake; a barreira é destruída e você passa. (Não dispara contra Lethal,
 que mata mesmo com shield — por design.)
 
 ---

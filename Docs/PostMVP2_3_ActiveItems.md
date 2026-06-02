@@ -1,5 +1,11 @@
 # PostMVP2.3 — Active Items System
 
+> ⚠️ **DESCONTINUADO 2026-06-02.** O sistema de inventário/slot foi **removido** —
+> agora **todo power-up é consumido na colisão** (diretriz do user). O `TimeFreeze`
+> virou um `PowerUpType` normal (instantâneo); `ActiveItemSlot`/`ActiveItemType` e o
+> input de Space foram deletados. O Teleport continua (window passiva, Shift+←/→).
+> Este doc fica como registro histórico. Ver seção no fim do `PROGRESS.md`.
+
 **Adiciona:** inventário de 1 slot pra items ativos (Time Freeze, Teleport),
 disparados pelo player com tecla **Space**.
 

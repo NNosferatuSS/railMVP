@@ -239,10 +239,15 @@ namespace RailSwitchMVP.Player
         Coroutine _impactCo;
 
         /// <summary>
-        /// Slow-mo breve e reversível de impacto — chamado quando o Shield absorve
-        /// uma barreira que mataria o player. Dá peso ao "ufa, escapei". timeScale
-        /// mergulha pra shieldImpactSlowMo e faz lerp de volta a 1. Acompanha um
-        /// shake médio. Não atropela o game over (se já morreu, não faz nada).
+        /// Slow-mo breve e reversível de impacto (GLOBAL — timeScale). Dá peso ao
+        /// "ufa, escapei". timeScale mergulha pra shieldImpactSlowMo e faz lerp de
+        /// volta a 1. Acompanha um shake médio. Não atropela o game over.
+        ///
+        /// ⚠️ DISPONÍVEL PRA REUSO, atualmente não plugado em nada. Antes era
+        /// chamado no Barrier+Shield; isso virou desaceleração de velocidade COM
+        /// decay no PlayerRailRider.ApplyImpactSlowdown (perda de momentum, sem
+        /// mexer no timeScale). Este efeito global continua aqui pra eventual uso
+        /// (revive, quase-acidente, momentos dramáticos).
         /// </summary>
         public void ImpactSlowmo()
         {

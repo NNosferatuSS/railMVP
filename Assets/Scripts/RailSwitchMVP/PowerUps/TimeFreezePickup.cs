@@ -3,18 +3,17 @@ using RailSwitchMVP.Core;
 namespace RailSwitchMVP.PowerUps
 {
     /// <summary>
-    /// TimeFreeze pickup. Coloca o item no ActiveItemSlot (não auto-ativa).
-    /// Player aperta Space pra usar — efeito é Time.timeScale ~0.15 por
-    /// N segundos reais (configurável no TimeFreezeController).
-    ///
-    /// Se slot já tem outro item, substitui (com log no PowerUpManager).
+    /// TimeFreeze pickup. Consumido NA COLISÃO: dispara o slow-mo imediatamente
+    /// (Time.timeScale baixo por N segundos reais, configurável no
+    /// TimeFreezeController). Não vai mais pro slot — o sistema de inventário
+    /// foi removido. No-op se o efeito já estiver ativo.
     /// </summary>
     public class TimeFreezePickup : PowerUpBase
     {
         protected override void Activate()
         {
-            if (ActiveItemSlot.Instance != null)
-                ActiveItemSlot.Instance.SetItem(ActiveItemType.TimeFreeze);
+            if (PowerUpManager.Instance != null)
+                PowerUpManager.Instance.GrantTimeFreeze();
         }
     }
 }

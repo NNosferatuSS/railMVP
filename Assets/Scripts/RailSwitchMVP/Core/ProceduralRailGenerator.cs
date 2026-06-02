@@ -73,6 +73,16 @@ namespace RailSwitchMVP.Core
         // Rebuildado on-demand (mudou ref ou conta). Null = ainda não build.
         private Dictionary<PowerUpType, GameObject> _powerUpByType;
 
+        // Gating de spawn de power-up (gap global + cooldown por tipo).
+        // _lastPowerUpRow: row do último power-up de QUALQUER tipo (gap global).
+        // _lastRowByType: row do último spawn de cada tipo (cooldown por tipo).
+        private int _lastPowerUpRow = int.MinValue / 2;
+        private readonly Dictionary<PowerUpType, int> _lastRowByType = new Dictionary<PowerUpType, int>();
+
+        // Gating de spawn de hazard (mesma lógica: gap global + cooldown por kind).
+        private int _lastHazardRow = int.MinValue / 2;
+        private readonly Dictionary<HazardKind, int> _lastRowByHazard = new Dictionary<HazardKind, int>();
+
         // Cores e símbolos dos warnings sobre hazards (pós-MVP2 UI hint).
         // Centralizados aqui pra fácil tunar visual sem mexer em prefabs.
         private static readonly Color _lethalWarningColor = new Color(1f, 0.2f, 0.2f); // vermelho saturado
@@ -424,14 +434,18 @@ namespace RailSwitchMVP.Core
                 // Hazards: roteado via SpawnOverrideController quando presente.
                 // Master OFF (ou controller ausente) = comportamento clássico (só decoy, cascata Lethal→...→Vortex).
                 // Master ON = chances/locations vindas da UI F2 (pode incluir critical).
+                // Gating: gap GLOBAL em rows (hazardMinRowGap) entre hazards. O cooldown
+                // POR TIPO é aplicado no pick (classic).
+                bool hazardGapOk = (rowIndex - _lastHazardRow) >= Mathf.Max(0, config.hazardMinRowGap);
                 bool tileHasHazard = false;
-                if (!isWarmupRow && tile.Obstacles != null)
+                if (!isWarmupRow && hazardGapOk && tile.Obstacles != null)
                 {
                     HazardResolution hz;
                     bool useOverride = SpawnOverrideController.Instance != null
                         && SpawnOverrideController.Instance.MasterEnabled;
                     if (useOverride)
                     {
+                        // Debug F2 ignora o cooldown por tipo; o gap global continua valendo.
                         hz = SpawnOverrideController.Instance.ResolveHazardOverride(
                             tile.IsOnCriticalPath,
                             lethalObstaclePrefab, barrierObstaclePrefab,
@@ -439,7 +453,7 @@ namespace RailSwitchMVP.Core
                     }
                     else
                     {
-                        hz = ResolveHazardClassic(tile.IsOnCriticalPath, tier);
+                        hz = ResolveHazardClassic(tile.IsOnCriticalPath, tier, rowIndex);
                     }
 
                     if (hz.prefab != null)
@@ -454,23 +468,43 @@ namespace RailSwitchMVP.Core
                         else if (hz.kind == HazardKind.Barrier)
                             AttachWarning(hazardGo, _barrierWarningColor, _barrierWarningSymbol);
                         tileHasHazard = true;
+
+                        _lastHazardRow = rowIndex;
+                        if (!useOverride) _lastRowByHazard[hz.kind] = rowIndex;
                     }
                 }
 
                 // Power-ups: idem rota via override. Tile com hazard nunca recebe.
-                if (!isWarmupRow && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Count > 0)
+                // Gating: gap GLOBAL em rows (powerUpMinRowGap) impede power-up em rows
+                // muito próximas. O cooldown POR TIPO é aplicado no pick (classic).
+                bool gapOk = (rowIndex - _lastPowerUpRow) >= Mathf.Max(0, config.powerUpMinRowGap);
+                if (!isWarmupRow && gapOk && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Count > 0)
                 {
                     bool useOverride = SpawnOverrideController.Instance != null
                         && SpawnOverrideController.Instance.MasterEnabled;
-                    GameObject puPrefab = useOverride
-                        ? SpawnOverrideController.Instance.ResolvePowerUpPrefabOverride(tile.IsOnCriticalPath, PowerUpPrefabs)
-                        : ResolvePowerUpClassic(tile.IsOnCriticalPath, tier);
+
+                    PowerUpType puType = default;
+                    GameObject puPrefab;
+                    if (useOverride)
+                    {
+                        // Debug F2 ignora o cooldown por tipo (ferramenta de tuning);
+                        // o gap global continua valendo.
+                        puPrefab = SpawnOverrideController.Instance.ResolvePowerUpPrefabOverride(tile.IsOnCriticalPath, PowerUpPrefabs);
+                    }
+                    else
+                    {
+                        puPrefab = ResolvePowerUpClassic(tile.IsOnCriticalPath, tier, rowIndex, out puType);
+                    }
+
                     if (puPrefab != null)
                     {
                         int puSlot = PickSlot(config.powerUpSlotStrategy, totalSlots, reservedSlots);
                         if (reservedSlots == null) reservedSlots = new HashSet<int>();
                         reservedSlots.Add(puSlot);
                         tile.PowerUps.Spawn(puPrefab, puSlot, totalSlots, slotPadding);
+
+                        _lastPowerUpRow = rowIndex;
+                        if (!useOverride) _lastRowByType[puType] = rowIndex;
                     }
                 }
 
@@ -594,67 +628,100 @@ namespace RailSwitchMVP.Core
 
         // Fallback usado quando SpawnOverrideController não está na cena.
         // Modelo: 1 chance global (hazardChanceOnDecoy) + weighted pick no pool.
-        HazardResolution ResolveHazardClassic(bool isCritical, DifficultyTier tier)
+        HazardResolution ResolveHazardClassic(bool isCritical, DifficultyTier tier, int rowIndex)
         {
             if (isCritical) return HazardResolution.None;
             if (tier.hazardChanceOnDecoy <= 0f || tier.hazardPool == null || tier.hazardPool.Count == 0)
                 return HazardResolution.None;
             if (Random.value >= tier.hazardChanceOnDecoy) return HazardResolution.None;
 
-            HazardKind kind = WeightedPickHazard(tier.hazardPool.entries);
+            HazardKind kind = WeightedPickHazard(tier.hazardPool.entries, rowIndex);
+            if (kind == HazardKind.None) return HazardResolution.None;
             GameObject prefab = GetHazardPrefab(kind);
             if (prefab == null) return HazardResolution.None;
             return new HazardResolution { prefab = prefab, kind = kind };
         }
 
-        GameObject ResolvePowerUpClassic(bool isCritical, DifficultyTier tier)
+        // Cooldown por kind: true se o hazard ainda está dentro do seu cooldownRows
+        // desde o último spawn. cooldownRows <= 0 = sem cooldown próprio.
+        bool IsHazardOnCooldown(HazardWeight entry, int rowIndex)
         {
+            if (entry.cooldownRows <= 0) return false;
+            if (!_lastRowByHazard.TryGetValue(entry.kind, out int last)) return false;
+            return (rowIndex - last) < entry.cooldownRows;
+        }
+
+        GameObject ResolvePowerUpClassic(bool isCritical, DifficultyTier tier, int rowIndex, out PowerUpType type)
+        {
+            type = default;
             float chance = isCritical ? tier.powerUpChanceOnCritical : tier.powerUpChanceOnDecoy;
             if (chance <= 0f || Random.value >= chance) return null;
             if (tier.powerUpPool == null || tier.powerUpPool.Count == 0) return null;
 
-            PowerUpType type;
-            if (!TryWeightedPickPowerUp(tier.powerUpPool.entries, out type)) return null;
+            if (!TryWeightedPickPowerUp(tier.powerUpPool.entries, rowIndex, out type)) return null;
             return GetPowerUpPrefab(type);
         }
 
-        // Sorteia uma HazardKind do pool ponderado. Pesos ≤ 0 são ignorados.
-        // Se soma de pesos = 0, retorna None (caller trata).
-        HazardKind WeightedPickHazard(List<HazardWeight> pool)
+        // Cooldown por tipo: true se o tipo ainda está dentro do seu cooldownRows
+        // desde o último spawn. cooldownRows <= 0 = sem cooldown próprio.
+        bool IsPowerUpOnCooldown(PowerUpWeight entry, int rowIndex)
+        {
+            if (entry.cooldownRows <= 0) return false;
+            if (!_lastRowByType.TryGetValue(entry.type, out int last)) return false;
+            return (rowIndex - last) < entry.cooldownRows;
+        }
+
+        // Sorteia uma HazardKind do pool ponderado. Pesos ≤ 0 e kinds em cooldown
+        // são ignorados. Se nenhum elegível, retorna None (caller trata).
+        HazardKind WeightedPickHazard(List<HazardWeight> pool, int rowIndex)
         {
             float total = 0f;
             for (int i = 0; i < pool.Count; i++)
-                if (pool[i].weight > 0f) total += pool[i].weight;
+                if (pool[i].weight > 0f && !IsHazardOnCooldown(pool[i], rowIndex)) total += pool[i].weight;
             if (total <= 0f) return HazardKind.None;
 
             float r = Random.value * total;
             float acc = 0f;
             for (int i = 0; i < pool.Count; i++)
             {
-                if (pool[i].weight <= 0f) continue;
+                if (pool[i].weight <= 0f || IsHazardOnCooldown(pool[i], rowIndex)) continue;
                 acc += pool[i].weight;
                 if (r < acc) return pool[i].kind;
             }
-            return pool[pool.Count - 1].kind; // fallback numérico
+
+            // Fallback numérico (arredondamento): último elegível.
+            for (int i = pool.Count - 1; i >= 0; i--)
+                if (pool[i].weight > 0f && !IsHazardOnCooldown(pool[i], rowIndex))
+                    return pool[i].kind;
+            return HazardKind.None;
         }
 
-        bool TryWeightedPickPowerUp(List<PowerUpWeight> pool, out PowerUpType type)
+        bool TryWeightedPickPowerUp(List<PowerUpWeight> pool, int rowIndex, out PowerUpType type)
         {
+            // Soma de pesos só dos elegíveis (peso > 0 e fora do cooldown por tipo).
             float total = 0f;
             for (int i = 0; i < pool.Count; i++)
-                if (pool[i].weight > 0f) total += pool[i].weight;
+                if (pool[i].weight > 0f && !IsPowerUpOnCooldown(pool[i], rowIndex)) total += pool[i].weight;
             if (total <= 0f) { type = default; return false; }
 
             float r = Random.value * total;
             float acc = 0f;
             for (int i = 0; i < pool.Count; i++)
             {
-                if (pool[i].weight <= 0f) continue;
+                if (pool[i].weight <= 0f || IsPowerUpOnCooldown(pool[i], rowIndex)) continue;
                 acc += pool[i].weight;
                 if (r < acc) { type = pool[i].type; return true; }
             }
-            type = pool[pool.Count - 1].type;
-            return true;
+
+            // Fallback numérico (arredondamento): último elegível.
+            for (int i = pool.Count - 1; i >= 0; i--)
+                if (pool[i].weight > 0f && !IsPowerUpOnCooldown(pool[i], rowIndex))
+                {
+                    type = pool[i].type;
+                    return true;
+                }
+            type = default;
+            return false;
         }
     }
 }

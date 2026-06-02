@@ -1,27 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using RailSwitchMVP.Core;
 
 namespace RailSwitchMVP.UI
 {
     /// <summary>
-    /// Botões on-screen pra usar Active Item (Space) e Teleport (Shift+←/→) em mobile.
-    /// Auto-hide baseado em ActiveItemSlot.HasItem e PowerUpManager.HasTeleport —
-    /// botões só aparecem quando o input está disponível.
+    /// Botões on-screen pra usar Teleport (Shift+←/→) em mobile.
+    /// Auto-hide baseado em PowerUpManager.HasTeleport — botões só aparecem
+    /// quando o input está disponível.
     ///
     /// Keyboard continua funcionando paralelo (ActiveItemInputHandler intacto).
-    /// Esses botões são SEMPRE ativos quando há item/teleport — em desktop você
-    /// pode escolher escondê-los via hideOnDesktop.
+    /// Em desktop você pode escolher escondê-los via hideOnDesktop.
+    ///
+    /// O botão de active item (Space) foi removido junto com o sistema de slot —
+    /// power-ups agora são consumidos na colisão.
     /// </summary>
     public class MobileTouchUI : MonoBehaviour
     {
-        [Header("Use Active Item (equivalente Space)")]
-        [SerializeField] private Button useItemButton;
-        [Tooltip("Texto opcional dentro do botão — mostra o nome do item (ex: 'TimeFreeze'). " +
-            "Se null, ignorado.")]
-        [SerializeField] private TMP_Text useItemLabel;
-
         [Header("Teleport L / R (equivalente Shift+←/→)")]
         [SerializeField] private Button teleportLeftButton;
         [SerializeField] private Button teleportRightButton;
@@ -45,8 +40,6 @@ namespace RailSwitchMVP.UI
             }
 #endif
 
-            if (useItemButton != null)
-                useItemButton.onClick.AddListener(OnUseItemPressed);
             if (teleportLeftButton != null)
                 teleportLeftButton.onClick.AddListener(() => OnTeleportPressed(-1));
             if (teleportRightButton != null)
@@ -64,7 +57,6 @@ namespace RailSwitchMVP.UI
 
         void HideAll()
         {
-            if (useItemButton != null) useItemButton.gameObject.SetActive(false);
             if (teleportGroup != null) teleportGroup.SetActive(false);
             else
             {
@@ -75,11 +67,6 @@ namespace RailSwitchMVP.UI
 
         void SubscribeEvents()
         {
-            if (ActiveItemSlot.Instance != null)
-            {
-                ActiveItemSlot.Instance.OnItemAcquired += HandleItemAcquired;
-                ActiveItemSlot.Instance.OnItemUsed += HandleItemUsed;
-            }
             if (PowerUpManager.Instance != null)
             {
                 PowerUpManager.Instance.OnPowerUpTick += HandlePowerUpTick;
@@ -89,20 +76,12 @@ namespace RailSwitchMVP.UI
 
         void UnsubscribeEvents()
         {
-            if (ActiveItemSlot.Instance != null)
-            {
-                ActiveItemSlot.Instance.OnItemAcquired -= HandleItemAcquired;
-                ActiveItemSlot.Instance.OnItemUsed -= HandleItemUsed;
-            }
             if (PowerUpManager.Instance != null)
             {
                 PowerUpManager.Instance.OnPowerUpTick -= HandlePowerUpTick;
                 PowerUpManager.Instance.OnPowerUpExpired -= HandlePowerUpExpired;
             }
         }
-
-        void HandleItemAcquired(ActiveItemType type) => SetUseVisible(type != ActiveItemType.None, type);
-        void HandleItemUsed(ActiveItemType _) => SetUseVisible(false, ActiveItemType.None);
 
         void HandlePowerUpTick(PowerUpType type, int value)
         {
@@ -116,18 +95,8 @@ namespace RailSwitchMVP.UI
 
         void RefreshVisibility()
         {
-            var item = ActiveItemSlot.Instance != null ? ActiveItemSlot.Instance.HeldItem : ActiveItemType.None;
-            SetUseVisible(item != ActiveItemType.None, item);
-
             bool tele = PowerUpManager.Instance != null && PowerUpManager.Instance.HasTeleport;
             SetTeleportVisible(tele);
-        }
-
-        void SetUseVisible(bool visible, ActiveItemType type)
-        {
-            if (useItemButton != null && useItemButton.gameObject.activeSelf != visible)
-                useItemButton.gameObject.SetActive(visible);
-            if (useItemLabel != null) useItemLabel.text = visible ? type.ToString() : "";
         }
 
         void SetTeleportVisible(bool visible)
@@ -146,13 +115,6 @@ namespace RailSwitchMVP.UI
         // ============================================================
         // PUBLIC API — Button.onClick (ou outros disparos manuais)
         // ============================================================
-
-        public void OnUseItemPressed()
-        {
-            if (!_wired) return;
-            if (GameManager.Instance != null && !GameManager.Instance.IsScoring) return;
-            if (ActiveItemSlot.Instance != null) ActiveItemSlot.Instance.UseItem();
-        }
 
         public void OnTeleportPressed(int dir)
         {

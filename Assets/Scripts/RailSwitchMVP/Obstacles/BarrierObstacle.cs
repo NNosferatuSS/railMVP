@@ -19,9 +19,14 @@ namespace RailSwitchMVP.Obstacles
         {
             if (PowerUpManager.Instance != null && PowerUpManager.Instance.ConsumeShield())
             {
-                // Shield salvou o player — slow-mo de impacto pra dar peso ao momento.
-                if (PlayerCameraRig.Instance != null)
-                    PlayerCameraRig.Instance.ImpactSlowmo();
+                // Shield salvou o player — desaceleração de impacto COM DECAY na
+                // velocidade do player (perda de momentum), + shake pra dar peso.
+                // (O slow-mo global de timeScale — PlayerCameraRig.ImpactSlowmo —
+                // foi desplugado daqui; segue disponível pra reuso em outros momentos.)
+                var player = playerCollider.GetComponent<PlayerRailRider>()
+                          ?? playerCollider.GetComponentInParent<PlayerRailRider>();
+                if (player != null) player.ApplyImpactSlowdown();
+                if (PlayerCameraRig.Instance != null) PlayerCameraRig.Instance.ShakeMedium();
                 Destroy(gameObject);
                 return;
             }

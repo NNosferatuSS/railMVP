@@ -5,28 +5,26 @@ using RailSwitchMVP.Core;
 namespace RailSwitchMVP.InputSys
 {
     /// <summary>
-    /// Listener de inputs pra items ativos/ações especiais.
-    /// - **Space** = use item do ActiveItemSlot (TimeFreeze).
+    /// Listener de inputs pra ações especiais durante a run.
     /// - **Shift + ←/→** (ou A/D) = Teleport laterais SE
     ///   PowerUpManager.HasTeleport (window tile-based aberto).
     ///   Cada uso NÃO consome o window — só transições de tile.
     ///
     /// KeyboardDirectionalInput ignora setas com Shift held, então os
     /// inputs (switch vs teleport) não brigam pela mesma tecla.
+    ///
+    /// O slot de active item (Space → TimeFreeze) foi removido: power-ups
+    /// agora são todos consumidos na colisão.
     /// </summary>
     public class ActiveItemInputHandler : MonoBehaviour
     {
         void Update()
         {
-            // Disable durante warmup (no items, no teleport ainda) e durante Game Over.
+            // Disable durante warmup e durante Game Over.
             if (GameManager.Instance != null && !GameManager.Instance.IsScoring) return;
 
             var kb = Keyboard.current;
             if (kb == null) return;
-
-            // Non-directional active item use (TimeFreeze via slot)
-            if (kb.spaceKey.wasPressedThisFrame && ActiveItemSlot.Instance != null)
-                ActiveItemSlot.Instance.UseItem();
 
             // Teleport (passive power-up, tile-based window)
             bool shift = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;

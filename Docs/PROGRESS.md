@@ -5,7 +5,7 @@
 > mudar de iteração, mova a seção de "Próximo" para "Estou aqui agora"
 > e atualize a data.
 
-**Última atualização:** 2026-05-29 — Sessão grande. **Progressão Adaptativa** (Camadas 1+3 + rework de câmera + XP no sync Supabase), **leaderboard global** de best distance (aba no painel), e extras de gameplay: **Mystery Box** (power-up random), **shield slow-mo** de impacto, **decoyCoinChance** por tier. Commits até `b683f91` pushados; extras aguardando wiring no Unity. Avaliando **TriInspector** (plugin de inspector — puxa Localization+Addressables, decisão pendente). **Pendente:** rodar SQLs (XP + leaderboard global), wiring dos extras (Mystery Box prefab/pool, `decoyCoinChance` nos tiers), Camada 2, polish UI C3. Anterior (2026-05-28): **Sessão de difficulty tools.** `DifficultyTierDrawer`: foldouts com label `Tier N — X m | speed Y | A-B/row | pop Z%` no Inspector. Tier Lock (F3 configurável): trava no tier atual ao pressionar, destrava voltando ao auto-advance por distância; HUD exibe `tierText` em vermelho quando travado. `rowsAhead` por tier em `DifficultyTier` — RailManager usa tier > config como fallback; SpawnOverride ainda tem prioridade máxima. Defaults 6→18 rows no asset. Anterior: **Sessão de tuning tools.** Slot System (Slices 1+2) implementado: coins/hazards/power-ups num grid de slots discretos (default 5), coin spawner skipa reservados pra stride uniforme, coin count vira range `[min, max]` por tier. + `CoinPlacement` enum (UniformGrid/RandomFree, default RandomFree). + `PlayerCameraRig.followLateral` toggle (default false — câmera não segue lateralmente, experimento). + `DifficultyManager.CurrentTier` lê live do SO no Editor (`#if UNITY_EDITOR`) pra que edits no Inspector propaguem sem precisar transição de tier. + arquivos `HazardPool`/`PowerUpPool`/`IValidatedConfig`/`ValidatedConfigInspector` finalmente commitados (commit anterior `c139450` referenciava mas tinha esquecido os .cs). Detalhes em `Docs/SlotSystem_Refactor.md`. Anterior: Fatia 5 — Rewarded Ads ✅ VALIDADA.
+**Última atualização:** 2026-06-02 — **RailSwitch Control Panel** (EditorWindow Odin em `Tools → RailSwitch → Control Panel`, agrega os SOs de config: Difficulty/Generation/Revive/Pools; v1 esqueleto validado, v2 tabela de tiers + v3 Play Tools pendentes) + **override de tilt/FOV por tier** (`DifficultyTier.overrideCameraAngle`/`cameraTilt`/`cameraFieldOfView`, default off = usa global; `[ShowIf]` Odin runtime; header do tier agora mostra `zoom`/`FOV` no lugar de `pop %`). **TriInspector REMOVIDO** do manifest (projeto já tem Odin Inspector). Doc: `Docs/ControlPanel_CameraOverride_Setup.md`. Em planejamento antes: **fundação de economia** (CurrencyManager facade + gems com sync Supabase). Anterior (2026-05-29): Sessão grande. **Progressão Adaptativa** (Camadas 1+3 + rework de câmera + XP no sync Supabase), **leaderboard global** de best distance (aba no painel), e extras de gameplay: **Mystery Box** (power-up random), **shield slow-mo** de impacto, **decoyCoinChance** por tier. Commits até `b683f91` pushados; extras aguardando wiring no Unity. TriInspector REMOVIDO (projeto já tem Odin). **XP→Supabase ✅ e leaderboard global ✅ concluídos (2026-06-02).** **Pendente:** wiring dos extras (Mystery Box prefab/pool, `decoyCoinChance` nos tiers — user vai ajustar), validar Slot System no Unity, Camada 2, polish UI C3. Anterior (2026-05-28): **Sessão de difficulty tools.** `DifficultyTierDrawer`: foldouts com label `Tier N — X m | speed Y | A-B/row | pop Z%` no Inspector. Tier Lock (F3 configurável): trava no tier atual ao pressionar, destrava voltando ao auto-advance por distância; HUD exibe `tierText` em vermelho quando travado. `rowsAhead` por tier em `DifficultyTier` — RailManager usa tier > config como fallback; SpawnOverride ainda tem prioridade máxima. Defaults 6→18 rows no asset. Anterior: **Sessão de tuning tools.** Slot System (Slices 1+2) implementado: coins/hazards/power-ups num grid de slots discretos (default 5), coin spawner skipa reservados pra stride uniforme, coin count vira range `[min, max]` por tier. + `CoinPlacement` enum (UniformGrid/RandomFree, default RandomFree). + `PlayerCameraRig.followLateral` toggle (default false — câmera não segue lateralmente, experimento). + `DifficultyManager.CurrentTier` lê live do SO no Editor (`#if UNITY_EDITOR`) pra que edits no Inspector propaguem sem precisar transição de tier. + arquivos `HazardPool`/`PowerUpPool`/`IValidatedConfig`/`ValidatedConfigInspector` finalmente commitados (commit anterior `c139450` referenciava mas tinha esquecido os .cs). Detalhes em `Docs/SlotSystem_Refactor.md`. Anterior: Fatia 5 — Rewarded Ads ✅ VALIDADA.
 **Engine:** Unity 6000.4.7f1 (6.4 LTS) — Input System: **New only** (`activeInputHandler=1`)
 **Remote:** https://github.com/NNosferatuSS/railMVP.git (`main`)
 **Tags:** `v0.1.0-mvp` (MVP1), `v0.2.0-mvp2` (MVP2)
@@ -15,8 +15,8 @@
 ## 🟢 Próxima sessão: começe AQUI
 
 **Estado: gameplay completo + meta-game + PROGRESSÃO ADAPTATIVA Camadas 1 e 3 +
-rework de câmera (validadas/pushadas 2026-05-29). Próximo: XP→Supabase, depois
-Camada 2 (head start) + polish UI Camada 3.**
+rework de câmera + XP→Supabase + leaderboard global (todos validados). Próximo:
+Economia Fase A (currencies) OU Control Panel v2/v3 OU Camada 2 (head start).**
 
 ### ✅ Progressão Adaptativa — Camadas 1 e 3 + câmera (2026-05-29)
 
@@ -38,16 +38,78 @@ Spec em `Docs/RailSwitch_AdaptiveProgression.md` (3 camadas; objetivo: matar o
   ad/coins + countdown; revive recua metros pro critical path + grace de invencibilidade
   (cobre letal/dead-end/oob). `ReviveConfig` SO. Setup: `Docs/Revive_Camada3_Setup.md`.
 
+### ✅ XP / account level → Supabase (2026-06-02)
+
+Concluído. Coluna `account_xp` criada em `public.players` e código integrado:
+`PlayerRemoteState.account_xp`, `CopyToRemoteState` (push) + `ApplyRemoteState`
+(pull com recálculo de level via `ComputeLevelFromXP`, last-write-wins igual coins).
+Doc: `Docs/XP_Supabase_Sync_Setup.md`.
+
+### ✅ Leaderboard global — best distance (validado, funcionando)
+
+Aba no painel existente reusa `players.best_distance` via RPCs. SQL rodado e
+wiring feito.
+
+### ✅ Inventário/Active Item REMOVIDO (2026-06-02)
+
+Diretriz do user: **todo power-up é consumido na colisão**, sem slot pra usar depois.
+- `TimeFreeze` virou `PowerUpType` normal (instantâneo via `PowerUpManager.GrantTimeFreeze`
+  → `TimeFreezeController.TryActivate`). Spawnável por pool e MysteryBox.
+- **Deletados:** `ActiveItemSlot.cs` (+ enum `ActiveItemType`). Removido o input de Space,
+  o slot do HUD (`activeItemText`), o botão USE mobile e a seção "Active item slot" do debug.
+- `ActiveItemInputHandler` mantido **só pro Teleport** (Shift+←/→, power-up passivo).
+- **Ajustes Unity pendentes:** (1) deletar GameObject `_ActiveItemSlot ` da cena (script
+  faltando); (2) bindar `TimeFreeze → PowerUp_TimeFreeze` no ProceduralRailGenerator +
+  pôr nos pools pra ele spawnar; (3) opcional: apagar o TMP do slot no HUD e o botão USE mobile.
+
+### ✅ Power-ups: sem stack + gating de spawn (2026-06-02)
+
+Diretriz do user. Doc: `Docs/PowerUp_NoStack_SpawnGating_Setup.md`.
+- **Sem stack:** coletar power-up ativo apenas RENOVA. Shield = 1 carga (HUD sem `x{n}`);
+  duração reseta (`= tiles`, era `+= tiles`). Debuffs inalterados (hazards).
+- **Gap global:** `RailGenConfig.powerUpMinRowGap` (default 3) — após qualquer power-up,
+  N rows sem nenhum. Control Panel → Generation.
+- **Cooldown por tipo:** `PowerUpWeight.cooldownRows` em cada entrada de `PowerUpPool`
+  (default 0). Control Panel → Pools → Power-ups. Filtra o tipo do sorteio por N rows.
+- Gerador: `_lastPowerUpRow` + `_lastRowByType` + `IsPowerUpOnCooldown`. Override F2
+  respeita gap global, ignora cooldown por tipo.
+- **MESMO gating pra HAZARDS:** `RailGenConfig.hazardMinRowGap` (default **0** = sem
+  mudança; subir deixa mais fácil) + `HazardWeight.cooldownRows` por entrada de `HazardPool`.
+  Gerador: `_lastHazardRow` + `_lastRowByHazard` + `IsHazardOnCooldown`.
+- **Validar Unity:** abrir `RailGenConfig_Default` e setar `powerUpMinRowGap` (asset vem 0)
+  e, se quiser, `hazardMinRowGap`.
+
+### ✅ Shield impact (decay) + descrições de pools + botão Open SO (2026-06-02)
+
+- **Shield+Barrier:** trocado o slow-mo GLOBAL (timeScale) por desaceleração da
+  **velocidade do player com decay** (`PlayerRailRider.ApplyImpactSlowdown`, SmoothStep).
+  Tunables em `RailGenConfig` ("Shield impact — player slowdown"): `shieldImpactSpeedFactor`
+  (0.3) + `shieldImpactRecoverSeconds` (1.0). `PlayerCameraRig.ImpactSlowmo` mantido pra reuso.
+- **Descrições de hazards e power-ups:** `HazardPool.Describe` / `PowerUpPool.Describe`
+  (fonte única) + InfoBox `[OnInspectorGUI]` em cada pool listando o que cada tipo faz
+  (aparece no Control Panel).
+- **Botão "Open" em campos de SO:** `ScriptableObjectFieldDrawer` global — todo campo de SO
+  ganha botão que abre as properties numa janela. Caveat: Control Panel (Odin) não pega.
+
+### ✅ Game Over no fim da transição do switch (2026-06-02)
+
+Antes a morte (DeadEnd/OutOfBounds) disparava no instante em que o player cruzava o
+`EndPoint` do tile (fim do trilho reto), em `TryEnterGap`. Agora o player **percorre o
+gap seguindo a direção do switch** (rumo a onde o tile deveria estar / pra fora da pista)
+e o game over dispara **no fim dessa transição** (`TickGap` quando `gapProgress >= 1`).
+Leitura visual: você vê o switch levar pro vazio antes de morrer.
+- `PlayerRailRider`: `_gapIsFatal`/`_gapFatalReason` + `BeginFatalGap(lane, reason)`
+  (usa `TrackTile.ComputeWorldPosition` pro destino-fantasma, igual ghost flight).
+- Vale pra DeadEnd E OutOfBounds (borda lateral: anda pra fora e cai).
+- Ghost/grace pós-revive continuam interceptando antes (sobrevivem). Distância do trecho
+  fatal **não conta** no score (congelada durante o gap fatal).
+
 ### ⏳ Próximos passos (ordem combinada)
 
-1. **XP / account level → Supabase.** Hoje é LOCAL-ONLY (`PlayerRemoteState` sem
-   `account_xp`). Falta: coluna `account_xp` em `public.players` (SQL); campo no
-   `PlayerRemoteState`; incluir em `CopyToRemoteState` (push) + `ApplyRemoteState`
-   (pull); recalcular level pós-pull (last-write-wins, igual coins).
-2. **Camada 2 — Head Start.** Pular pra tier mais alto antes do run (coins/ad),
+1. **Camada 2 — Head Start.** Pular pra tier mais alto antes do run (coins/ad),
    desbloqueio por best distance ≥ 500. `HeadStartController` + UI pré-run.
    `DifficultyManager.StartRunWithAdaptiveTier(level, headStartOverride)` já aceita o override.
-3. **Polish de UI da Camada 3.** Fade/scale do overlay, animação do countdown,
+2. **Polish de UI da Camada 3.** Fade/scale do overlay, animação do countdown,
    feedback visual do grace (player piscar).
 
 > ⚠️ **Pré-launch:** `AdsManager.useMockAds` está **true** (backend sem inventory) —

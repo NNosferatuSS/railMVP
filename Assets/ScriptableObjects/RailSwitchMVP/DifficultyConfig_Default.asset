@@ -19,9 +19,12 @@ MonoBehaviour:
     maxLanesPerRow: 2
     criticalPathsPerRow: 1
     lanePopulationChance: 0
-    rowsAhead: 6
+    rowsAhead: 3
     playerSpeed: 5
     cameraZoom: 10
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 0
     criticalCoinsMax: 2
     decoyCoinsMin: 0
@@ -30,8 +33,9 @@ MonoBehaviour:
     hazardChanceOnDecoy: 0
     hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
     powerUpChanceOnCritical: 0.08
-    powerUpChanceOnDecoy: 0.03
+    powerUpChanceOnDecoy: 0
     powerUpPool: {fileID: 11400000, guid: c61002aabbccddee0112233445566711, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 30
     maxLanes: 3
     minLanesPerRow: 1
@@ -41,6 +45,9 @@ MonoBehaviour:
     rowsAhead: 4
     playerSpeed: 6
     cameraZoom: 11
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -51,6 +58,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 100
     maxLanes: 4
     minLanesPerRow: 1
@@ -60,6 +68,9 @@ MonoBehaviour:
     rowsAhead: 5
     playerSpeed: 7
     cameraZoom: 12
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -70,6 +81,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.1
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c63004aabbccddee0112233445566713, type: 2}
+    mysteryBoxPool: {fileID: 11400000, guid: 2e7eed984bff6df4196a1be49ef4c86b, type: 2}
   - triggerAtDistance: 210
     maxLanes: 5
     minLanesPerRow: 1
@@ -79,6 +91,9 @@ MonoBehaviour:
     rowsAhead: 8
     playerSpeed: 9
     cameraZoom: 13
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 4
     decoyCoinsMin: 0
@@ -89,6 +104,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c64005aabbccddee0112233445566714, type: 2}
+    mysteryBoxPool: {fileID: 11400000, guid: 2e7eed984bff6df4196a1be49ef4c86b, type: 2}
   - triggerAtDistance: 400
     maxLanes: 5
     minLanesPerRow: 1
@@ -98,6 +114,9 @@ MonoBehaviour:
     rowsAhead: 8
     playerSpeed: 11
     cameraZoom: 13
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 1
@@ -108,6 +127,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.165
     powerUpChanceOnDecoy: 0.12
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 650
     maxLanes: 6
     minLanesPerRow: 2
@@ -117,6 +137,9 @@ MonoBehaviour:
     rowsAhead: 18
     playerSpeed: 13
     cameraZoom: 15.5
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 2
     criticalCoinsMax: 4
     decoyCoinsMin: 0
@@ -127,6 +150,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 1000
     maxLanes: 7
     minLanesPerRow: 2
@@ -136,6 +160,9 @@ MonoBehaviour:
     rowsAhead: 18
     playerSpeed: 16
     cameraZoom: 18
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -146,6 +173,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 1600
     maxLanes: 8
     minLanesPerRow: 1
@@ -155,6 +183,9 @@ MonoBehaviour:
     rowsAhead: 10
     playerSpeed: 22
     cameraZoom: 18
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -165,6 +196,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 2500
     maxLanes: 9
     minLanesPerRow: 2
@@ -174,6 +206,9 @@ MonoBehaviour:
     rowsAhead: 10
     playerSpeed: 22
     cameraZoom: 18
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -184,6 +219,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 3200
     maxLanes: 9
     minLanesPerRow: 2
@@ -193,6 +229,9 @@ MonoBehaviour:
     rowsAhead: 10
     playerSpeed: 26
     cameraZoom: 20
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -203,6 +242,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 3200
     maxLanes: 10
     minLanesPerRow: 3
@@ -212,6 +252,9 @@ MonoBehaviour:
     rowsAhead: 10
     playerSpeed: 30
     cameraZoom: 22
+    overrideCameraAngle: 0
+    cameraTilt: 0
+    cameraFieldOfView: 0
     criticalCoinsMin: 1
     criticalCoinsMax: 3
     decoyCoinsMin: 0
@@ -222,6 +265,7 @@ MonoBehaviour:
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0.03
     powerUpPool: {fileID: 11400000, guid: c65006aabbccddee0112233445566715, type: 2}
+    mysteryBoxPool: {fileID: 0}
   startingTierRules:
   - minAccountLevel: 1
     startingTierIndex: 0

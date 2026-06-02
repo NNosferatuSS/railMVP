@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: HazardPool_Tier2
   m_EditorClassIdentifier: 
   entries:
-  - kind: 2
-    weight: 0.4
   - kind: 1
     weight: 0.25
+    cooldownRows: 0

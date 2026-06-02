@@ -11,10 +11,14 @@ para `DifficultyTier`. A lista de tiers no Inspector de `DifficultyConfig` agora
 exibe cada item colapsado com o resumo:
 
 ```
-► Tier 0  —  0 m  |  speed 5  |  1-3/row  |  pop 0%
-► Tier 1  —  30 m  |  speed 5  |  2-3/row  |  pop 55%
+► Tier 0  —  0 m  |  speed 5  |  1-3/row  |  zoom 10
+► Tier 1  —  30 m  |  speed 5  |  2-3/row  |  zoom 10
 ...
 ```
+
+> **Atualizado 2026-06-02:** o header passou a mostrar `zoom` (e `FOV` quando o
+> tier sobrescreve o ângulo da câmera) no lugar do antigo `pop %`. Ver
+> `Docs/ControlPanel_CameraOverride_Setup.md`.
 
 Clique no foldout pra expandir só o tier que quer editar. `[Range]`, `[Header]`
 e `[Tooltip]` dentro do struct continuam funcionando normalmente quando expandido.

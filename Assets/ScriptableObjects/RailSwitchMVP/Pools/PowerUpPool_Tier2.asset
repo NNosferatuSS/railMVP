@@ -15,7 +15,7 @@ MonoBehaviour:
   entries:
   - type: 0
     weight: 1
-  - type: 2
-    weight: 1
+    cooldownRows: 0
   - type: 4
-    weight: 0.5
+    weight: 1
+    cooldownRows: 0

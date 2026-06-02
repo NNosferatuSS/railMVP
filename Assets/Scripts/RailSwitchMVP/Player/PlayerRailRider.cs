@@ -45,6 +45,19 @@ namespace RailSwitchMVP.Player
         private float _gapDistance;
         private float _playerY;
 
+        // Gap FATAL: o player segue a direção do switch rumo a onde o tile deveria
+        // estar (dead-end) ou pra fora da pista (out-of-bounds) e só morre no FIM da
+        // transição — não no fim do trilho. Dá leitura visual: você vê o switch
+        // levar pro vazio antes do game over.
+        private bool _gapIsFatal;
+        private GameOverReason _gapFatalReason;
+
+        // Morte já disparada (fim do gap fatal). Congela o player exatamente onde
+        // morreu — evita que ele re-processe movimento e volte pro fim do trilho
+        // enquanto o game over ainda não foi confirmado (ex.: oferta de revive,
+        // que mantém o state em Playing). Limpo no RespawnAt (revive).
+        private bool _deathPending;
+
         public float CurrentSpeed => currentSpeed;
         public float DistanceTraveled => distanceTraveled;
         public TrackTile CurrentTile => currentTile;
@@ -97,12 +110,49 @@ namespace RailSwitchMVP.Player
             transform.position = pos;
         }
 
+        // Impacto do Shield: velocidade cai pra _impactFrom e recupera com decay.
+        // 1 = sem impacto ativo. Não mexe no Time.timeScale (mundo segue normal).
+        float _impactFactor = 1f;
+        float _impactFrom = 1f;
+        float _impactTimer = 0f;
+        float _impactDuration = 0f;
+
+        /// <summary>
+        /// Dispara a desaceleração de impacto (Barrier absorvida pelo Shield):
+        /// a velocidade do player mergulha pra config.shieldImpactSpeedFactor e
+        /// recupera ao longo de config.shieldImpactRecoverSeconds (decay). Simula
+        /// a batida / perda de momentum sem afetar o resto do jogo.
+        /// </summary>
+        public void ApplyImpactSlowdown()
+        {
+            if (config == null) return;
+            _impactFrom = Mathf.Clamp01(config.shieldImpactSpeedFactor);
+            _impactDuration = Mathf.Max(0.01f, config.shieldImpactRecoverSeconds);
+            _impactTimer = 0f;
+            _impactFactor = _impactFrom;
+        }
+
         void Update()
         {
             // Game Over → trava o player. Warmup permite movimento (player anda
             // através dos warmup tiles), só GameOver trava.
             if (GameManager.Instance != null && !GameManager.Instance.IsActive)
                 return;
+
+            // Morte já iniciada (fim do gap fatal): congela o player onde morreu.
+            // Sem isso, com o state ainda em Playing (oferta de revive), ele voltaria
+            // pro fim do trilho ao re-entrar na lógica de gap.
+            if (_deathPending)
+                return;
+
+            // Decay do impacto: recupera _impactFactor de _impactFrom até 1.
+            if (_impactFactor < 1f)
+            {
+                _impactTimer += Time.deltaTime;
+                float t = Mathf.Clamp01(_impactTimer / _impactDuration);
+                _impactFactor = Mathf.SmoothStep(_impactFrom, 1f, t);
+                if (t >= 1f) _impactFactor = 1f;
+            }
 
             if (difficulty != null)
             {
@@ -116,6 +166,7 @@ namespace RailSwitchMVP.Player
                 // Warmup speed reduction (Idea 1).
                 if (GameManager.Instance != null && GameManager.Instance.IsWarmup && config != null)
                     multiplier *= config.warmupSpeedMultiplier;
+                multiplier *= _impactFactor; // impacto do Shield (decay)
                 currentSpeed = baseSpeed * multiplier;
             }
 
@@ -132,9 +183,14 @@ namespace RailSwitchMVP.Player
             else
                 TickOnTile();
 
-            distanceTraveled = transform.position.z;
-            if (difficulty != null)
-                difficulty.UpdateDistance(distanceTraveled);
+            // Durante o gap fatal, congela a distância — o trechinho extra até o
+            // vazio não conta no score (você já estava morto no fim do trilho).
+            if (!_gapIsFatal)
+            {
+                distanceTraveled = transform.position.z;
+                if (difficulty != null)
+                    difficulty.UpdateDistance(distanceTraveled);
+            }
         }
 
         void TickOnTile()
@@ -160,7 +216,20 @@ namespace RailSwitchMVP.Player
             transform.position = p;
 
             if (gapProgress >= 1f)
+            {
+                if (_gapIsFatal)
+                {
+                    // Fim da transição do switch sem tile pra pousar → morte agora
+                    // (visualmente: o player seguiu o switch e chegou ao vazio).
+                    // _deathPending congela o player AQUI (não volta pro fim do trilho).
+                    inGap = false;
+                    _gapIsFatal = false;
+                    _deathPending = true;
+                    TriggerGameOver(_gapFatalReason);
+                    return;
+                }
                 ExitGap();
+            }
         }
 
         // === Ghost flight state (PostMVP2.2) ===
@@ -188,15 +257,15 @@ namespace RailSwitchMVP.Player
                 ? RailManager.Instance.GetRow(currentTile.Row + 1)
                 : null;
 
-            // Sem próxima linha registrada: trata como OutOfBounds.
+            // Sem próxima linha registrada: anda o gap seguindo o switch e morre no fim.
             if (nextRow == null)
             {
-                TriggerGameOver(GameOverReason.OutOfBounds);
+                BeginFatalGap(targetLane, GameOverReason.OutOfBounds);
                 return;
             }
 
             // OutOfBounds: com Ghost ou grace, clamp pra current lane (segue reto).
-            // Senão, Game Over.
+            // Senão, anda pra fora da pista e morre no fim da transição.
             if (targetLane < 0 || targetLane >= nextRow.MaxLanesAtSpawn)
             {
                 if (isGhost || invincible)
@@ -205,13 +274,13 @@ namespace RailSwitchMVP.Player
                 }
                 else
                 {
-                    TriggerGameOver(GameOverReason.OutOfBounds);
+                    BeginFatalGap(targetLane, GameOverReason.OutOfBounds);
                     return;
                 }
             }
 
             // DeadEnd: com Ghost, voa sobre. Com grace, redireciona pra lane populada
-            // mais próxima. Senão, Game Over.
+            // mais próxima. Senão, anda rumo ao tile que não existe e morre no fim.
             if (!nextRow.HasTile(targetLane))
             {
                 if (isGhost)
@@ -223,11 +292,11 @@ namespace RailSwitchMVP.Player
                 {
                     int rescue = FindClosestPopulatedLane(nextRow, targetLane);
                     if (rescue >= 0) targetLane = rescue;
-                    else { TriggerGameOver(GameOverReason.DeadEnd); return; }
+                    else { BeginFatalGap(targetLane, GameOverReason.DeadEnd); return; }
                 }
                 else
                 {
-                    TriggerGameOver(GameOverReason.DeadEnd);
+                    BeginFatalGap(targetLane, GameOverReason.DeadEnd);
                     return;
                 }
             }
@@ -241,6 +310,33 @@ namespace RailSwitchMVP.Player
             _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
             gapProgress = 0f;
             inGap = true;
+            _gapIsFatal = false;
+        }
+
+        // Gap FATAL: prepara a transição rumo a onde o tile-alvo ESTARIA (row+1,
+        // targetLane) — usando a mesma matemática do ghost flight. Vale tanto pra
+        // dead-end (tile não existe) quanto out-of-bounds (lane fora da pista, X
+        // cai além da borda). O player percorre a diagonal do switch e o game over
+        // dispara no fim do gap (TickGap), não no fim do trilho.
+        void BeginFatalGap(int targetLane, GameOverReason reason)
+        {
+            if (config == null) { TriggerGameOver(reason); return; }
+
+            Vector3 phantomCenter = TrackTile.ComputeWorldPosition(
+                currentTile.Row + 1, targetLane, config.globalMaxLanes, config);
+            Vector3 phantomStart = phantomCenter;
+            phantomStart.z -= config.trackLength * 0.5f;
+
+            _gapStartPos = currentTile.EndPoint.position;
+            _gapEndPos = phantomStart;
+            _gapStartPos.y = _playerY;
+            _gapEndPos.y = _playerY;
+            _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
+            gapProgress = 0f;
+            targetTile = null;       // não aterriza — morre no fim
+            inGap = true;
+            _gapIsFatal = true;
+            _gapFatalReason = reason;
         }
 
         // Inicia voo Ghost: configura phantom destination = onde o tile ESTARIA
@@ -279,6 +375,7 @@ namespace RailSwitchMVP.Player
             targetTile = null; // marca "ghost gap" pra ExitGap saber
             gapProgress = 0f;
             inGap = true;
+            _gapIsFatal = false;
         }
 
         void ExitGap()
@@ -443,6 +540,8 @@ namespace RailSwitchMVP.Player
             inGap = false;
             gapProgress = 0f;
             targetTile = null;
+            _gapIsFatal = false;
+            _deathPending = false;
             _ghostFlightSkips = 0;
             currentTile = tile;
             Vector3 p = tile.StartPoint.position;

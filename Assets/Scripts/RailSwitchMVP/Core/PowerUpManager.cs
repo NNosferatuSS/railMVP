@@ -25,6 +25,9 @@ namespace RailSwitchMVP.Core
         LaneSwapDebuff,
         // Caixa surpresa: ao coletar, concede um power-up aleatório do pool do tier.
         MysteryBox,
+        // Burst instantâneo: slow-mo (Time.timeScale baixo) por N segundos. Consumido
+        // na colisão (era active item PostMVP2.3, virou power-up normal).
+        TimeFreeze,
     }
 
     /// <summary>
@@ -35,11 +38,10 @@ namespace RailSwitchMVP.Core
     /// Duração é em TILES (decrementada via OnTileEntered do PlayerRailRider),
     /// não em segundos — escala consistente em todos os tiers.
     ///
-    /// Stack:
-    /// - Shield: cargas adicionais (cada hit consome 1).
-    /// - SlowDown: estende duração (não multiplica o efeito).
-    /// - Magnet: estende duração.
-    /// - DifficultyReset: instantâneo, sem state.
+    /// SEM STACK (diretriz do user): coletar um power-up que já está ativo apenas
+    /// o RENOVA — Shield fica em 1 carga (não acumula x2/x3), os de duração resetam
+    /// pra duração cheia (não somam). Os debuffs (SpeedUp/LaneSwap) são exceção:
+    /// continuam com a regra de hazard (SpeedUp soma, LaneSwap reseta).
     /// </summary>
     public class PowerUpManager : MonoBehaviour
     {
@@ -67,7 +69,7 @@ namespace RailSwitchMVP.Core
 
         [Header("Active-action passive (PostMVP2.3)")]
         [Tooltip("Tiles que o player pode usar Shift+←/→ pra teleportar. " +
-            "Não conta cada teleport — só transições de tile. Stack estende.")]
+            "Não conta cada teleport — só transições de tile. Coletar renova (sem stack).")]
         [SerializeField] private int teleportDefaultTiles = 8;
 
         [Header("Auto-pilot passive (Idea 3)")]
@@ -173,7 +175,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantShield()
         {
-            shieldCharges++;
+            shieldCharges = 1; // sem stack: renova pra 1 carga (não acumula).
             Debug.Log($"[PowerUpManager] +Shield (charges={shieldCharges})");
             OnPowerUpActivated?.Invoke(PowerUpType.Shield);
             OnPowerUpTick?.Invoke(PowerUpType.Shield, shieldCharges);
@@ -181,7 +183,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantSlowDown(int tiles)
         {
-            slowDownTilesRemaining += tiles;
+            slowDownTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +SlowDown (tiles={slowDownTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.SlowDown);
             OnPowerUpTick?.Invoke(PowerUpType.SlowDown, slowDownTilesRemaining);
@@ -189,7 +191,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantMagnet(int tiles)
         {
-            magnetTilesRemaining += tiles;
+            magnetTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +Magnet (tiles={magnetTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.Magnet);
             OnPowerUpTick?.Invoke(PowerUpType.Magnet, magnetTilesRemaining);
@@ -206,7 +208,7 @@ namespace RailSwitchMVP.Core
         // PostMVP2.2 — passive power-ups
         public void GrantDoubleCoins(int tiles)
         {
-            doubleCoinsTilesRemaining += tiles;
+            doubleCoinsTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +DoubleCoins (tiles={doubleCoinsTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.DoubleCoins);
             OnPowerUpTick?.Invoke(PowerUpType.DoubleCoins, doubleCoinsTilesRemaining);
@@ -214,7 +216,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantGhost(int tiles)
         {
-            ghostTilesRemaining += tiles;
+            ghostTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +Ghost (tiles={ghostTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.Ghost);
             OnPowerUpTick?.Invoke(PowerUpType.Ghost, ghostTilesRemaining);
@@ -222,7 +224,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantLanePreview(int tiles)
         {
-            lanePreviewTilesRemaining += tiles;
+            lanePreviewTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +LanePreview (tiles={lanePreviewTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.LanePreview);
             OnPowerUpTick?.Invoke(PowerUpType.LanePreview, lanePreviewTilesRemaining);
@@ -230,7 +232,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantCoinRadar(int tiles)
         {
-            coinRadarTilesRemaining += tiles;
+            coinRadarTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +CoinRadar (tiles={coinRadarTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.CoinRadar);
             OnPowerUpTick?.Invoke(PowerUpType.CoinRadar, coinRadarTilesRemaining);
@@ -238,7 +240,7 @@ namespace RailSwitchMVP.Core
 
         public void GrantTeleport(int tiles)
         {
-            teleportTilesRemaining += tiles;
+            teleportTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +Teleport (tiles={teleportTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.Teleport);
             OnPowerUpTick?.Invoke(PowerUpType.Teleport, teleportTilesRemaining);
@@ -246,10 +248,21 @@ namespace RailSwitchMVP.Core
 
         public void GrantAutoCriticalFollow(int tiles)
         {
-            autoCriticalFollowTilesRemaining += tiles;
+            autoCriticalFollowTilesRemaining = tiles; // renova (sem stack)
             Debug.Log($"[PowerUpManager] +AutoCriticalFollow (tiles={autoCriticalFollowTilesRemaining})");
             OnPowerUpActivated?.Invoke(PowerUpType.AutoCriticalFollow);
             OnPowerUpTick?.Invoke(PowerUpType.AutoCriticalFollow, autoCriticalFollowTilesRemaining);
+        }
+
+        /// <summary>
+        /// TimeFreeze: ativa o slow-mo instantâneo (Time.timeScale baixo por N
+        /// segundos reais). Delega ao TimeFreezeController. Consumido na colisão —
+        /// não há mais slot/inventário. No-op se já ativo ou fora do gameplay.
+        /// </summary>
+        public void GrantTimeFreeze()
+        {
+            if (TimeFreezeController.Instance != null)
+                TimeFreezeController.Instance.TryActivate();
         }
 
         /// <summary>SpeedUp debuff: stack ADICIONA duração.</summary>
@@ -289,6 +302,7 @@ namespace RailSwitchMVP.Core
                 case PowerUpType.CoinRadar:          GrantCoinRadar(coinRadarDefaultTiles); break;
                 case PowerUpType.Teleport:           GrantTeleport(teleportDefaultTiles); break;
                 case PowerUpType.AutoCriticalFollow: GrantAutoCriticalFollow(autoCriticalFollowDefaultTiles); break;
+                case PowerUpType.TimeFreeze:         GrantTimeFreeze(); break;
                 default:
                     Debug.LogWarning($"[PowerUpManager] GrantByType: tipo {type} não concedível (debuff/mystery). Ignorado.");
                     break;

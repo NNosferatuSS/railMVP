@@ -1,11 +1,14 @@
 # XP / Account Level → Supabase: Setup
 
+> ✅ **CONCLUÍDO 2026-06-02** — coluna `account_xp` criada no Supabase e código
+> integrado/validado. Doc mantido como referência. Os passos abaixo já foram executados.
+
 Vincula o **account XP** (Camada 1 da progressão adaptativa) ao sync do Supabase.
 Antes era local-only (PlayerPrefs no device); agora viaja com o resto do estado do
 player (coins, bests, etc.) via `PlayerDataSync`.
 
 O **código Unity já está pronto** (`PlayerRemoteState.account_xp`, `CopyToRemoteState`,
-`ApplyRemoteState` recalcula o level). Falta **1 passo no Supabase**.
+`ApplyRemoteState` recalcula o level). A coluna no Supabase já foi criada.
 
 ---
 
