@@ -21,6 +21,9 @@ MonoBehaviour:
   hazardSlotStrategy: 1
   powerUpSlotStrategy: 1
   coinSlotStrategy: 1
+  powerUpMinRowGap: 3
+  hazardMinRowGap: 0
+  switchArrowDegreesPerStep: 35
   warmupRowCount: 2
   warmupSpeedMultiplier: 0.8
   rowsAhead: 3
@@ -43,6 +46,8 @@ MonoBehaviour:
   deathCamTiltDelta: 5
   shieldImpactSlowMo: 0.35
   shieldImpactDuration: 0.45
+  shieldImpactSpeedFactor: 0.3
+  shieldImpactRecoverSeconds: 1
   debugDrawCriticalPath: 1
   criticalPathGizmoColor: {r: 0, g: 1, b: 0.4, a: 0.8}
   decoyGizmoColor: {r: 1, g: 0.4, b: 0.2, a: 0.5}

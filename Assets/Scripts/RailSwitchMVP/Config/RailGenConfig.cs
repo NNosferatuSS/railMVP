@@ -90,6 +90,13 @@ namespace RailSwitchMVP.Config
         [Min(0)]
         public int hazardMinRowGap = 0;
 
+        [Header("Switch (visual)")]
+        [Tooltip("Graus que a seta do switch vira POR passo de estado (Left=-1, Right=+1). " +
+            "45 = ±45°. É só VISUAL — a direção real do player usa o estado inteiro, não o " +
+            "ângulo. Injetado em cada switch pelo gerador no spawn.")]
+        [Range(0f, 90f)]
+        public float switchArrowDegreesPerStep = 45f;
+
         [Header("Warmup (Idea 1)")]
         [Tooltip("Quantas rows iniciais são warmup (single lane, sem hazards/coins/power-ups). " +
             "Player atravessa elas em modo \"calmaria\" antes do jogo real começar.")]

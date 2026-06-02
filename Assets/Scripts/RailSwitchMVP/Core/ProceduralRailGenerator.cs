@@ -419,6 +419,7 @@ namespace RailSwitchMVP.Core
 
                 if (tile.Switch != null)
                 {
+                    tile.Switch.SetConfig(config); // ângulo da seta vem do RailGenConfig
                     var initialState = isWarmupRow
                         ? SwitchState.Middle
                         : (SwitchState)Random.Range(-1, 2);

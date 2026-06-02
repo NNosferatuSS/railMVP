@@ -1,4 +1,5 @@
 using UnityEngine;
+using RailSwitchMVP.Config;
 
 namespace RailSwitchMVP.Track
 {
@@ -25,6 +26,11 @@ namespace RailSwitchMVP.Track
         [Tooltip("Visual da seta. Rotaciona em Y conforme State.")]
         public Transform ArrowVisual;
 
+        // Config injetado pelo gerador no spawn — fonte do ângulo da seta.
+        // null = usa o default (45°). Mantido por instância pra ler ao vivo.
+        private RailGenConfig _config;
+        private const float DefaultDegreesPerStep = 45f;
+
         public SwitchState State => state;
 
         /// <summary>Lane absoluta para a qual o switch aponta na próxima linha.</summary>
@@ -38,6 +44,16 @@ namespace RailSwitchMVP.Track
 
         void Start()
         {
+            UpdateArrowRotation();
+        }
+
+        /// <summary>
+        /// Injeta o RailGenConfig (chamado pelo gerador no spawn). O ângulo da seta
+        /// passa a vir de config.switchArrowDegreesPerStep. Re-rotaciona na hora.
+        /// </summary>
+        public void SetConfig(RailGenConfig config)
+        {
+            _config = config;
             UpdateArrowRotation();
         }
 
@@ -61,7 +77,8 @@ namespace RailSwitchMVP.Track
         void UpdateArrowRotation()
         {
             if (ArrowVisual == null) return;
-            float angle = (int)state * 45f;
+            float degPerStep = _config != null ? _config.switchArrowDegreesPerStep : DefaultDegreesPerStep;
+            float angle = (int)state * degPerStep;
             ArrowVisual.localEulerAngles = new Vector3(0f, angle, 0f);
         }
     }
