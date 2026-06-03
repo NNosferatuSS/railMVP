@@ -45,6 +45,11 @@ namespace RailSwitchMVP.UI
         [SerializeField] private Button loginClaimButton;
         [SerializeField] private Button loginCloseButton; // opcional — pode fechar sem reclamar
 
+        [Header("Daily Login — streak panel")]
+        [Tooltip("Botão que abre o painel de streak (calendário dos 7 dias). Opcional.")]
+        [SerializeField] private Button loginStreakButton;
+        [SerializeField] private LoginStreakPanelController loginStreakPanel;
+
         [Header("Daily Ad Chest")]
         [SerializeField] private Button chestButton;
         [SerializeField] private TMP_Text chestButtonText;
@@ -98,6 +103,7 @@ namespace RailSwitchMVP.UI
             if (daily != null) daily.OnDailyResultRecorded += HandleDailyResultRecorded;
 
             if (playButton != null) playButton.onClick.AddListener(LoadGame);
+            if (loginStreakButton != null) loginStreakButton.onClick.AddListener(OpenLoginStreak);
             if (loginClaimButton != null) loginClaimButton.onClick.AddListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.AddListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.AddListener(ClaimChest);
@@ -137,6 +143,7 @@ namespace RailSwitchMVP.UI
             if (daily != null) daily.OnDailyResultRecorded -= HandleDailyResultRecorded;
 
             if (playButton != null) playButton.onClick.RemoveListener(LoadGame);
+            if (loginStreakButton != null) loginStreakButton.onClick.RemoveListener(OpenLoginStreak);
             if (loginClaimButton != null) loginClaimButton.onClick.RemoveListener(ClaimLogin);
             if (loginCloseButton != null) loginCloseButton.onClick.RemoveListener(CloseLoginPopup);
             if (chestButton != null) chestButton.onClick.RemoveListener(ClaimChest);
@@ -288,6 +295,11 @@ namespace RailSwitchMVP.UI
                 else if (!adsAvailable) chestButtonText.text = "Carregando...";
                 else chestButtonText.text = $"Baú Grátis +{DailyLoginManager.ChestReward}";
             }
+        }
+
+        public void OpenLoginStreak()
+        {
+            if (loginStreakPanel != null) loginStreakPanel.Open();
         }
 
         public void ClaimLogin()
