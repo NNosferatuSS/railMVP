@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using UnityEngine;
+using RailSwitchMVP.Economy;
 
 namespace RailSwitchMVP.Meta
 {
@@ -26,6 +27,9 @@ namespace RailSwitchMVP.Meta
 
         // Day 1..7 → index 0..6. Spec §2.2.
         public static readonly int[] LoginRewards = { 50, 100, 150, 200, 300, 400, 500 };
+
+        // Gems bônus por marcos do ciclo. 0 = sem gem naquele dia.
+        public static readonly int[] LoginGemBonuses = { 0, 0, 2, 0, 0, 0, 5 };
 
         const string KLoginDay       = "RailMVP.DailyLogin.Day";        // último dia reclamado (0 = nunca, 1-7)
         const string KLoginLastClaim = "RailMVP.DailyLogin.LastClaim";  // yyyy-MM-dd UTC
@@ -122,6 +126,13 @@ namespace RailSwitchMVP.Meta
             {
                 PlayerDataManager.Instance.AddCoins(reward);
                 PlayerDataManager.Instance.Save();
+            }
+
+            int gemBonus = LoginGemBonuses[day - 1];
+            if (gemBonus > 0 && CurrencyManager.Instance != null)
+            {
+                CurrencyManager.Instance.Add(CurrencyType.Gems, gemBonus, "daily_login_milestone");
+                Debug.Log($"[DailyLogin] Day {day} milestone — +{gemBonus} gem(s)!");
             }
 
             _lastClaimedDay = day;

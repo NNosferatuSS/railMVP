@@ -57,6 +57,10 @@ namespace RailSwitchMVP.Core
         [Tooltip("Prefab do Vortex (PostMVP2.5). Rouba escolha de switch (push pra outra lane).")]
         [SerializeField] private GameObject vortexObstaclePrefab;
 
+        [Tooltip("Prefab da gem coletável (premium currency). Spawna em critical path com " +
+            "chance muito baixa (RailGenConfig.gemSpawnChance). Se vazio, gems não spawnam.")]
+        [SerializeField] private GameObject gemPrefab;
+
         [System.Serializable]
         public struct PowerUpPrefabBinding
         {
@@ -82,6 +86,9 @@ namespace RailSwitchMVP.Core
         // Gating de spawn de hazard (mesma lógica: gap global + cooldown por kind).
         private int _lastHazardRow = int.MinValue / 2;
         private readonly Dictionary<HazardKind, int> _lastRowByHazard = new Dictionary<HazardKind, int>();
+
+        // Gating de spawn de gem (gap global; gems não têm cooldown por tipo).
+        private int _lastGemRow = int.MinValue / 2;
 
         // Cores e símbolos dos warnings sobre hazards (pós-MVP2 UI hint).
         // Centralizados aqui pra fácil tunar visual sem mexer em prefabs.
@@ -479,6 +486,7 @@ namespace RailSwitchMVP.Core
                 // Gating: gap GLOBAL em rows (powerUpMinRowGap) impede power-up em rows
                 // muito próximas. O cooldown POR TIPO é aplicado no pick (classic).
                 bool gapOk = (rowIndex - _lastPowerUpRow) >= Mathf.Max(0, config.powerUpMinRowGap);
+                bool tileHasPowerUp = false;
                 if (!isWarmupRow && gapOk && !tileHasHazard && tile.PowerUps != null && powerUpPrefabs != null && powerUpPrefabs.Count > 0)
                 {
                     bool useOverride = SpawnOverrideController.Instance != null
@@ -505,8 +513,23 @@ namespace RailSwitchMVP.Core
                         tile.PowerUps.Spawn(puPrefab, puSlot, totalSlots, slotPadding);
 
                         _lastPowerUpRow = rowIndex;
+                        tileHasPowerUp = true;
                         if (!useOverride) _lastRowByType[puType] = rowIndex;
                     }
+                }
+
+                // Gem: só em critical path, sem hazard e sem power-up neste tile.
+                // Chance muito baixa (gemSpawnChance); gap mínimo entre gems (gemMinRowGap).
+                bool gemGapOk = (rowIndex - _lastGemRow) >= Mathf.Max(0, config.gemMinRowGap);
+                if (!isWarmupRow && tile.IsOnCriticalPath && !tileHasHazard && !tileHasPowerUp
+                    && gemGapOk && gemPrefab != null && Random.value < config.gemSpawnChance
+                    && tile.PowerUps != null)
+                {
+                    int gemSlot = totalSlots / 2;
+                    if (reservedSlots == null) reservedSlots = new HashSet<int>();
+                    reservedSlots.Add(gemSlot);
+                    tile.PowerUps.Spawn(gemPrefab, gemSlot, totalSlots, slotPadding);
+                    _lastGemRow = rowIndex;
                 }
 
                 // Coins por último — recebem o set de slots reservados e

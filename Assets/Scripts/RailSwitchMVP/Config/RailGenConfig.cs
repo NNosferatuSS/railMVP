@@ -90,6 +90,17 @@ namespace RailSwitchMVP.Config
         [Min(0)]
         public int hazardMinRowGap = 0;
 
+        [Header("Gem spawn (premium currency)")]
+        [Tooltip("Probabilidade de spawnar 1 gem num tile de critical path (por tile). " +
+            "0.005 = 0,5%. Gem só aparece em critical path, sem hazard e sem power-up.")]
+        [Range(0f, 0.1f)]
+        public float gemSpawnChance = 0.005f;
+
+        [Tooltip("Gap mínimo em rows entre gems: após spawnar uma gem, as próximas N " +
+            "rows não recebem outra. Evita gems em sequência (raridade percebida).")]
+        [Min(0)]
+        public int gemMinRowGap = 30;
+
         [Header("Switch (visual)")]
         [Tooltip("Graus que a seta do switch vira POR passo de estado (Left=-1, Right=+1). " +
             "45 = ±45°. É só VISUAL — a direção real do player usa o estado inteiro, não o " +

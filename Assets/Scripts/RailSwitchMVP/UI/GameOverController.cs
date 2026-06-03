@@ -7,6 +7,7 @@ using TMPro;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
 using RailSwitchMVP.Collectibles;
+using RailSwitchMVP.Economy;
 using RailSwitchMVP.Meta;
 using RailSwitchMVP.Player;
 
@@ -40,6 +41,10 @@ namespace RailSwitchMVP.UI
         [Tooltip("Aparece só quando a run faz subir de nível, ex 'LEVEL UP!  Lv 7 → 8'. Opcional.")]
         [SerializeField] private TMP_Text levelUpText;
 
+        [Header("Gems earned this run")]
+        [Tooltip("Gems ganhas na run (pickups + milestone de distância). Ex: '💎 +2 gems'. Opcional — auto-skip se vazio.")]
+        [SerializeField] private TMP_Text gemsEarnedText;
+
         [Header("Rewarded Ad — 2x coins (Fatia 5)")]
         [Tooltip("Botão pra dobrar coins do run via rewarded ad. Auto-hide se " +
             "AdsManager ausente ou não pronto. Spec §5.2.")]
@@ -67,6 +72,11 @@ namespace RailSwitchMVP.UI
         private float _runTime;
         private int _runXP; // calculado no DeathSequence (display) e reusado no commit
 
+        // Gems: snapshot no Start + delta de pickups + milestone de distância.
+        private int _gemsAtRunStart;
+        private int _runGemsPickups;
+        private int _runGemsDistance; // floor(metros / 1000)
+
         // Mesmo padrão do HUDController: captura baseline no 1º LateUpdate
         // pra exibir distância "limpa" (a partir de 0) mesmo que o player
         // comece em world Z > 0.
@@ -83,6 +93,12 @@ namespace RailSwitchMVP.UI
             if (panel != null) panel.SetActive(false);
             if (newRecordText != null) newRecordText.gameObject.SetActive(false);
             if (levelUpText != null) levelUpText.gameObject.SetActive(false);
+            if (gemsEarnedText != null) gemsEarnedText.gameObject.SetActive(false);
+
+            // Snapshot inicial para calcular gems coletadas por pickup durante a run.
+            _gemsAtRunStart = CurrencyManager.Instance != null
+                ? CurrencyManager.Instance.GetBalance(CurrencyType.Gems)
+                : 0;
 
             if (railConfig == null && difficulty != null && difficulty.Config != null)
             {
@@ -165,6 +181,14 @@ namespace RailSwitchMVP.UI
             _runTier = difficulty != null ? difficulty.CurrentTierIndex : 0;
             _runTime = timer != null ? timer.Elapsed : 0f;
             string curTimeStr = timer != null ? timer.FormatMMSS() : "00:00";
+
+            // Gems coletadas via pickup (delta desde o início da run).
+            int currentGems = CurrencyManager.Instance != null
+                ? CurrencyManager.Instance.GetBalance(CurrencyType.Gems)
+                : _gemsAtRunStart;
+            _runGemsPickups = Mathf.Max(0, currentGems - _gemsAtRunStart);
+            // 1 gem a cada 1000 m de distância (milestone passivo).
+            _runGemsDistance = _runMeters / 1000;
 
             // Atualiza bests via PlayerDataManager (PlayerPrefs sob o capô).
             PlayerDataManager.RecordResult broken = default;
@@ -319,6 +343,7 @@ namespace RailSwitchMVP.UI
             // então MissionsCompletedThisRun está consolidado (sem depender da
             // ordem dos handlers do evento).
             ComputeAndShowXP();
+            ShowGemsEarned();
 
             if (panel != null) panel.SetActive(true);
         }
@@ -348,6 +373,27 @@ namespace RailSwitchMVP.UI
                 }
             }
             levelUpText.gameObject.SetActive(false);
+        }
+
+        void ShowGemsEarned()
+        {
+            if (gemsEarnedText == null) return;
+
+            int total = _runGemsPickups + _runGemsDistance;
+            if (total <= 0)
+            {
+                gemsEarnedText.gameObject.SetActive(false);
+                return;
+            }
+
+            string detail = "";
+            if (_runGemsPickups > 0 && _runGemsDistance > 0)
+                detail = $" ({_runGemsPickups} pickup + {_runGemsDistance} distância)";
+            else if (_runGemsDistance > 0)
+                detail = $" ({_runMeters} m milestone)";
+
+            gemsEarnedText.text = $"+{total} gem{(total > 1 ? "s" : "")}{detail}";
+            gemsEarnedText.gameObject.SetActive(true);
         }
 
         // Reflete a ref de RailGenConfig serializada no PlayerCameraRig — pra evitar
@@ -418,6 +464,11 @@ namespace RailSwitchMVP.UI
             // XP de account level (Camada 1) — _runXP já foi calculado no
             // DeathSequence (ComputeAndShowXP). AddXP é no-op se 0.
             pdm.AddXP(_runXP);
+
+            // Gems de milestone de distância (1 gem / 1000 m). Pickups já foram
+            // creditados diretamente ao CurrencyManager no momento da coleta.
+            if (_runGemsDistance > 0 && CurrencyManager.Instance != null)
+                CurrencyManager.Instance.Add(CurrencyType.Gems, _runGemsDistance, "distance_milestone");
 
             pdm.Save();
         }

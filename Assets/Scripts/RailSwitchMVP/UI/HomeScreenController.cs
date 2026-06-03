@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using RailSwitchMVP.Economy;
 using RailSwitchMVP.Meta;
 
 namespace RailSwitchMVP.UI
@@ -24,6 +25,8 @@ namespace RailSwitchMVP.UI
         [Tooltip("Account level do jogador (Camada 1). Ex: 'Lv. 7'. Opcional — auto-skip se vazio.")]
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private TMP_Text coinsText;
+        [Tooltip("Saldo de gems premium. Ex: '💎 12'. Opcional — auto-skip se vazio.")]
+        [SerializeField] private TMP_Text gemsText;
         [SerializeField] private TMP_Text bestDistanceText;
         [SerializeField] private Button playButton;
 
@@ -35,6 +38,10 @@ namespace RailSwitchMVP.UI
         [SerializeField] private GameObject loginPopupPanel;
         [SerializeField] private TMP_Text loginDayText;
         [SerializeField] private TMP_Text loginRewardText;
+        [Tooltip("Texto opcional que aparece só quando o dia atual tem bônus de gem. " +
+            "Ex: '+2 gems'. Esconde automaticamente nos dias sem gem. Pode ser estilizado " +
+            "com ícone e cor diferente de loginRewardText.")]
+        [SerializeField] private TMP_Text loginGemBonusText;
         [SerializeField] private Button loginClaimButton;
         [SerializeField] private Button loginCloseButton; // opcional — pode fechar sem reclamar
 
@@ -81,6 +88,9 @@ namespace RailSwitchMVP.UI
                 dl.OnChestClaimed += HandleChestClaimed;
             }
 
+            var currency = CurrencyManager.Instance;
+            if (currency != null) currency.OnCurrencyChanged += HandleCurrencyChanged;
+
             var ads = AdsManager.Instance;
             if (ads != null) ads.OnRewardedReadyChanged += HandleAdsReadyChanged;
 
@@ -117,6 +127,9 @@ namespace RailSwitchMVP.UI
                 dl.OnChestClaimed -= HandleChestClaimed;
             }
 
+            var currency = CurrencyManager.Instance;
+            if (currency != null) currency.OnCurrencyChanged -= HandleCurrencyChanged;
+
             var ads = AdsManager.Instance;
             if (ads != null) ads.OnRewardedReadyChanged -= HandleAdsReadyChanged;
 
@@ -136,6 +149,12 @@ namespace RailSwitchMVP.UI
         void HandleCoinsChanged(int newTotal)
         {
             if (coinsText != null) coinsText.text = $"Coins: {newTotal}";
+        }
+
+        void HandleCurrencyChanged(CurrencyType type, int newTotal)
+        {
+            if (type == CurrencyType.Gems && gemsText != null)
+                gemsText.text = $"Gems: {newTotal}";
         }
 
         void HandlePlayerNameChanged(string newName)
@@ -169,6 +188,7 @@ namespace RailSwitchMVP.UI
                 if (playerNameText != null) playerNameText.text = "Player";
                 if (levelText != null) levelText.text = "Lv. 1";
                 if (coinsText != null) coinsText.text = "Coins: 0";
+                if (gemsText != null) gemsText.text = "Gems: 0";
                 if (bestDistanceText != null) bestDistanceText.text = "Best: 0 m";
                 Debug.LogWarning("[Home] PlayerDataManager.Instance null — adicione _PlayerDataManager na HomeScene.");
                 return;
@@ -176,6 +196,11 @@ namespace RailSwitchMVP.UI
             if (playerNameText != null) playerNameText.text = pdm.PlayerName;
             if (levelText != null) levelText.text = $"Lv. {pdm.AccountLevel}";
             if (coinsText != null) coinsText.text = $"Coins: {pdm.Coins}";
+            if (gemsText != null)
+            {
+                int gems = CurrencyManager.Instance != null ? CurrencyManager.Instance.GetBalance(CurrencyType.Gems) : 0;
+                gemsText.text = $"Gems: {gems}";
+            }
             if (bestDistanceText != null) bestDistanceText.text = $"Best: {pdm.BestDistance} m";
         }
 
@@ -218,6 +243,21 @@ namespace RailSwitchMVP.UI
                 loginDayText.text = $"Dia {dl.NextDay} de {DailyLoginManager.LoginCycleLength}";
             if (loginRewardText != null)
                 loginRewardText.text = $"+{dl.NextDayReward} coins";
+
+            // Bônus de gem: mostra só quando o dia atual tem gem, esconde nos outros.
+            if (loginGemBonusText != null)
+            {
+                int gemBonus = DailyLoginManager.LoginGemBonuses[dl.NextDay - 1];
+                if (gemBonus > 0)
+                {
+                    loginGemBonusText.text = $"+{gemBonus} gem{(gemBonus > 1 ? "s" : "")}";
+                    loginGemBonusText.gameObject.SetActive(true);
+                }
+                else
+                {
+                    loginGemBonusText.gameObject.SetActive(false);
+                }
+            }
         }
 
         void RefreshChestButton()

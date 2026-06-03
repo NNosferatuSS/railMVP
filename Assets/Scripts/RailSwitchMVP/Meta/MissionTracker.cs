@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using RailSwitchMVP.Collectibles;
 using RailSwitchMVP.Core;
+using RailSwitchMVP.Economy;
 
 namespace RailSwitchMVP.Meta
 {
@@ -36,11 +37,14 @@ namespace RailSwitchMVP.Meta
         public MissionKind Kind;
         public float Target;
         public int Reward;
+        public CurrencyType RewardCurrency; // Coins (default) ou Gems
         public string Param;   // pra UsePowerUp: "shield"/"magnet"/"slowdown".
 
-        public MissionDef(int id, string desc, MissionKind kind, float target, int reward, string param = "")
+        public MissionDef(int id, string desc, MissionKind kind, float target, int reward,
+            string param = "", CurrencyType rewardCurrency = CurrencyType.Coins)
         {
-            Id = id; Description = desc; Kind = kind; Target = target; Reward = reward; Param = param;
+            Id = id; Description = desc; Kind = kind; Target = target; Reward = reward;
+            RewardCurrency = rewardCurrency; Param = param;
         }
     }
 
@@ -52,6 +56,7 @@ namespace RailSwitchMVP.Meta
         public float Progress;
         public float Target;
         public int Reward;
+        public CurrencyType RewardCurrency;
         public bool IsComplete;
         public bool IsClaimed;
     }
@@ -88,7 +93,7 @@ namespace RailSwitchMVP.Meta
             new MissionDef( 2, "Colete 300 moedas em uma única run", MissionKind.SingleRunCoins,    300, 200),
             new MissionDef( 3, "Chegue a 300m em uma run",            MissionKind.SingleRunDistance, 300, 100),
             new MissionDef( 4, "Chegue a 600m em uma run",            MissionKind.SingleRunDistance, 600, 150),
-            new MissionDef( 5, "Chegue a 1000m em uma run",           MissionKind.SingleRunDistance,1000, 200),
+            new MissionDef( 5, "Chegue a 1000m em uma run",           MissionKind.SingleRunDistance,1000,   1, rewardCurrency: CurrencyType.Gems),
             new MissionDef( 6, "Sobreviva 30 segundos em uma run",    MissionKind.SingleRunTime,      30, 100),
             new MissionDef( 7, "Sobreviva 60 segundos em uma run",    MissionKind.SingleRunTime,      60, 150),
             new MissionDef( 8, "Sobreviva 90 segundos em uma run",    MissionKind.SingleRunTime,      90, 200),
@@ -101,7 +106,7 @@ namespace RailSwitchMVP.Meta
             new MissionDef(15, "Use um SlowDown em uma run",          MissionKind.UsePowerUp,          1, 100, "slowdown"),
             new MissionDef(16, "Atinja o Tier 2 de dificuldade",      MissionKind.ReachTier,           2, 150),
             new MissionDef(17, "Atinja o Tier 3 de dificuldade",      MissionKind.ReachTier,           3, 200),
-            new MissionDef(18, "Complete uma run sem usar nenhum power-up", MissionKind.NoPowerUpRun,  1, 200),
+            new MissionDef(18, "Complete uma run sem usar nenhum power-up", MissionKind.NoPowerUpRun,  1,   1, rewardCurrency: CurrencyType.Gems),
             new MissionDef(19, "Colete moedas em 10 tiles diferentes numa run", MissionKind.TilesWithCoins, 10, 150),
         };
 
@@ -112,9 +117,9 @@ namespace RailSwitchMVP.Meta
             new MissionDef( 2, "Complete 20 runs na semana",             MissionKind.WeeklyTotalRuns,    20, 500),
             new MissionDef( 3, "Complete 40 runs na semana",             MissionKind.WeeklyTotalRuns,    40, 800),
             new MissionDef( 4, "Chegue a 1500m em uma run",              MissionKind.SingleRunDistance,1500, 600),
-            new MissionDef( 5, "Chegue a 2500m em uma run",              MissionKind.SingleRunDistance,2500,1000),
+            new MissionDef( 5, "Chegue a 2500m em uma run",              MissionKind.SingleRunDistance,2500,   3, rewardCurrency: CurrencyType.Gems),
             new MissionDef( 6, "Atinja o Tier 4 em uma run",             MissionKind.ReachTier,           4, 700),
-            new MissionDef( 7, "Sobreviva 3 minutos em uma run",         MissionKind.SingleRunTime,     180, 800),
+            new MissionDef( 7, "Sobreviva 3 minutos em uma run",         MissionKind.SingleRunTime,     180,   3, rewardCurrency: CurrencyType.Gems),
             new MissionDef( 8, "Complete todas as 3 missões diárias em 3 dias diferentes", MissionKind.DailyMissionsComplete, 3, 600),
             new MissionDef( 9, "Colete moedas em 50 tiles numa única run", MissionKind.TilesWithCoins,  50, 700),
         };
@@ -529,12 +534,11 @@ namespace RailSwitchMVP.Meta
             var def = DailyPool[_dailyIds[slot]];
             if (_dailyProg[slot] < def.Target) return;
 
-            if (PlayerDataManager.Instance != null)
-                PlayerDataManager.Instance.AddCoins(def.Reward);
+            GrantReward(def);
             _dailyClaimed[slot] = true;
             CommitProgress();
             if (PlayerDataManager.Instance != null) PlayerDataManager.Instance.Save();
-            Debug.Log($"[MissionTracker] Daily slot {slot} claimed: +{def.Reward} coins");
+            Debug.Log($"[MissionTracker] Daily slot {slot} claimed: +{def.Reward} {def.RewardCurrency}");
             OnMissionsChanged?.Invoke();
         }
 
@@ -545,13 +549,26 @@ namespace RailSwitchMVP.Meta
             var def = WeeklyPool[_weeklyIds[slot]];
             if (_weeklyProg[slot] < def.Target) return;
 
-            if (PlayerDataManager.Instance != null)
-                PlayerDataManager.Instance.AddCoins(def.Reward);
+            GrantReward(def);
             _weeklyClaimed[slot] = true;
             CommitProgress();
             if (PlayerDataManager.Instance != null) PlayerDataManager.Instance.Save();
-            Debug.Log($"[MissionTracker] Weekly slot {slot} claimed: +{def.Reward} coins");
+            Debug.Log($"[MissionTracker] Weekly slot {slot} claimed: +{def.Reward} {def.RewardCurrency}");
             OnMissionsChanged?.Invoke();
+        }
+
+        static void GrantReward(MissionDef def)
+        {
+            if (def.RewardCurrency == CurrencyType.Gems)
+            {
+                if (CurrencyManager.Instance != null)
+                    CurrencyManager.Instance.Add(CurrencyType.Gems, def.Reward, "mission");
+            }
+            else
+            {
+                if (PlayerDataManager.Instance != null)
+                    PlayerDataManager.Instance.AddCoins(def.Reward);
+            }
         }
 
         // ============ Debug ============
@@ -649,6 +666,7 @@ namespace RailSwitchMVP.Meta
                 Progress = prog,
                 Target = def.Target,
                 Reward = def.Reward,
+                RewardCurrency = def.RewardCurrency,
                 IsComplete = prog >= def.Target,
                 IsClaimed = claimed,
             };

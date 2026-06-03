@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using RailSwitchMVP.Collectibles;
+using RailSwitchMVP.Economy;
 using RailSwitchMVP.Meta;
 using RailSwitchMVP.Net;
 using RailSwitchMVP.Player;
@@ -147,6 +148,8 @@ namespace RailSwitchMVP.Core
             DrawDifficultySection();
             GUILayout.Space(6);
             DrawCoinsSection();
+            GUILayout.Space(6);
+            DrawGemsSection();
             GUILayout.Space(6);
             DrawGameStateSection();
             GUILayout.Space(6);
@@ -480,6 +483,22 @@ namespace RailSwitchMVP.Core
             if (GUILayout.Button("+100 coins")) cm.AddCoins(100);
             if (GUILayout.Button("Reset (0)")) cm.ResetTotal();
             GUILayout.Label($"Total: {cm.Total}", _hintStyle);
+        }
+
+        void DrawGemsSection()
+        {
+            GUILayout.Label("Gems (premium)", _sectionStyle);
+            var cm = CurrencyManager.Instance;
+            if (cm == null)
+            {
+                GUILayout.Label("(CurrencyManager not in scene)", _hintStyle);
+                return;
+            }
+            int bal = cm.GetBalance(CurrencyType.Gems);
+            if (GUILayout.Button("+1 gem")) cm.DebugAddGems(1);
+            if (GUILayout.Button("+10 gems")) cm.DebugAddGems(10);
+            if (GUILayout.Button("Reset gems (0)")) cm.TrySpend(CurrencyType.Gems, bal, "debug_reset");
+            GUILayout.Label($"Saldo: {bal} gems", _hintStyle);
         }
 
         void DrawGameStateSection()

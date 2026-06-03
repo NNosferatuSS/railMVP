@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using RailSwitchMVP.Economy;
 using RailSwitchMVP.Meta;
 
 namespace RailSwitchMVP.UI
@@ -50,7 +51,11 @@ namespace RailSwitchMVP.UI
             if (progressText != null)
                 progressText.text = $"{FormatNum(displayProgress)} / {FormatNum(entry.Target)}";
             if (rewardText != null)
-                rewardText.text = $"+{entry.Reward}";
+            {
+                string currency = entry.RewardCurrency == CurrencyType.Gems ? "gem" : "coins";
+                string plural = entry.Reward != 1 ? "s" : "";
+                rewardText.text = $"+{entry.Reward} {currency}{(entry.RewardCurrency == CurrencyType.Gems ? plural : "")}";
+            }
 
             if (claimButtonText != null)
             {
