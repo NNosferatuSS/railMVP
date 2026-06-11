@@ -21,8 +21,10 @@ MonoBehaviour:
   hazardSlotStrategy: 1
   powerUpSlotStrategy: 1
   coinSlotStrategy: 1
-  powerUpMinRowGap: 3
+  powerUpMinRowGap: 0
   hazardMinRowGap: 0
+  gemSpawnChance: 0.005
+  gemMinRowGap: 30
   switchArrowDegreesPerStep: 35
   warmupRowCount: 2
   warmupSpeedMultiplier: 0.8
@@ -32,7 +34,7 @@ MonoBehaviour:
   cameraLookAhead: 0.35
   cameraFieldOfView: 48
   cameraZoomSpeed: 8
-  cameraZoomGlobalMultiplier: 2.05
+  cameraZoomGlobalMultiplier: 2.3
   cameraPositionSmoothing: 12
   shakeLightIntensity: 0.15
   shakeLightDuration: 0.15

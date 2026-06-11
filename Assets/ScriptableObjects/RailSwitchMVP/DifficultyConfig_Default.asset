@@ -31,10 +31,10 @@ MonoBehaviour:
     decoyCoinsMax: 0
     decoyCoinChance: 0
     hazardChanceOnDecoy: 0
-    hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
+    hazardPool: {fileID: 11400000, guid: 0039f7ace47d59d4abff6dd25cf2f4dc, type: 2}
     powerUpChanceOnCritical: 0.08
     powerUpChanceOnDecoy: 0
-    powerUpPool: {fileID: 11400000, guid: c61002aabbccddee0112233445566711, type: 2}
+    powerUpPool: {fileID: 11400000, guid: 0f39f58c899250d4b982eb01a33918cd, type: 2}
     mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 30
     maxLanes: 3
@@ -54,10 +54,10 @@ MonoBehaviour:
     decoyCoinsMax: 0
     decoyCoinChance: 0
     hazardChanceOnDecoy: 0.08
-    hazardPool: {fileID: 11400000, guid: b52002aabbccddee0112233445566702, type: 2}
-    powerUpChanceOnCritical: 0.08
+    hazardPool: {fileID: 11400000, guid: b51001aabbccddee0112233445566701, type: 2}
+    powerUpChanceOnCritical: 1
     powerUpChanceOnDecoy: 0.03
-    powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
+    powerUpPool: {fileID: 11400000, guid: c61002aabbccddee0112233445566711, type: 2}
     mysteryBoxPool: {fileID: 0}
   - triggerAtDistance: 100
     maxLanes: 4
@@ -77,10 +77,10 @@ MonoBehaviour:
     decoyCoinsMax: 1
     decoyCoinChance: 0
     hazardChanceOnDecoy: 0.2
-    hazardPool: {fileID: 11400000, guid: b53003aabbccddee0112233445566703, type: 2}
+    hazardPool: {fileID: 11400000, guid: b52002aabbccddee0112233445566702, type: 2}
     powerUpChanceOnCritical: 0.1
     powerUpChanceOnDecoy: 0.03
-    powerUpPool: {fileID: 11400000, guid: c63004aabbccddee0112233445566713, type: 2}
+    powerUpPool: {fileID: 11400000, guid: c62003aabbccddee0112233445566712, type: 2}
     mysteryBoxPool: {fileID: 11400000, guid: 2e7eed984bff6df4196a1be49ef4c86b, type: 2}
   - triggerAtDistance: 210
     maxLanes: 5

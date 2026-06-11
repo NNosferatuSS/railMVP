@@ -4532,51 +4532,6 @@ Transform:
   - {fileID: 2142157024}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &896137624
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 896137626}
-  - component: {fileID: 896137625}
-  m_Layer: 0
-  m_Name: '_ActiveItemSlot '
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &896137625
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 896137624}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 125f2204f5b1c644fb2d860d95691f17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Core.ActiveItemSlot
-  heldItem: 0
---- !u!4 &896137626
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 896137624}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 28.72518, y: 312.51065, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &931559463
 GameObject:
   m_ObjectHideFlags: 0
@@ -6009,7 +5964,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
 --- !u!114 &1382016456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7983,15 +7938,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Core.ProceduralRailGenerator
   config: {fileID: 11400000, guid: 4206ddfc572689b499014c435e26d321, type: 2}
   tilePrefab: {fileID: 6099193709384623378, guid: 98c66245c32ebcc4dbc7482f8764d803, type: 3}
-  lethalObstaclePrefab: {fileID: 7361413902271656149, guid: e5110fb5a248d1046b4007f11b1f5784, type: 3}
-  barrierObstaclePrefab: {fileID: 2412918916562019646, guid: cde16ae043a3421408d1ea95cf3ebf80, type: 3}
-  speedUpZonePrefab: {fileID: 4899526961279192106, guid: c8164e03b2f46184d940487ce9880a92, type: 3}
-  laneSwapObstaclePrefab: {fileID: 5967835679655963916, guid: b32cb7e4b386f5b4c90eac90daf61acd, type: 3}
-  vortexObstaclePrefab: {fileID: 3750205584937179755, guid: d11021a80437f4d49a09f43c298e3921, type: 3}
+  lethalObstaclePrefab: {fileID: 3297892400170237540, guid: ae954f21e147c4277aae62d9dc9d1862, type: 3}
+  barrierObstaclePrefab: {fileID: 3297892400170237540, guid: 5079b1657c21d4393a931808dd350855, type: 3}
+  speedUpZonePrefab: {fileID: 2987732274689703784, guid: e8d3ebf50af93456ca997986903a36a7, type: 3}
+  laneSwapObstaclePrefab: {fileID: 4862138276025000276, guid: 773f16a490f7641b8a79e90669b77f55, type: 3}
+  vortexObstaclePrefab: {fileID: 124515711640804439, guid: 5c28fd0745d27440a9c19f4b17c6e9f0, type: 3}
   gemPrefab: {fileID: 4355269316492332349, guid: 245a7c878a8e3451e8b9ade48e6c6e13, type: 3}
   powerUpPrefabs:
   - type: 4
-    prefab: {fileID: 9067721033018715970, guid: b296f25586137c348a2ccdc2d4818cbf, type: 3}
+    prefab: {fileID: 5236187087862991110, guid: 25d4268f5ab024bbd9ca5e31d6448bda, type: 3}
   - type: 9
     prefab: {fileID: 8896053711572574333, guid: 7c2c1df33425d06478fc79ea0a166d86, type: 3}
   - type: 7
@@ -7999,21 +7954,19 @@ MonoBehaviour:
   - type: 3
     prefab: {fileID: 4229083727844615000, guid: 3a91b72b08960484197b3ff0228f01a4, type: 3}
   - type: 5
-    prefab: {fileID: 9067721033018715970, guid: 506d4b1035bcbbf43b90802ffcfb3c40, type: 3}
+    prefab: {fileID: 2388643402921574510, guid: e7fe4d113feb243acabfba03d4ccb2a8, type: 3}
   - type: 6
     prefab: {fileID: 9067721033018715970, guid: 0ade5c3822af2814ab308e569817dbc3, type: 3}
   - type: 2
-    prefab: {fileID: 3931090600671693706, guid: bf9fe9785e7b2f94f858c2689f5eeed5, type: 3}
+    prefab: {fileID: 9138469609162604867, guid: 49025d339489347c582ac2ed9d293e7c, type: 3}
   - type: 12
     prefab: {fileID: 5836796260961357396, guid: af80ff10b46a4c04dba8da04f6311edd, type: 3}
   - type: 0
-    prefab: {fileID: 9067721033018715970, guid: c01c83651abef7b4f8045617808d1ac1, type: 3}
+    prefab: {fileID: 1507942990342619731, guid: bf771ee2393b1494a9283dc9c1027498, type: 3}
   - type: 1
     prefab: {fileID: 8479788649590680788, guid: 6eb7c3e7230f61f44a0c2388653019c8, type: 3}
   - type: 8
-    prefab: {fileID: 7804696284932687773, guid: dc871c3f0e8a6c0438c4e7a8ad37450c, type: 3}
-  - type: 0
-    prefab: {fileID: 8896053711572574333, guid: d8a2f7d54589dbf4584c6d20fddb5c68, type: 3}
+    prefab: {fileID: 2317685710571739889, guid: 3889e70642a3c4368a2e8e230ba41be2, type: 3}
   warningRowsAhead: 1
   previousCriticalLanes: 
   transitionAnchorLane: -1
@@ -9857,7 +9810,6 @@ SceneRoots:
   - {fileID: 1690743696}
   - {fileID: 189190715}
   - {fileID: 1400017693}
-  - {fileID: 896137626}
   - {fileID: 232945865}
   - {fileID: 413901032}
   - {fileID: 1504299274}
