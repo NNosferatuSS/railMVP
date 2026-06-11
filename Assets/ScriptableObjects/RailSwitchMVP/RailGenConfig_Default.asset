@@ -21,8 +21,8 @@ MonoBehaviour:
   hazardSlotStrategy: 1
   powerUpSlotStrategy: 1
   coinSlotStrategy: 1
-  powerUpMinRowGap: 0
-  hazardMinRowGap: 0
+  powerUpMinRowGap: 3
+  hazardMinRowGap: 3
   gemSpawnChance: 0.005
   gemMinRowGap: 30
   switchArrowDegreesPerStep: 35
