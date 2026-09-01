@@ -15,7 +15,7 @@ PrefabInstance:
     - target: {fileID: 3796315350368440392, guid: 1b0346b66b9134c91803eb9b795b01e0, type: 3}
       propertyPath: sprite
       value: 
-      objectReference: {fileID: 21300000, guid: dbae5cdfacc0448b3a1ba6d2223254ed, type: 3}
+      objectReference: {fileID: 21300000, guid: 6fa55a598686924458f28b76a16344ad, type: 3}
     - target: {fileID: 3796315350368440392, guid: 1b0346b66b9134c91803eb9b795b01e0, type: 3}
       propertyPath: tint.b
       value: 1
@@ -79,7 +79,7 @@ PrefabInstance:
     - target: {fileID: 7995689065495164210, guid: 1b0346b66b9134c91803eb9b795b01e0, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: dbae5cdfacc0448b3a1ba6d2223254ed, type: 3}
+      objectReference: {fileID: 21300000, guid: 6fa55a598686924458f28b76a16344ad, type: 3}
     - target: {fileID: 7995689065495164210, guid: 1b0346b66b9134c91803eb9b795b01e0, type: 3}
       propertyPath: m_Color.b
       value: 1

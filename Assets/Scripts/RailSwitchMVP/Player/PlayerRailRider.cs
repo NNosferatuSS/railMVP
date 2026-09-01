@@ -156,7 +156,8 @@ namespace RailSwitchMVP.Player
 
             if (difficulty != null)
             {
-                float baseSpeed = difficulty.CurrentTier.playerSpeed;
+                float baseSpeed = difficulty.CurrentTier.playerSpeed
+                    * (config != null ? config.globalSpeedMultiplier : 1f);
                 float multiplier = 1f;
                 if (PowerUpManager.Instance != null)
                 {

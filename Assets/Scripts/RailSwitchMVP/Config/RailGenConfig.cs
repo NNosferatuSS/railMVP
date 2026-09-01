@@ -118,6 +118,13 @@ namespace RailSwitchMVP.Config
         [Range(0.1f, 1f)]
         public float warmupSpeedMultiplier = 0.5f;
 
+        [Header("Speed — Global Tuning")]
+        [Tooltip("Multiplicador global de velocidade — escala o playerSpeed de TODOS os tiers de uma vez. " +
+            "1 = sem alteração. 0.8 = 20% mais lento. 1.2 = 20% mais rápido. " +
+            "Aplica em cima de cada tier do DifficultyConfig.")]
+        [Range(0.1f, 3f)]
+        public float globalSpeedMultiplier = 1f;
+
         [Header("Streaming")]
         [Tooltip("Quantas linhas spawnar à frente do player")]
         public int rowsAhead = 12;
