@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"><style>html{background:#0a0c12}body{margin:0;background:#0a0c12;font-family:"Barlow Semi Condensed",system-ui,sans-serif;color:#fff}a{color:#22e3ff}a:hover{color:#7cff4f}</style></helmet>
+
+<div style="width:1240px;padding:40px 44px 56px;display:flex;flex-direction:column;gap:44px;box-sizing:border-box">
+
+<div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.12)">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span style="font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:#22e3ff;letter-spacing:.42em">RAIL SWITCH</span>
+    <span style="font:700 40px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.03em">UI KIT · v1</span>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:10px">
+    <div style="padding:9px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:3px"><span style="font:600 9px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.2em">CANVAS</span><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff">390 × 844 pt</span></div>
+    <div style="padding:9px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:3px"><span style="font:600 9px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.2em">EXPORT</span><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#7cff4f">3× · 1170 × 2532 px</span></div>
+    <div style="padding:9px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:3px"><span style="font:600 9px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.2em">PPU / SPRITE</span><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff">100 · Point filter off</span></div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">01 · COLOR</span>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#22e3ff"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">ACCENT / RAIL</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#22E3FF · train, focus, links</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#7cff4f"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">SAFE / GO</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#7CFF4F · critical path, CTA</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#ff4d5e"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">DANGER</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#FF4D5E · decoy, dead end</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#ffc23d"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">COINS</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#FFC23D · soft currency</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#7c4dff"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">GEMS / ACTIVE</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#7C4DFF · premium, item slot</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:64px;border-radius:10px;background:#ff3ea5"></div><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">HAZARD</span><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#FF3EA5 · non-lethal warnings</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:#04060c;border:1px solid rgba(255,255,255,.1)"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#04060C bg deep</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:#0a1024"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#0A1024 bg mid</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:#1b2a52"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#1B2A52 bg lift</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">panel fill 5% / stroke 12%</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:#4c505c"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">#4C505C rail tile</span></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><div style="height:44px;border-radius:10px;background:linear-gradient(90deg,#fff,rgba(255,255,255,.45),rgba(255,255,255,.25))"></div><span style="font:500 10px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">text 100 / 60 / 40%</span></div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">02 · TYPE</span>
+  <div style="display:flex;gap:36px;align-items:flex-start">
+    <div style="flex:1;display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)">
+      <span style="font:600 10px/1 'Barlow Semi Condensed',sans-serif;color:#22e3ff;letter-spacing:.24em">CHAKRA PETCH — NUMBERS, TITLES, CTA</span>
+      <span style="font:700 56px/1 'Chakra Petch',sans-serif;color:#fff">1 428 M</span>
+      <span style="font:700 34px/1 'Chakra Petch',sans-serif;color:#fff">RUN OVER</span>
+      <span style="font:700 24px/1 'Chakra Petch',sans-serif;color:#7cff4f;letter-spacing:.1em">PLAY</span>
+      <span style="font:500 11px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">Hero 56/58 · Screen title 34 · CTA 24-30 (tracking .10em) · Stat 17-22</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)">
+      <span style="font:600 10px/1 'Barlow Semi Condensed',sans-serif;color:#22e3ff;letter-spacing:.24em">BARLOW SEMI CONDENSED — UI TEXT, LABELS</span>
+      <span style="font:700 13px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.14em">SECTION LABEL 13 / .14em</span>
+      <span style="font:500 14px/1.4 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.85)">Body copy 14 — mission descriptions, item effects, tooltips. Never below 11 px on device.</span>
+      <span style="font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.5);letter-spacing:.18em">CAPTION 11 / .18em UPPERCASE</span>
+      <span style="font:500 11px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">Radius scale 4 / 8 / 12 / 16 / 20 / 999 · Spacing 4 / 8 / 12 / 16 / 24</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;align-items:baseline;gap:14px"><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">03 · PANELS · 9-SLICE</span><span style="font:500 11px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.45)">dashed lines = slice borders. Export at 3×: multiply every slice value by 3.</span></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;height:132px;border-radius:20px;background:rgba(12,18,32,.86);border:1px solid rgba(255,255,255,.13)">
+        <div style="position:absolute;left:24px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;right:24px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;top:24px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;bottom:24px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.55);letter-spacing:.16em">PANEL / LG</span>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">panel_lg · r20 · slice 24 (72 @3×)<br>fill #0C1220 86% · stroke #FFF 13%</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;height:132px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11)">
+        <div style="position:absolute;left:16px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;right:16px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;top:16px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;bottom:16px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.55);letter-spacing:.16em">PANEL / MD</span>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">panel_md · r14 · slice 16 (48 @3×)<br>section cards, mission blocks</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;height:132px;border-radius:12px;background:rgba(9,14,26,.78);border:1px solid rgba(255,255,255,.12)">
+        <div style="position:absolute;left:12px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;right:12px;top:0;bottom:0;border-left:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;top:12px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <div style="position:absolute;bottom:12px;left:0;right:0;border-top:1px dashed rgba(34,227,255,.6)"></div>
+        <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.55);letter-spacing:.16em">ROW / HUD CHIP</span>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">row_sm · r12 · slice 12 (36 @3×)<br>HUD timers, list rows</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:linear-gradient(90deg,rgba(255,62,165,.28),rgba(255,62,165,.06));border:1px solid rgba(255,62,165,.6);box-shadow:0 0 26px rgba(255,62,165,.25)">
+        <div style="width:22px;height:22px;background:#ff3ea5;clip-path:polygon(50% 0,100% 100%,0 100%)"></div>
+        <div style="display:flex;flex-direction:column;gap:1px"><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.06em">HAZARD BANNER</span><span style="font:500 11px/1.2 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.66)">One line of consequence copy, max 44 chars</span></div>
+        <span style="margin-left:auto;font:700 15px/1 'Chakra Petch',sans-serif;color:#ff3ea5">2s</span>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">banner_hazard · r12 · slice 12 · tint swap: #FF3EA5 swap · #FFB050 speed · #8F7BFF vortex</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:12px;padding:8px 14px;border-radius:999px;background:rgba(10,7,22,.8);border:1px solid rgba(255,255,255,.14);width:max-content">
+        <span style="font:700 20px/1 'Chakra Petch',sans-serif;color:#fff">1 428<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:3px">M</span></span>
+        <div style="width:1px;height:16px;background:rgba(255,255,255,.16)"></div>
+        <span style="font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:#c9b3ff;letter-spacing:.14em">T2 · 5 LANES</span>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">pill · fully round · slice 22 · use for stats, timers, toasts</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">04 · BUTTONS &amp; CONTROLS</span>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="height:62px;border-radius:18px;background:linear-gradient(160deg,#7cff4f,#1f9e4c);display:grid;place-items:center;box-shadow:0 10px 30px rgba(124,255,79,.3),inset 0 -4px 0 rgba(0,0,0,.25)"><span style="font:700 24px/1 'Chakra Petch',sans-serif;color:#05210d;letter-spacing:.1em">PLAY</span></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">btn_primary · h62 · r18 · inner bottom shadow 4px<br>pressed: translateY 3px, lose shadow</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="height:62px;border-radius:18px;background:linear-gradient(160deg,#ffc23d,#c97d05);display:grid;place-items:center;box-shadow:0 10px 30px rgba(255,194,61,.28),inset 0 -4px 0 rgba(0,0,0,.22)"><span style="font:700 22px/1 'Chakra Petch',sans-serif;color:#2a1600;letter-spacing:.1em">BUY · 480</span></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">btn_purchase · gold = spends coins<br>violet variant = spends gems</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="height:62px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center"><span style="font:700 18px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.1em">SECONDARY</span></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">btn_ghost · stroke 22% · text 100%</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="height:62px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center"><span style="font:700 18px/1 'Chakra Petch',sans-serif;color:rgba(255,255,255,.3);letter-spacing:.1em">DISABLED</span></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">btn_disabled · text 30% · no shadow</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:10px">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center"><div style="display:flex;gap:3px"><div style="width:3px;height:14px;background:#fff;border-radius:1px"></div><div style="width:3px;height:14px;background:#fff;border-radius:1px"></div></div></div>
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center"><span style="font:700 20px/1 'Chakra Petch',sans-serif;color:#fff">×</span></div>
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center"><div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:11px solid #fff"></div></div>
+        <div style="width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center"><span style="font:700 20px/1 'Chakra Petch',sans-serif;color:#fff">+</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">btn_icon · 44×44 min hit target (132 px @3×)</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;padding:4px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);width:260px">
+        <div style="flex:1;padding:9px 0;border-radius:11px;background:linear-gradient(160deg,#22e3ff,#1170a8);text-align:center;font:700 13px/1 'Chakra Petch',sans-serif;color:#04121a;letter-spacing:.06em">CLASSIC</div>
+        <div style="flex:1;padding:9px 0;text-align:center;font:600 13px/1 'Chakra Petch',sans-serif;color:rgba(255,255,255,.6);letter-spacing:.06em">DAILY</div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">segmented / tabs · r14 outer, r11 thumb</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:56px;height:30px;border-radius:999px;background:#22e3ff;display:flex;align-items:center;justify-content:flex-end;padding:3px;box-sizing:border-box"><div style="width:24px;height:24px;border-radius:50%;background:#04121a"></div></div>
+        <div style="width:56px;height:30px;border-radius:999px;background:rgba(255,255,255,.14);display:flex;align-items:center;padding:3px;box-sizing:border-box"><div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.6)"></div></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">toggle on / off · 56×30</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;width:220px">
+      <div style="position:relative;height:30px;display:flex;align-items:center"><div style="width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.16)"><div style="width:64%;height:100%;border-radius:3px;background:linear-gradient(90deg,#22e3ff,#7cff4f)"></div></div><div style="position:absolute;left:64%;width:22px;height:22px;border-radius:50%;background:#fff;transform:translateX(-11px);box-shadow:0 2px 8px rgba(0,0,0,.5)"></div></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">slider · track 6 · knob 22 (settings: SFX, music)</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">05 · ECONOMY &amp; PROGRESS</span>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:8px">
+        <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:rgba(255,194,61,.14);border:1px solid rgba(255,194,61,.4)"><div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3ba,#f5b93a 60%,#c98a10)"></div><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#ffdc8a">5 874</span></div>
+        <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:rgba(124,77,255,.16);border:1px solid rgba(160,120,255,.45)"><div style="width:12px;height:12px;background:#c9b3ff;transform:rotate(45deg)"></div><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#dccdff">10</span></div>
+        <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:rgba(34,227,255,.14);border:1px solid rgba(34,227,255,.4)"><div style="width:12px;height:12px;border-radius:3px;background:#9beeff"></div><span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#9beeff">24</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">currency chips: coins · gems · event tokens</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;width:300px">
+      <div style="display:flex;flex-direction:column;gap:6px"><div style="height:5px;border-radius:3px;background:rgba(255,255,255,.14)"><div style="width:72%;height:100%;border-radius:3px;background:linear-gradient(90deg,#22e3ff,#7cff4f)"></div></div><div style="height:8px;border-radius:4px;background:rgba(255,255,255,.14)"><div style="width:38%;height:100%;border-radius:4px;background:#c9b3ff"></div></div></div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">progress: mission 5px · battle pass 8px</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:12px">
+        <div style="position:relative;width:52px;height:52px;border-radius:16px;background:conic-gradient(#ffc23d 0 62%,rgba(255,255,255,.12) 62%);padding:3px;box-sizing:border-box"><div style="width:100%;height:100%;border-radius:13px;background:linear-gradient(160deg,#8a5a10,#3a2400);display:grid;place-items:center"><span style="font:700 17px/1 'Chakra Petch',sans-serif;color:#ffe6ac">2×</span></div><span style="position:absolute;right:-4px;bottom:-4px;padding:1px 5px;border-radius:6px;background:#ffc23d;font:700 10px/1.4 'Chakra Petch',sans-serif;color:#3a2400">8</span></div>
+        <div style="width:52px;height:52px;border-radius:16px;border:1px dashed rgba(255,255,255,.22);display:grid;place-items:center"><span style="font:600 9px/1.2 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.4);text-align:center">EMPTY<br>SLOT</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">puck_timer 52 · conic ring = remaining · badge = seconds</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:10px">
+        <div style="width:66px;height:66px;border-radius:14px;background:rgba(255,255,255,.05);border:2px solid #8e97ab;display:grid;place-items:center"><span style="font:700 9px/1 'Barlow Semi Condensed',sans-serif;color:#c3cad8;letter-spacing:.12em">COMMON</span></div>
+        <div style="width:66px;height:66px;border-radius:14px;background:rgba(34,227,255,.08);border:2px solid #22e3ff;display:grid;place-items:center;box-shadow:0 0 16px rgba(34,227,255,.3)"><span style="font:700 9px/1 'Barlow Semi Condensed',sans-serif;color:#9beeff;letter-spacing:.12em">RARE</span></div>
+        <div style="width:66px;height:66px;border-radius:14px;background:rgba(124,77,255,.1);border:2px solid #b48cff;display:grid;place-items:center;box-shadow:0 0 18px rgba(124,77,255,.4)"><span style="font:700 9px/1 'Barlow Semi Condensed',sans-serif;color:#dccdff;letter-spacing:.12em">EPIC</span></div>
+        <div style="width:66px;height:66px;border-radius:14px;background:rgba(255,194,61,.12);border:2px solid #ffc23d;display:grid;place-items:center;box-shadow:0 0 22px rgba(255,194,61,.45)"><span style="font:700 8px/1 'Barlow Semi Condensed',sans-serif;color:#ffdc8a;letter-spacing:.1em">LEGENDARY</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">rarity frames · stroke 2 + outer glow · same 4 tiers across all 8 cosmetic categories</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">06 · OVERLAYS</span>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px;width:300px">
+      <div style="padding:18px;border-radius:20px;background:rgba(12,18,32,.94);border:1px solid rgba(255,255,255,.13);display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center"><span style="font:700 15px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.06em">MODAL TITLE</span><div style="margin-left:auto;width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.08);display:grid;place-items:center"><span style="font:700 14px/1 'Chakra Petch',sans-serif;color:#fff">×</span></div></div>
+        <span style="font:500 13px/1.4 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.7)">Body copy, two lines max. Confirmation, purchase, reward reveal.</span>
+        <div style="display:flex;gap:10px"><div style="flex:1;height:44px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);display:grid;place-items:center;font:700 13px 'Chakra Petch',sans-serif;color:#fff">LATER</div><div style="flex:1.4;height:44px;border-radius:12px;background:linear-gradient(160deg,#7cff4f,#1f9e4c);display:grid;place-items:center;font:700 13px 'Chakra Petch',sans-serif;color:#05210d">CONFIRM</div></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">modal · scrim #04060C 72% · r20 · 24 px side margin</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:999px;background:rgba(10,16,30,.92);border:1px solid rgba(124,255,79,.5);width:max-content"><div style="width:16px;height:16px;border-radius:50%;background:#7cff4f"></div><span style="font:600 12px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.08em">MISSION COMPLETE · +150 COINS</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:999px;background:rgba(10,16,30,.92);border:1px solid rgba(255,77,94,.5);width:max-content"><div style="width:16px;height:16px;border-radius:50%;background:#ff4d5e"></div><span style="font:600 12px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.08em">NOT ENOUGH GEMS</span></div>
+        <div style="padding:9px 12px;border-radius:10px;background:#0f1626;border:1px solid rgba(255,255,255,.16);width:max-content;display:flex;flex-direction:column;gap:3px"><span style="font:700 11px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.1em">GHOST</span><span style="font:500 11px/1.3 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.65);max-width:180px">Pass through dead ends and out-of-bounds tiles for 8s.</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">toast success / error · tooltip (long-press on any item)</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="width:96px;height:96px;border-radius:20px;background:rgba(4,6,12,.72);display:grid;place-items:center"><span style="font:700 46px/1 'Chakra Petch',sans-serif;color:#22e3ff;text-shadow:0 0 24px rgba(34,227,255,.6)">3</span></div>
+        <div style="width:96px;height:96px;border-radius:20px;background:rgba(4,6,12,.72);display:grid;place-items:center"><span style="font:700 34px/1 'Chakra Petch',sans-serif;color:#7cff4f;text-shadow:0 0 24px rgba(124,255,79,.6);letter-spacing:.06em">GO</span></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">warmup countdown · scale 1.4→1.0 + fade per beat</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+  <span style="font:700 13px/1 'Chakra Petch',sans-serif;color:#fff;letter-spacing:.28em">07 · BACKGROUNDS · full-screen, export 1170 × 2532</span>
+  <div style="display:flex;gap:22px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:234px;height:506px;border-radius:18px;overflow:hidden;background:radial-gradient(120% 70% at 50% 12%,#1b2a52 0%,#0a1024 55%,#05070f 100%)">
+        <div style="position:absolute;left:-20%;right:-20%;top:34%;height:300px;background:repeating-linear-gradient(180deg,rgba(34,227,255,.16) 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,rgba(34,227,255,.12) 0 1px,transparent 1px 36px);transform:perspective(420px) rotateX(64deg);mask-image:linear-gradient(180deg,transparent,#000 40%,transparent)"></div>
+        <div style="position:absolute;left:50%;bottom:16%;transform:translateX(-50%);width:150px;height:14px;border-radius:50%;background:radial-gradient(50% 50%,rgba(34,227,255,.35),transparent 70%)"></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">bg_meta_grid · Home, Mode select, Profile<br>grid is a scrolling material — animate V offset</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:234px;height:506px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#1a1030 0%,#0d0a1c 52%,#07060d 100%)">
+        <div style="position:absolute;left:50%;top:16%;transform:translate(-50%,-50%);width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,62,165,.4),transparent 65%)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:26%;height:120px;display:flex;align-items:flex-end;gap:6px;padding:0 8px;opacity:.85">
+          <div style="width:26px;height:64px;background:#120e22;border-top:2px solid rgba(34,227,255,.35)"></div>
+          <div style="width:20px;height:96px;background:#0e0b1c;border-top:2px solid rgba(255,62,165,.3)"></div>
+          <div style="width:32px;height:48px;background:#120e22"></div>
+          <div style="width:22px;height:110px;background:#0e0b1c;border-top:2px solid rgba(34,227,255,.3)"></div>
+          <div style="width:28px;height:76px;background:#120e22"></div>
+          <div style="width:18px;height:58px;background:#0e0b1c"></div>
+          <div style="width:30px;height:92px;background:#120e22;border-top:2px solid rgba(255,62,165,.25)"></div>
+          <div style="width:24px;height:44px;background:#0e0b1c"></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:26%;background:linear-gradient(180deg,#07060d,#000)"></div>
+        <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:60%;height:26%;background:linear-gradient(180deg,rgba(34,227,255,.12),transparent)"></div>
+      </div>
+      <span style="font:500 10px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.5)">bg_meta_city · Store, Collection, Battle Pass<br>3 parallax layers: skyline / mid / foreground rail</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)">
+      <span style="font:700 12px/1 'Barlow Semi Condensed',sans-serif;color:#fff;letter-spacing:.18em">EXPORT CHECKLIST</span>
+      <span style="font:500 12px/1.7 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.72)">· All UI sprites at 3× (multiply every px in this kit by 3).<br>· 9-slice panels: import as Sprite (2D), Mesh Type Full Rect, set border to the slice values above.<br>· Icons: 96 pt tile → 288 px PNG, transparent, 8 pt inner padding preserved.<br>· Backgrounds: 1170 × 2532, no alpha, safe area 44 pt top / 34 pt bottom kept empty.<br>· Glow/shadow are baked into the sprite; do not re-add in Unity or it doubles.<br>· Min hit target 44 × 44 pt (132 px). Never scale text below 11 pt.</span>
+      <span style="font:500 11px/1.6 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.45)">Naming: panel_lg, panel_md, row_sm, banner_hazard, pill_stat, btn_primary, btn_purchase, btn_ghost, btn_icon, puck_timer, frame_common|rare|epic|legendary, chip_coin|gem|token, bg_meta_grid, bg_meta_city</span>
+    </div>
+  </div>
+</div>
+
+<div style="padding:20px;border-radius:14px;background:rgba(34,227,255,.06);border:1px solid rgba(34,227,255,.28);display:flex;flex-direction:column;gap:8px">
+  <span style="font:700 12px/1 'Barlow Semi Condensed',sans-serif;color:#22e3ff;letter-spacing:.18em">NEXT — TELAS QUE VOU MONTAR COM ESTE KIT</span>
+  <span style="font:500 13px/1.6 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.78)">Store · Collection · Pause · Battle Pass · Missions · Leaderboard · Settings · Splash · Mode select · Profile — todas em 390 × 844, reutilizando exatamente os componentes acima. Nada de painel novo inventado por tela.</span>
+</div>
+
+</div>
+
+</x-dc>
+</body>
+</html>

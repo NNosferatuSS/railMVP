@@ -173,7 +173,7 @@ namespace RailSwitchMVP.Config
 
         [Header("Camera — Death sequence (Game Over)")]
         [Tooltip("Duração da sequência de morte (slow-mo + zoom) antes do painel aparecer. Unscaled.")]
-        public float deathCamDuration = 1.0f;
+        public float deathCamDuration = 0.5f;
 
         [Tooltip("Time.timeScale durante a sequência. 0.3 = câmera lenta dramática.")]
         [Range(0.05f, 1f)] public float deathCamSlowMo = 0.3f;

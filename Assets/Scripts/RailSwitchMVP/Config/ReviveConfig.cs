@@ -37,5 +37,13 @@ namespace RailSwitchMVP.Config
 
         /// <summary>Custo em coins do próximo continue dado quantos já foram usados nesta run.</summary>
         public int GetContinueCost(int continuesUsed) => continuesUsed <= 0 ? continueCost1 : continueCost2;
+
+        [Header("Custo em gems (oferta no painel de Game Over)")]
+        [Tooltip("Custo do 1º continue em gems. Dobra a cada uso: 2 → 4 → 8.")]
+        [Min(1)] public int continueGemCostBase = 2;
+
+        /// <summary>Custo em gems do próximo continue — dobra a cada uso (2 → 4 → 8).</summary>
+        public int GetContinueGemCost(int continuesUsed)
+            => continueGemCostBase * (1 << Mathf.Clamp(continuesUsed, 0, 10));
     }
 }

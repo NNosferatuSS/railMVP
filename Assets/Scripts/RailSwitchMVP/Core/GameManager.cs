@@ -36,6 +36,8 @@ namespace RailSwitchMVP.Core
 
         public event System.Action<GameOverReason> OnGameOver;
         public event System.Action OnWarmupEnded;
+        /// <summary>Disparado quando o jogador revive — quem escondeu UI no OnGameOver deve restaurar.</summary>
+        public event System.Action OnRevived;
 
         void Awake()
         {
@@ -90,6 +92,19 @@ namespace RailSwitchMVP.Core
             lastReason = reason;
             Debug.Log($"[GameManager] GAME OVER — {reason}");
             OnGameOver?.Invoke(reason);
+        }
+
+        /// <summary>
+        /// Volta de GameOver pra Playing. Usado quando o jogador aceita o
+        /// "CONTINUE RUN" no painel de Game Over (Camada 3 — oferta pós-morte).
+        /// O ReviveController já reposicionou o player e ligou o grace period.
+        /// </summary>
+        public void ResumeAfterRevive()
+        {
+            if (state != GameState.GameOver) return;
+            state = GameState.Playing;
+            Debug.Log("[GameManager] Revive aceito — voltando a Playing.");
+            OnRevived?.Invoke();
         }
     }
 }

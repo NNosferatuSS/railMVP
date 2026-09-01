@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4fd2a3a7299e7e4fa9cb12ea4db4a4d, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.UI.Theme.UITheme
+  referenceResolution: {x: 390, y: 844}
+  matchWidthOrHeight: 0.5
+  accent: {r: 0.13333334, g: 0.8901961, b: 1, a: 1}
+  safe: {r: 0.4862745, g: 1, b: 0.30980393, a: 1}
+  danger: {r: 1, g: 0.3019608, b: 0.36862746, a: 1}
+  coins: {r: 1, g: 0.7607843, b: 0.23921569, a: 1}
+  gems: {r: 0.4862745, g: 0.3019608, b: 1, a: 1}
+  gemsBorder: {r: 0.627451, g: 0.47058824, b: 1, a: 1}
+  hazard: {r: 1, g: 0.24313726, b: 0.64705884, a: 1}
+  hazardSpeed: {r: 1, g: 0.6901961, b: 0.3137255, a: 1}
+  bgDeep: {r: 0.015686275, g: 0.023529412, b: 0.047058824, a: 1}
+  bgMid: {r: 0.039215688, g: 0.0627451, b: 0.14117648, a: 1}
+  bgLift: {r: 0.105882354, g: 0.16470589, b: 0.32156864, a: 1}
+  bgCity: {r: 0.050980393, g: 0.039215688, b: 0.10980392, a: 1}
+  railTile: {r: 0.29803923, g: 0.3137255, b: 0.36078432, a: 1}
+  panelFill: {r: 1, g: 1, b: 1, a: 0.05}
+  panelStroke: {r: 1, g: 1, b: 1, a: 0.12}
+  textHi: {r: 1, g: 1, b: 1, a: 1}
+  textMid: {r: 1, g: 1, b: 1, a: 0.6}
+  textLow: {r: 1, g: 1, b: 1, a: 0.4}
+  scrimColor: {r: 0.016, g: 0.024, b: 0.047, a: 0.72}
+  sizeHero: 58
+  sizeScreenTitle: 34
+  sizeCtaLg: 28
+  sizeCtaMd: 22
+  sizeScreenHeader: 17
+  sizeStatValue: 22
+  sizeStatSmall: 15
+  sizeSectionLabel: 13
+  sizeBody: 14
+  sizeCaption: 11
+  sizeMicro: 10
+  sp4: 4
+  sp8: 8
+  sp12: 12
+  sp16: 16
+  sp24: 24
+  rad4: 4
+  rad8: 8
+  rad12: 12
+  rad14: 14
+  rad16: 16
+  rad18: 18
+  rad20: 20
+  rad22: 22
+  radPill: 999
+  sliceMultiplier: 3
+  sideMargin: 16
+  modalMargin: 24
+  safeAreaTop: 44
+  safeAreaBottom: 34
+  touchTargetMin: 44
+  chakraBold: {fileID: 11400000, guid: 0c2583ecaac6eec498df5eb1a597eea2, type: 2}
+  barlowBold: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
+  barlowSemiBold: {fileID: 11400000, guid: 77f4718baa83b6d4bbe9dfcf38a977b7, type: 2}
+  barlowMedium: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
+  panel_lg: {fileID: 21300000, guid: 39b665fa8a03a0747b70716113bb1d3a, type: 3}
+  panel_md: {fileID: 21300000, guid: 153e3ddcc126edf48b32066f7af7c811, type: 3}
+  modal: {fileID: 21300000, guid: 988b9e1c273f43f43bac9c7b0e0b0cba, type: 3}
+  panel_accent_cyan: {fileID: 21300000, guid: 0b6b595d5f49c944699e6954c36d613f, type: 3}
+  panel_accent_gold: {fileID: 21300000, guid: 2836fd4fd71f2ee44ad1c04b42e60b50, type: 3}
+  panel_accent_green: {fileID: 21300000, guid: 7a04a33d1269af744803eb5c5928bcf8, type: 3}
+  panel_accent_violet: {fileID: 21300000, guid: c2fae3efd0c02b6489839a86cf8b4194, type: 3}
+  pill_dark: {fileID: 21300000, guid: 02f493e4eb44de443a351f136fd338d1, type: 3}
+  row_sm: {fileID: 21300000, guid: fc45a7127a2e5da4aa8d44791e9b654e, type: 3}
+  banner_hazard_orange: {fileID: 21300000, guid: 6f12a01700101564b89d886642b0a94d, type: 3}
+  banner_hazard_pink: {fileID: 21300000, guid: d8d0e8a3aba9e4146b9af69cce409040, type: 3}
+  banner_hazard_violet: {fileID: 21300000, guid: 8d7bdd851307d90478cc9dff8444c01f, type: 3}
+  btn_primary: {fileID: 21300000, guid: 51e5de0b2d0288144bdb36c763cba1c7, type: 3}
+  btn_primary_pressed: {fileID: 21300000, guid: 509b9dd8ee2fa4445902f3681545f895, type: 3}
+  btn_premium: {fileID: 21300000, guid: 4cc9d172e9a20c142a25a94c2810cac8, type: 3}
+  btn_premium_pressed: {fileID: 21300000, guid: b3f455bde6178404a9fdbaf21620c94e, type: 3}
+  btn_purchase: {fileID: 21300000, guid: 84ebdfbd45c58d146ae912210860846d, type: 3}
+  btn_purchase_pressed: {fileID: 21300000, guid: 4e1c551bd949a474cb77dfd022ac1a02, type: 3}
+  btn_cyan: {fileID: 21300000, guid: e555dedba7d10384482cba5d59f9e424, type: 3}
+  btn_ghost: {fileID: 21300000, guid: 65a2078b2b2cc074b82c1cf6a22f3b61, type: 3}
+  btn_danger: {fileID: 21300000, guid: 870f3cc3328a7c1409d66925e5988f1f, type: 3}
+  btn_disabled: {fileID: 21300000, guid: b6b927ee55cc3a64fb4fad08f9f4cb53, type: 3}
+  btn_sm_gold: {fileID: 21300000, guid: 5e322ede2e4b8424b974d2e693f47ae5, type: 3}
+  btn_sm_green: {fileID: 21300000, guid: 9e888d1aede4c6040bbca53d8595757e, type: 3}
+  bar_track: {fileID: 21300000, guid: a31e01ca1b91f8a4d89884e54ae442ed, type: 3}
+  bar_fill_cyan: {fileID: 21300000, guid: 0f5e274b8cf4a7b478568f2629a35192, type: 3}
+  bar_fill_gold: {fileID: 21300000, guid: dc3b80257803998448b3e2515af6a49e, type: 3}
+  bar_fill_violet: {fileID: 21300000, guid: 0014da58eafdd364a8ec59bc4ab61c1d, type: 3}
+  btn_icon_back: {fileID: 21300000, guid: c89113cec4d49dc489238f57d14f34d8, type: 3}
+  btn_icon_chevron: {fileID: 21300000, guid: 43e3299b5fb87bf4a814978bf385fef8, type: 3}
+  btn_icon_close: {fileID: 21300000, guid: 2da6ec975092953428ed521763b30101, type: 3}
+  btn_icon_menu: {fileID: 21300000, guid: 85d9d09930b8b1f429f4f6b0f34c143b, type: 3}
+  btn_icon_pause: {fileID: 21300000, guid: 5439e72cec8eec34597dc48e994ffe8f, type: 3}
+  btn_icon_plus: {fileID: 21300000, guid: c92aefb1b1f7d2d4a84db976e99c9f3a, type: 3}
+  fab_violet: {fileID: 21300000, guid: a9071d989ae8c0d4c847d0b1ebb35e7b, type: 3}
+  slider_track: {fileID: 21300000, guid: abcacebb73548a541bd4bde193cdc24d, type: 3}
+  slider_fill: {fileID: 21300000, guid: 550884691c1f27343b6d989ddf2b5de1, type: 3}
+  slider_knob: {fileID: 21300000, guid: 66366d6ac54bcb8488d4edfee898d690, type: 3}
+  tabs_track: {fileID: 21300000, guid: 7cb409a193b9e2e4c8bf7eaa92c313fd, type: 3}
+  tabs_thumb: {fileID: 21300000, guid: edc3149c961b13e499fc3aef4b0d5a54, type: 3}
+  toggle_off: {fileID: 21300000, guid: cedb83a1dbe13d9478bb643f4ddc8988, type: 3}
+  toggle_on: {fileID: 21300000, guid: 531b032976eecbd408a6c874325cc758, type: 3}
+  chip_neutral: {fileID: 21300000, guid: 700c70b13d38f0449b6906c864779a49, type: 3}
+  chip_gold: {fileID: 21300000, guid: db7cbf1c2484b7a41967b5b63cb5c3ee, type: 3}
+  chip_cyan: {fileID: 21300000, guid: fbe28265be7b45a4a8951c8376cb6bbe, type: 3}
+  chip_violet: {fileID: 21300000, guid: d8191226672f1464faa8923ab24fbdb0, type: 3}
+  icon_coin: {fileID: 21300000, guid: d82fde73b53f45848ad87b3c7fbdb527, type: 3}
+  icon_gem: {fileID: 21300000, guid: dbadc11ab9372bd40a71ee8c2be08e09, type: 3}
+  icon_token: {fileID: 21300000, guid: 0acf52e858228cd4f9f4423a66c41b47, type: 3}
+  puck_ring_full: {fileID: 21300000, guid: 1c888655010f73a4eb78b2ddc8352bfc, type: 3}
+  puck_ring_62: {fileID: 21300000, guid: fa214cd6a08c2fd4b96b73dd3423002f, type: 3}
+  puck_empty: {fileID: 21300000, guid: ba6e6d4bdfbc97f409d79b7d20cf0d63, type: 3}
+  puck_tile_blue: {fileID: 21300000, guid: 3eaa48aba82e088408d8fadc8889e209, type: 3}
+  puck_tile_gold: {fileID: 21300000, guid: d5a753cd242323549b8e15145c0f06c8, type: 3}
+  puck_tile_teal: {fileID: 21300000, guid: a418d5a9e22ee224ebf76eb456797074, type: 3}
+  badge_gold: {fileID: 21300000, guid: a6ecd8068bdfddb4399ed8bf6f5f625a, type: 3}
+  badge_green: {fileID: 21300000, guid: e64cc557daff9f442aed9878a7ae26d2, type: 3}
+  frame_common: {fileID: 21300000, guid: a07016273cee90d4eafda58bcfbad798, type: 3}
+  frame_rare: {fileID: 21300000, guid: 6469882ce9434f2499f6a20fa7dd253c, type: 3}
+  frame_epic: {fileID: 21300000, guid: cd3da24b90c458441969f89449ae121b, type: 3}
+  frame_legendary: {fileID: 21300000, guid: 07716fec1e972724f99c8a7c6913ab04, type: 3}
+  frame_locked: {fileID: 21300000, guid: 72d66412ba4cdc5479854611069e2acf, type: 3}
+  scrim: {fileID: 21300000, guid: 97e83440cd836f949aa3cb7a8b294e87, type: 3}
+  tooltip: {fileID: 21300000, guid: c83235d3e6142184c902b7d5cf92dccc, type: 3}
+  toast_green: {fileID: 21300000, guid: 32074190b0f670248989d423071beb87, type: 3}
+  toast_red: {fileID: 21300000, guid: c819eaebae29c9249a34ab898107090e, type: 3}
+  dot_green: {fileID: 21300000, guid: c5bbe4762166db04cacb8079c02633f4, type: 3}
+  dot_red: {fileID: 21300000, guid: df54c343bee0fde4cb3ce393c04960f3, type: 3}
+  icon_shield: {fileID: 21300000, guid: b885ccb1f3fde1a488e2f2184ab6eb21, type: 3}
+  icon_magnet: {fileID: 21300000, guid: 7d1b8bab3a659ff4894b43c3fb911365, type: 3}
+  icon_ghost: {fileID: 21300000, guid: c20d31e4120c7ac4c90d73c2be356138, type: 3}
+  icon_lane_preview: {fileID: 21300000, guid: a9a121153a7b9e54f87352ad95079fdc, type: 3}
+  icon_coin_radar: {fileID: 21300000, guid: bd5ea52370e5bfe4da8536127dfa870e, type: 3}
+  icon_coin_multiplier: {fileID: 21300000, guid: 23ce833bbba79fc49aa1b81b969ff5eb, type: 3}
+  icon_time_freeze: {fileID: 21300000, guid: 66c95a89a7ee7c6488a7c593371cf03a, type: 3}
+  icon_teleport: {fileID: 21300000, guid: 63076d09702e678468f2d100947490f3, type: 3}
+  icon_auto_critical: {fileID: 21300000, guid: 4f84ff8b9b1ebf94d989c4f3f3592e28, type: 3}
+  icon_difficulty_reset: {fileID: 21300000, guid: 9e36c7bcaab304345bcf27978144f81e, type: 3}
+  icon_hazard_barrier: {fileID: 21300000, guid: 6fa55a598686924458f28b76a16344ad, type: 3}
+  icon_hazard_speedup: {fileID: 21300000, guid: 1104b3b374d36654db2e2ff9f1f5349b, type: 3}
+  icon_hazard_laneswap: {fileID: 21300000, guid: bfee0aecc6c932e42991c4a72d9bff3a, type: 3}
+  icon_hazard_vortex: {fileID: 21300000, guid: 9ec0a86daa4f2de48aa3eeb8dec13185, type: 3}
+  icon_warning_tri: {fileID: 21300000, guid: 1f8ad571684d9f34ba9b18f2c2dfee57, type: 3}
+  icon_chest: {fileID: 21300000, guid: 1ae3e66fccfc1184d8c0a0fe13e4b2b7, type: 3}
+  nav_home: {fileID: 21300000, guid: a9927059ed0942c4a89a9431e66937b3, type: 3}
+  nav_store: {fileID: 21300000, guid: 46eae085f3a01734c986b86a97a409d4, type: 3}
+  nav_skins: {fileID: 21300000, guid: f3adbf80cf687654cae433d52f2e1b1d, type: 3}
+  nav_ranks: {fileID: 21300000, guid: e911852895af50942a72337e67a5512d, type: 3}
+  nav_more: {fileID: 21300000, guid: 690ec326243bc174eb8bb11e467b9caa, type: 3}
+  bg_meta_grid: {fileID: 21300000, guid: 0a818293d32711341ad2580f7781ac22, type: 3}
+  bg_meta_city: {fileID: 21300000, guid: 76470a8702ed53d4da3849a86ae90812, type: 3}
+  bg_game_rails: {fileID: 21300000, guid: fbea29abca30eed4e860917f9da387ca, type: 3}

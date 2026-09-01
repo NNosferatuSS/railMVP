@@ -42,7 +42,7 @@ MonoBehaviour:
   shakeMediumDuration: 0.25
   shakeHeavyIntensity: 0.6
   shakeHeavyDuration: 0.5
-  deathCamDuration: 1
+  deathCamDuration: 0.5
   deathCamSlowMo: 0.3
   deathCamZoomDelta: 1.5
   deathCamTiltDelta: 5

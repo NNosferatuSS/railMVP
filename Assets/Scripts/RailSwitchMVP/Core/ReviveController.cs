@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using RailSwitchMVP.Config;
+using RailSwitchMVP.Economy;
 using RailSwitchMVP.Meta;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
@@ -31,7 +32,15 @@ namespace RailSwitchMVP.Core
         [SerializeField] private RailGenConfig railConfig;
         [SerializeField] private PlayerRailRider player;
 
-        [Header("UI Overlay (oferta de continue)")]
+        [Header("Fluxo da oferta")]
+        [Tooltip("LEGADO. Se true, intercepta o game over: pausa o jogo e mostra o " +
+            "overlayPanel abaixo com countdown. Se o overlayPanel não estiver wirado, " +
+            "isso vira uma pausa INVISÍVEL de offerCountdownSeconds antes do game over.\n\n" +
+            "Default false: o game over aparece na hora e a oferta vive no painel dele " +
+            "(linha CONTINUE RUN), via TryReviveFromGameOver().")]
+        [SerializeField] private bool offerBeforeGameOver = false;
+
+        [Header("UI Overlay (só usado se offerBeforeGameOver = true)")]
         [SerializeField] private GameObject overlayPanel;
         [SerializeField] private Button adButton;
         [SerializeField] private TMP_Text adButtonText;
@@ -100,6 +109,10 @@ namespace RailSwitchMVP.Core
         /// </summary>
         public bool TryOfferContinue(GameOverReason reason)
         {
+            // Modo novo: não intercepta. O game over aparece imediatamente e a
+            // oferta fica na linha CONTINUE RUN do painel (TryReviveFromGameOver).
+            if (!offerBeforeGameOver) return false;
+
             if (_offering) return true;
             if (!CanContinue())
             {
@@ -201,6 +214,40 @@ namespace RailSwitchMVP.Core
             _offering = false;
             Time.timeScale = 1f; // o DeathSequence do GameOver ajusta a partir daqui
             if (GameManager.Instance != null) GameManager.Instance.ConfirmGameOver(_pendingReason);
+        }
+
+        // ============ Revive a partir do painel de Game Over ============
+
+        /// <summary>Custo em gems do próximo continue (2 → 4 → 8).</summary>
+        public int GetCurrentContinueGemCost()
+            => config != null ? config.GetContinueGemCost(continuesUsedThisRun) : 0;
+
+        /// <summary>
+        /// Chamado pela linha "CONTINUE RUN" do painel de Game Over. Cobra em gems,
+        /// reposiciona o player e devolve o GameManager pra Playing. Retorna false
+        /// se não há continues restantes ou gems insuficientes (a UI deve refletir
+        /// isso antes, desabilitando o botão).
+        /// </summary>
+        public bool TryReviveFromGameOver()
+        {
+            if (!CanContinue())
+            {
+                Debug.Log($"[Revive] Sem continues restantes ({continuesUsedThisRun}/" +
+                    $"{(config != null ? config.maxContinuesPerRun : 0)}).");
+                return false;
+            }
+
+            int cost = GetCurrentContinueGemCost();
+            var cm = CurrencyManager.Instance;
+            if (cm == null || !cm.TrySpend(CurrencyType.Gems, cost, "revive"))
+            {
+                Debug.Log($"[Revive] Gems insuficientes (custo {cost}).");
+                return false;
+            }
+
+            ExecuteRevive(isAd: false);
+            if (GameManager.Instance != null) GameManager.Instance.ResumeAfterRevive();
+            return true;
         }
 
         // ============ Revive ============

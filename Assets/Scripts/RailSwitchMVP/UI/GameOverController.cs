@@ -83,6 +83,21 @@ namespace RailSwitchMVP.UI
         private bool _baselineCaptured;
         private float _distanceBaseline;
 
+        // Stats da run expostos pra views novas (Canvas_GameOver do handoff) que
+        // querem formatar os números do seu jeito. Os TMP_Text serializados acima
+        // recebem frases completas ("Distance: 0 m (Best: 8537)") — servem pro
+        // layout legado, mas estouram um hero de 58pt. Uma view nova assina
+        // OnPanelShown e lê estes valores crus.
+        public int RunMeters => _runMeters;
+        public int RunCoins  => _runCoins;
+        public int RunTier   => _runTier;
+        public int RunXP     => _runXP;
+        public float RunTime => _runTime;
+        public bool WasDailyRun => _wasDailyRun;
+
+        /// <summary>Disparado no fim da DeathSequence, logo antes do painel aparecer.</summary>
+        public event System.Action OnPanelShown;
+
         void Start()
         {
             if (timer == null) timer = GameTimer.Instance;
@@ -332,7 +347,10 @@ namespace RailSwitchMVP.UI
 
         IEnumerator DeathSequence()
         {
-            float duration = railConfig != null ? railConfig.deathCamDuration : 1f;
+            // Fallback alinhado com o default do RailGenConfig — o railConfig pode
+            // não resolver (depende de DifficultyManager.Config + PlayerCameraRig.Instance),
+            // e um fallback de 1s deixaria o game over lento justamente nesse caso.
+            float duration = railConfig != null ? railConfig.deathCamDuration : 0.5f;
             float slowMo = railConfig != null ? railConfig.deathCamSlowMo : 0.3f;
 
             Time.timeScale = slowMo;
@@ -344,6 +362,9 @@ namespace RailSwitchMVP.UI
             // ordem dos handlers do evento).
             ComputeAndShowXP();
             ShowGemsEarned();
+
+            // Views novas preenchem o layout antes do painel aparecer.
+            OnPanelShown?.Invoke();
 
             if (panel != null) panel.SetActive(true);
         }
@@ -422,6 +443,22 @@ namespace RailSwitchMVP.UI
                 case GameOverReason.HitObstacle: return "Hit Obstacle";
                 default: return reason.ToString();
             }
+        }
+
+        /// <summary>
+        /// Esconde o painel porque o jogador aceitou o CONTINUE RUN. A run segue,
+        /// então NÃO commita nada no PlayerDataManager (isso só acontece em
+        /// Restart/GoHome). Permite que um novo HandleGameOver dispare na próxima
+        /// morte — _runCommitted continua false, _isShowing volta pra false.
+        /// </summary>
+        public void HideForRevive()
+        {
+            if (!_isShowing) return;
+            _isShowing = false;
+            if (panel != null) panel.SetActive(false);
+            if (newRecordText != null) newRecordText.gameObject.SetActive(false);
+            if (levelUpText != null) levelUpText.gameObject.SetActive(false);
+            if (gemsEarnedText != null) gemsEarnedText.gameObject.SetActive(false);
         }
 
         /// <summary>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"><style>html{background:#14161d}body{margin:0;background:#14161d;font-family:"Barlow Semi Condensed",system-ui,sans-serif;color:#fff}a{color:#22e3ff}a:hover{color:#7cff4f}</style></helmet>
+<div style="padding:36px 40px 60px;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;flex-direction:column;gap:5px">
+  <span style="font:600 11px/1 'Barlow Semi Condensed',sans-serif;color:#22e3ff;letter-spacing:.4em">RAIL SWITCH</span>
+  <span style="font:700 30px/1 'Chakra Petch',sans-serif;color:#fff">ASSET EXPORT SHEET · TEXT-FREE</span>
+  <span style="font:400 13px/1.5 'Barlow Semi Condensed',sans-serif;color:rgba(255,255,255,.55);max-width:720px">Cada asset é só a moldura/fundo — nenhum texto ou número embutido. Rótulos, contadores e ícones de conteúdo entram no Unity por cima (TextMeshPro + Image). Glifos permanentes de botão de ícone (pause, ×, voltar, +, menu) continuam baked, pois são o próprio ícone.</span>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="panel_lg" style="width:330px;height:180px;border-radius:20px;background:rgba(12,18,32,.86);border:1px solid rgba(255,255,255,.13)"></div>
+  <div data-ex="panel_md" style="width:250px;height:140px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11)"></div>
+  <div data-ex="row_sm" style="width:250px;height:80px;border-radius:12px;background:rgba(9,14,26,.78);border:1px solid rgba(255,255,255,.12)"></div>
+  <div data-ex="modal" style="width:330px;height:200px;border-radius:20px;background:rgba(12,18,32,.94);border:1px solid rgba(255,255,255,.13)"></div>
+  <div data-ex="panel_accent_gold" style="width:250px;height:140px;border-radius:16px;background:rgba(255,194,61,.1);border:1px solid rgba(255,194,61,.45)"></div>
+  <div data-ex="panel_accent_violet" style="width:250px;height:140px;border-radius:16px;background:rgba(124,77,255,.12);border:1px solid rgba(160,120,255,.45)"></div>
+  <div data-ex="panel_accent_cyan" style="width:250px;height:140px;border-radius:16px;background:rgba(34,227,255,.1);border:1px solid rgba(34,227,255,.5)"></div>
+  <div data-ex="panel_accent_green" style="width:250px;height:140px;border-radius:16px;background:rgba(124,255,79,.09);border:1px solid rgba(124,255,79,.45)"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="banner_hazard_pink" style="width:330px;height:56px;border-radius:12px;background:linear-gradient(90deg,rgba(255,62,165,.28),rgba(255,62,165,.06));border:1px solid rgba(255,62,165,.6);box-sizing:border-box"></div>
+  <div data-ex="banner_hazard_orange" style="width:330px;height:56px;border-radius:12px;background:linear-gradient(90deg,rgba(255,176,80,.28),rgba(255,176,80,.06));border:1px solid rgba(255,176,80,.6);box-sizing:border-box"></div>
+  <div data-ex="banner_hazard_violet" style="width:330px;height:56px;border-radius:12px;background:linear-gradient(90deg,rgba(143,123,255,.28),rgba(143,123,255,.06));border:1px solid rgba(143,123,255,.6);box-sizing:border-box"></div>
+  <div data-ex="pill_dark" style="width:220px;height:38px;border-radius:999px;background:rgba(10,7,22,.8);border:1px solid rgba(255,255,255,.14);box-sizing:border-box"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="btn_primary" style="width:250px;height:62px;border-radius:18px;background:linear-gradient(160deg,#7cff4f,#1f9e4c);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)"></div>
+  <div data-ex="btn_primary_pressed" style="width:250px;height:58px;border-radius:18px;background:linear-gradient(160deg,#63e03d,#187f3c)"></div>
+  <div data-ex="btn_purchase" style="width:250px;height:62px;border-radius:18px;background:linear-gradient(160deg,#ffc23d,#c97d05);box-shadow:inset 0 -4px 0 rgba(0,0,0,.22)"></div>
+  <div data-ex="btn_purchase_pressed" style="width:250px;height:58px;border-radius:18px;background:linear-gradient(160deg,#e5a92c,#a96404)"></div>
+  <div data-ex="btn_premium" style="width:250px;height:62px;border-radius:18px;background:linear-gradient(160deg,#b48cff,#4b1fbf);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)"></div>
+  <div data-ex="btn_premium_pressed" style="width:250px;height:58px;border-radius:18px;background:linear-gradient(160deg,#9d74f0,#3d169e)"></div>
+  <div data-ex="btn_cyan" style="width:250px;height:62px;border-radius:18px;background:linear-gradient(160deg,#22e3ff,#1170a8);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)"></div>
+  <div data-ex="btn_ghost" style="width:250px;height:62px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.22);box-sizing:border-box"></div>
+  <div data-ex="btn_disabled" style="width:250px;height:62px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);box-sizing:border-box"></div>
+  <div data-ex="btn_danger" style="width:250px;height:62px;border-radius:18px;background:rgba(255,77,94,.1);border:1px solid rgba(255,77,94,.45);box-sizing:border-box"></div>
+  <div data-ex="btn_sm_green" style="width:120px;height:44px;border-radius:12px;background:linear-gradient(160deg,#7cff4f,#1f9e4c);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)"></div>
+  <div data-ex="btn_sm_gold" style="width:120px;height:44px;border-radius:12px;background:linear-gradient(160deg,#ffc23d,#c97d05);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22)"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="btn_icon_pause" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;gap:3px"><div style="width:3px;height:14px;background:#fff;border-radius:1px"></div><div style="width:3px;height:14px;background:#fff;border-radius:1px"></div></div></div>
+  <div data-ex="btn_icon_close" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="position:relative;width:16px;height:16px"><div style="position:absolute;top:7px;width:16px;height:2px;background:#fff;transform:rotate(45deg)"></div><div style="position:absolute;top:7px;width:16px;height:2px;background:#fff;transform:rotate(-45deg)"></div></div></div>
+  <div data-ex="btn_icon_back" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:11px solid #fff"></div></div>
+  <div data-ex="btn_icon_plus" style="width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="position:relative;width:16px;height:16px"><div style="position:absolute;top:7px;width:16px;height:2px;background:#fff"></div><div style="position:absolute;left:7px;height:16px;width:2px;background:#fff"></div></div></div>
+  <div data-ex="btn_icon_menu" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;flex-direction:column;gap:3px"><div style="width:16px;height:2px;background:#fff"></div><div style="width:16px;height:2px;background:#fff"></div><div style="width:16px;height:2px;background:#fff"></div></div></div>
+  <div data-ex="btn_icon_chevron" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;box-sizing:border-box"><div style="width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:10px solid rgba(255,255,255,.6)"></div></div>
+  <div data-ex="toggle_on" style="width:56px;height:30px;border-radius:999px;background:#22e3ff;display:flex;align-items:center;justify-content:flex-end;padding:3px;box-sizing:border-box"><div style="width:24px;height:24px;border-radius:50%;background:#04121a"></div></div>
+  <div data-ex="toggle_off" style="width:56px;height:30px;border-radius:999px;background:rgba(255,255,255,.14);display:flex;align-items:center;padding:3px;box-sizing:border-box"><div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.6)"></div></div>
+  <div data-ex="tabs_track" style="width:260px;height:47px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);box-sizing:border-box"></div>
+  <div data-ex="tabs_thumb" style="width:126px;height:39px;border-radius:11px;background:linear-gradient(160deg,#22e3ff,#1170a8)"></div>
+  <div data-ex="slider_track" style="width:240px;height:6px;border-radius:3px;background:rgba(255,255,255,.16)"></div>
+  <div data-ex="slider_fill" style="width:240px;height:6px;border-radius:3px;background:linear-gradient(90deg,#22e3ff,#7cff4f)"></div>
+  <div data-ex="slider_knob" style="width:22px;height:22px;border-radius:50%;background:#fff"></div>
+  <div data-ex="bar_track" style="width:240px;height:8px;border-radius:4px;background:rgba(255,255,255,.14)"></div>
+  <div data-ex="bar_fill_cyan" style="width:240px;height:8px;border-radius:4px;background:linear-gradient(90deg,#22e3ff,#7cff4f)"></div>
+  <div data-ex="bar_fill_violet" style="width:240px;height:8px;border-radius:4px;background:#c9b3ff"></div>
+  <div data-ex="bar_fill_gold" style="width:240px;height:8px;border-radius:4px;background:#ffc23d"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="chip_gold" style="width:110px;height:30px;border-radius:999px;background:rgba(255,194,61,.14);border:1px solid rgba(255,194,61,.4);box-sizing:border-box"></div>
+  <div data-ex="chip_violet" style="width:110px;height:30px;border-radius:999px;background:rgba(124,77,255,.16);border:1px solid rgba(160,120,255,.45);box-sizing:border-box"></div>
+  <div data-ex="chip_cyan" style="width:110px;height:30px;border-radius:999px;background:rgba(34,227,255,.14);border:1px solid rgba(34,227,255,.4);box-sizing:border-box"></div>
+  <div data-ex="chip_neutral" style="width:110px;height:30px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);box-sizing:border-box"></div>
+  <div data-ex="icon_coin" style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3ba,#f5b93a 60%,#c98a10)"></div>
+  <div data-ex="icon_gem" style="width:56px;height:56px;background:#c9b3ff;transform:rotate(45deg)"></div>
+  <div data-ex="icon_token" style="width:48px;height:48px;border-radius:10px;background:#9beeff"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="puck_ring_full" style="width:52px;height:52px;border-radius:16px;background:conic-gradient(#63f5c8 0 100%,rgba(255,255,255,.12) 0);padding:3px;box-sizing:border-box"><div style="width:100%;height:100%;border-radius:13px;background:rgba(6,10,18,.9)"></div></div>
+  <div data-ex="puck_ring_62" style="width:52px;height:52px;border-radius:16px;background:conic-gradient(#ffc23d 0 62%,rgba(255,255,255,.12) 62%);padding:3px;box-sizing:border-box"><div style="width:100%;height:100%;border-radius:13px;background:rgba(6,10,18,.9)"></div></div>
+  <div data-ex="puck_tile_teal" style="width:46px;height:46px;border-radius:13px;background:linear-gradient(160deg,#1d7c69,#08342d)"></div>
+  <div data-ex="puck_tile_gold" style="width:46px;height:46px;border-radius:13px;background:linear-gradient(160deg,#8a5a10,#3a2400)"></div>
+  <div data-ex="puck_tile_blue" style="width:46px;height:46px;border-radius:13px;background:linear-gradient(160deg,#2c3f9e,#101a4a)"></div>
+  <div data-ex="puck_empty" style="width:52px;height:52px;border-radius:16px;border:1px dashed rgba(255,255,255,.22);box-sizing:border-box"></div>
+  <div data-ex="badge_gold" style="width:28px;height:18px;border-radius:6px;background:#ffc23d"></div>
+  <div data-ex="badge_green" style="width:28px;height:18px;border-radius:6px;background:#7cff4f"></div>
+  <div data-ex="fab_violet" style="width:76px;height:76px;border-radius:50%;background:linear-gradient(160deg,#b48cff,#4b1fbf);border:3px solid rgba(226,214,255,.85);box-sizing:border-box"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+  <div data-ex="frame_common" style="width:96px;height:96px;border-radius:14px;background:rgba(255,255,255,.05);border:2px solid #8e97ab;box-sizing:border-box"></div>
+  <div data-ex="frame_rare" style="width:96px;height:96px;border-radius:14px;background:rgba(34,227,255,.08);border:2px solid #22e3ff;box-sizing:border-box"></div>
+  <div data-ex="frame_epic" style="width:96px;height:96px;border-radius:14px;background:rgba(124,77,255,.1);border:2px solid #b48cff;box-sizing:border-box"></div>
+  <div data-ex="frame_legendary" style="width:96px;height:96px;border-radius:14px;background:rgba(255,194,61,.12);border:2px solid #ffc23d;box-sizing:border-box"></div>
+  <div data-ex="frame_locked" style="width:96px;height:96px;border-radius:14px;background:rgba(255,255,255,.03);border:2px dashed rgba(255,255,255,.2);box-sizing:border-box"></div>
+  <div data-ex="toast_green" style="width:250px;height:38px;border-radius:999px;background:rgba(10,16,30,.92);border:1px solid rgba(124,255,79,.5);box-sizing:border-box"></div>
+  <div data-ex="toast_red" style="width:250px;height:38px;border-radius:999px;background:rgba(10,16,30,.92);border:1px solid rgba(255,77,94,.5);box-sizing:border-box"></div>
+  <div data-ex="tooltip" style="width:200px;height:66px;border-radius:10px;background:#0f1626;border:1px solid rgba(255,255,255,.16);box-sizing:border-box"></div>
+  <div data-ex="dot_green" style="width:32px;height:32px;border-radius:50%;background:#7cff4f"></div>
+  <div data-ex="dot_red" style="width:32px;height:32px;border-radius:50%;background:#ff4d5e"></div>
+  <div data-ex="scrim" style="width:120px;height:120px;background:rgba(4,6,12,.72)"></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start">
+  <div data-ex="icon_shield" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#63f5c8,#0b7d63);border:2px solid #04231d;display:grid;place-items:center;box-sizing:border-box"><div style="width:40px;height:46px;background:#eafff8;clip-path:polygon(50% 0,100% 22%,100% 62%,50% 100%,0 62%,0 22%)"></div></div>
+  <div data-ex="icon_coin_multiplier" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ffd76a,#b6690a);border:2px solid #2b1602;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;align-items:center;gap:4px"><div style="width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8e3,#e0a41c)"></div><div style="position:relative;width:20px;height:20px"><div style="position:absolute;top:9px;width:20px;height:4px;border-radius:2px;background:#3a2200;transform:rotate(45deg)"></div><div style="position:absolute;top:9px;width:20px;height:4px;border-radius:2px;background:#3a2200;transform:rotate(-45deg)"></div></div></div></div>
+  <div data-ex="icon_magnet" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#9fb6ff,#2c3f9e);border:2px solid #0b1330;display:grid;place-items:center;box-sizing:border-box"><div style="width:42px;height:42px;border-radius:50%;border:8px solid #eef2ff;border-bottom-color:transparent;box-sizing:border-box"></div></div>
+  <div data-ex="icon_difficulty_reset" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#63f5c8,#0b7d63);border:2px solid #04231d;display:grid;place-items:center;box-sizing:border-box"><div style="width:42px;height:42px;border-radius:50%;border:6px solid #eafff8;border-top-color:transparent;box-sizing:border-box"></div></div>
+  <div data-ex="icon_ghost" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#a8c4ff,#3a4d99);border:2px solid #0b1330;display:grid;place-items:center;box-sizing:border-box"><div style="width:44px;height:50px;background:rgba(255,255,255,.78);border-radius:22px 22px 7px 7px"></div></div>
+  <div data-ex="icon_lane_preview" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#7cff4f,#1f7d3c);border:2px solid #052112;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;gap:6px;align-items:flex-end"><div style="width:10px;height:32px;background:rgba(255,255,255,.45);border-radius:3px"></div><div style="width:10px;height:50px;background:#f2fff0;border-radius:3px"></div><div style="width:10px;height:32px;background:rgba(255,255,255,.45);border-radius:3px"></div></div></div>
+  <div data-ex="icon_coin_radar" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ffd76a,#a95f08);border:2px solid #2b1602;display:grid;place-items:center;box-sizing:border-box"><div style="position:relative;width:54px;height:54px;display:grid;place-items:center"><div style="position:absolute;width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.5);box-sizing:border-box"></div><div style="position:absolute;width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.7);box-sizing:border-box"></div><div style="width:14px;height:14px;border-radius:50%;background:#fff8e3"></div></div></div>
+  <div data-ex="icon_auto_critical" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#22e3ff,#0c6f95);border:2px solid #021b25;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:19px solid #eaffff"></div><div style="width:6px;height:9px;background:rgba(255,255,255,.7);border-radius:2px"></div><div style="width:6px;height:9px;background:rgba(255,255,255,.4);border-radius:2px"></div></div></div>
+  <div data-ex="icon_time_freeze" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#b48cff,#4b1fbf);border:2px solid #150637;display:grid;place-items:center;box-sizing:border-box"><div style="position:relative;width:48px;height:48px;border-radius:50%;border:5px solid #f6f2ff;box-sizing:border-box"><div style="position:absolute;left:18px;top:6px;width:4px;height:19px;background:#f6f2ff;border-radius:2px"></div><div style="position:absolute;left:18px;top:21px;width:16px;height:4px;background:#f6f2ff;border-radius:2px;transform-origin:left center;transform:rotate(22deg)"></div></div></div>
+  <div data-ex="icon_teleport" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ff8be0,#8a1a94);border:2px solid #2c0430;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;align-items:center;gap:5px"><div style="width:24px;height:24px;transform:rotate(45deg);background:rgba(255,255,255,.5)"></div><div style="width:0;height:0;border-top:13px solid transparent;border-bottom:13px solid transparent;border-left:17px solid #fff"></div></div></div>
+  <div data-ex="icon_hazard_barrier" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ff5a6e,#8c0f22);border:2px solid #2c0209;display:grid;place-items:center;box-sizing:border-box"><div style="width:58px;height:24px;border-radius:4px;background:repeating-linear-gradient(115deg,#fff 0 9px,#c11f3a 9px 18px)"></div></div>
+  <div data-ex="icon_hazard_speedup" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ffb050,#a83f04);border:2px solid #2b1002;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:17px solid #fff5e6"></div><div style="width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:17px solid rgba(255,245,230,.55)"></div></div></div>
+  <div data-ex="icon_hazard_laneswap" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ff3ea5,#7d0d4d);border:2px solid #2c0219;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;flex-direction:column;gap:7px"><div style="display:flex;align-items:center;gap:3px"><div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:11px solid #fff"></div><div style="width:32px;height:5px;background:#fff;border-radius:3px"></div></div><div style="display:flex;align-items:center;gap:3px"><div style="width:32px;height:5px;background:rgba(255,255,255,.65);border-radius:3px"></div><div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:11px solid rgba(255,255,255,.65)"></div></div></div></div>
+  <div data-ex="icon_hazard_vortex" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#8f7bff,#2a1170);border:2px solid #0e0430;display:grid;place-items:center;box-sizing:border-box"><div style="position:relative;width:56px;height:56px;display:grid;place-items:center"><div style="position:absolute;width:56px;height:56px;border-radius:50%;border:5px solid #fff;border-right-color:transparent;border-bottom-color:transparent;box-sizing:border-box"></div><div style="position:absolute;width:34px;height:34px;border-radius:50%;border:5px solid rgba(255,255,255,.75);border-left-color:transparent;border-top-color:transparent;box-sizing:border-box"></div><div style="width:10px;height:10px;border-radius:50%;background:#fff"></div></div></div>
+  <div data-ex="icon_warning_tri" style="width:96px;height:96px;display:grid;place-items:center"><div style="width:76px;height:66px;background:#ff3ea5;clip-path:polygon(50% 0,100% 100%,0 100%)"></div></div>
+  <div data-ex="icon_chest" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#ffd76a,#b6690a);border:2px solid #2b1602;display:grid;place-items:center;box-sizing:border-box"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:54px;height:22px;border-radius:11px 11px 0 0;background:#fff6dd"></div><div style="width:54px;height:26px;background:rgba(255,246,221,.75)"></div></div></div>
+  <div data-ex="nav_home" style="width:44px;height:44px;display:grid;place-items:center"><div style="width:26px;height:26px;border-radius:7px;background:#fff"></div></div>
+  <div data-ex="nav_store" style="width:44px;height:44px;display:grid;place-items:center"><div style="width:26px;height:26px;border-radius:7px;background:#fff"></div></div>
+  <div data-ex="nav_skins" style="width:44px;height:44px;display:grid;place-items:center"><div style="width:26px;height:26px;border-radius:50%;background:#fff"></div></div>
+  <div data-ex="nav_ranks" style="width:44px;height:44px;display:grid;place-items:center"><div style="width:24px;height:24px;background:#fff;transform:rotate(45deg)"></div></div>
+  <div data-ex="nav_more" style="width:44px;height:44px;display:grid;place-items:center"><div style="width:26px;height:26px;border-radius:7px;border:3px solid #fff;box-sizing:border-box"></div></div>
+</div>
+
+<div style="display:flex;gap:26px;align-items:flex-start">
+  <div data-ex="bg_meta_grid" style="position:relative;width:390px;height:844px;overflow:hidden;background:radial-gradient(120% 70% at 50% 12%,#1b2a52 0%,#0a1024 55%,#05070f 100%)">
+    <div style="position:absolute;left:-20%;right:-20%;top:38%;height:340px;background:repeating-linear-gradient(180deg,rgba(34,227,255,.16) 0 1px,transparent 1px 26px),repeating-linear-gradient(90deg,rgba(34,227,255,.12) 0 1px,transparent 1px 40px);transform:perspective(500px) rotateX(64deg);mask-image:linear-gradient(180deg,transparent,#000 40%,transparent)"></div>
+    <div style="position:absolute;left:50%;bottom:18%;transform:translateX(-50%);width:170px;height:16px;border-radius:50%;background:radial-gradient(50% 50%,rgba(34,227,255,.35),transparent 70%)"></div>
+  </div>
+  <div data-ex="bg_meta_city" style="position:relative;width:390px;height:844px;overflow:hidden;background:linear-gradient(180deg,#1a1030 0%,#0d0a1c 52%,#07060d 100%)">
+    <div style="position:absolute;left:50%;top:16%;transform:translate(-50%,-50%);width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,62,165,.4),transparent 65%)"></div>
+    <div style="position:absolute;left:0;right:0;bottom:26%;height:200px;display:flex;align-items:flex-end;gap:9px;padding:0 12px;opacity:.85">
+      <div style="width:44px;height:106px;background:#120e22;border-top:3px solid rgba(34,227,255,.35)"></div>
+      <div style="width:34px;height:160px;background:#0e0b1c;border-top:3px solid rgba(255,62,165,.3)"></div>
+      <div style="width:54px;height:80px;background:#120e22"></div>
+      <div style="width:37px;height:184px;background:#0e0b1c;border-top:3px solid rgba(34,227,255,.3)"></div>
+      <div style="width:47px;height:126px;background:#120e22"></div>
+      <div style="width:30px;height:97px;background:#0e0b1c"></div>
+      <div style="width:50px;height:153px;background:#120e22;border-top:3px solid rgba(255,62,165,.25)"></div>
+      <div style="width:40px;height:73px;background:#0e0b1c"></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:26%;background:linear-gradient(180deg,#07060d,#000)"></div>
+    <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:60%;height:26%;background:linear-gradient(180deg,rgba(34,227,255,.12),transparent)"></div>
+  </div>
+  <div data-ex="bg_game_rails" style="position:relative;width:390px;height:844px;overflow:hidden;background:radial-gradient(130% 75% at 50% 100%,#132038 0%,#070b14 62%,#04060c 100%)">
+    <div style="position:absolute;left:50%;top:-6%;width:150%;height:112%;transform:translateX(-50%) perspective(760px) rotateX(26deg)">
+      <div style="position:absolute;left:14%;top:0;bottom:0;width:9%;background:repeating-linear-gradient(180deg,#4c505c 0 10px,#3d414c 10px 22px)"></div>
+      <div style="position:absolute;left:30%;top:0;bottom:0;width:9%;background:repeating-linear-gradient(180deg,#4c505c 0 10px,#3d414c 10px 22px)"></div>
+      <div style="position:absolute;left:46%;top:0;bottom:0;width:9%;background:repeating-linear-gradient(180deg,#585d6b 0 10px,#474c58 10px 22px)"></div>
+      <div style="position:absolute;left:62%;top:0;bottom:0;width:9%;background:repeating-linear-gradient(180deg,#4c505c 0 10px,#3d414c 10px 22px)"></div>
+      <div style="position:absolute;left:78%;top:0;bottom:0;width:9%;background:repeating-linear-gradient(180deg,#4c505c 0 10px,#3d414c 10px 22px)"></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;top:0;height:34%;background:linear-gradient(180deg,rgba(4,6,12,.92),rgba(4,6,12,0))"></div>
+  </div>
+</div>
+
+</div>
+
+</x-dc>
+</body>
+</html>
