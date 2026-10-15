@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using UnityEngine;
 
 namespace RailSwitchMVP.Config
@@ -102,9 +102,13 @@ namespace RailSwitchMVP.Config
         public int gemMinRowGap = 30;
 
         [Header("Switch (visual)")]
-        [Tooltip("Graus que a seta do switch vira POR passo de estado (Left=-1, Right=+1). " +
-            "45 = ±45°. É só VISUAL — a direção real do player usa o estado inteiro, não o " +
-            "ângulo. Injetado em cada switch pelo gerador no spawn.")]
+        [Tooltip("Preset de animação do switch de 3 meshes (ponte elevadiça): ângulos, " +
+            "durações e easing. Injetado em cada SwitchVisual pelo gerador no spawn — " +
+            "se vazio, cada prefab usa o preset atribuído nele mesmo.")]
+        public SwitchVisualConfig switchVisualConfig;
+
+        [Tooltip("LEGADO: graus que a SETA única do switch vira por passo de estado " +
+            "(Left=-1, Right=+1). Só tem efeito em prefabs sem SwitchVisual.")]
         [Range(0f, 90f)]
         public float switchArrowDegreesPerStep = 45f;
 

@@ -15,6 +15,9 @@ namespace RailSwitchMVP.PowerUps
         [Tooltip("Velocidade de rotação visual (graus/s no eixo Y). 0 = sem giro.")]
         public float spinSpeed = 120f;
 
+        /// <summary>Cosmético: posição do pickup coletado (VFX). Disparado antes do Destroy.</summary>
+        public static event System.Action<Vector3> Collected;
+
         void Update()
         {
             if (spinSpeed != 0f)
@@ -26,6 +29,7 @@ namespace RailSwitchMVP.PowerUps
             Debug.Log($"[PowerUp/{gameObject.name}] OnTriggerEnter with '{other.name}' (tag={other.tag})");
             if (!other.CompareTag("Player")) return;
             Activate();
+            Collected?.Invoke(transform.position);
             Destroy(gameObject);
         }
 

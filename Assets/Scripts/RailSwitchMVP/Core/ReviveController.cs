@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -286,7 +286,7 @@ namespace RailSwitchMVP.Core
                 tile = FindSafeTile(r);
             if (tile == null) tile = player.CurrentTile;
 
-            if (tile.Switch != null) tile.Switch.SetState(SwitchState.Middle);
+            if (tile.Switch != null) tile.Switch.SetState(SwitchState.Middle, immediate: true);
             player.RespawnAt(tile);
         }
 

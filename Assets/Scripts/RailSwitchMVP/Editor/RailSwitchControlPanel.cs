@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -38,6 +38,7 @@ namespace RailSwitchMVP.EditorTools
             AddFirst<DifficultyConfig>(tree, "Difficulty");
             AddFirst<RailGenConfig>(tree, "Generation");
             AddFirst<ReviveConfig>(tree, "Revive");
+            AddAll<SwitchVisualConfig>(tree, "Switch Visual");
 
             // Pools (vários assets — um item por asset).
             AddAll<HazardPool>(tree, "Pools/Hazards");

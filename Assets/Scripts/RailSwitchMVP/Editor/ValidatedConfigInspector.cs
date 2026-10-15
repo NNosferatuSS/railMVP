@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using RailSwitchMVP.Config;
 
@@ -51,4 +51,7 @@ namespace RailSwitchMVP.EditorTools
 
     [CustomEditor(typeof(PowerUpPool))]
     public class PowerUpPoolEditor : ValidatedConfigInspector { }
+
+    [CustomEditor(typeof(SwitchVisualConfig))]
+    public class SwitchVisualConfigEditor : ValidatedConfigInspector { }
 }

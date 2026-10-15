@@ -81,3 +81,7 @@ desktop.ini
 *.swo
 *~
 .utmp
+
+# Previews de mix gerados por Art/Source/Audio/aurora_synth.py (regeneráveis)
+Art/Source/Audio/preview_*.wav
+*.blend1

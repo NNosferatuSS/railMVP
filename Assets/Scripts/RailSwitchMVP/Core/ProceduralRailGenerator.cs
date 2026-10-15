@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Track;
@@ -426,11 +426,15 @@ namespace RailSwitchMVP.Core
 
                 if (tile.Switch != null)
                 {
-                    tile.Switch.SetConfig(config); // ângulo da seta vem do RailGenConfig
+                    tile.Switch.SetConfig(config); // ângulo da seta legada vem do RailGenConfig
+                    // Preset de animação da ponte elevadiça (se o config central definir um;
+                    // senão vale o preset atribuído no próprio prefab).
+                    if (config.switchVisualConfig != null && tile.Switch.Visual != null)
+                        tile.Switch.Visual.SetConfig(config.switchVisualConfig);
                     var initialState = isWarmupRow
                         ? SwitchState.Middle
                         : (SwitchState)Random.Range(-1, 2);
-                    tile.Switch.SetState(initialState);
+                    tile.Switch.SetState(initialState, immediate: true);
                 }
 
                 // Reserva de slots: hazard primeiro, depois power-up, depois coins

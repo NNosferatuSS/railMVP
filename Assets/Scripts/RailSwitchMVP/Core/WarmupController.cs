@@ -91,6 +91,9 @@ namespace RailSwitchMVP.Core
             }
         }
 
+        /// <summary>Cosmético (áudio/VFX): passo do countdown — 3, 2, 1 e 0 = GO.</summary>
+        public static event System.Action<int> CountdownStep;
+
         IEnumerator RunCountdown()
         {
             if (countdownText != null) countdownText.gameObject.SetActive(true);
@@ -99,11 +102,13 @@ namespace RailSwitchMVP.Core
             foreach (var step in steps)
             {
                 if (countdownText != null) countdownText.text = step;
+                CountdownStep?.Invoke(int.Parse(step));
                 yield return new WaitForSecondsRealtime(countdownStepSeconds);
             }
 
             // GO!
             if (countdownText != null) countdownText.text = "GO!";
+            CountdownStep?.Invoke(0);
             if (GameManager.Instance != null) GameManager.Instance.EndWarmup();
 
             yield return new WaitForSecondsRealtime(goDisplaySeconds);

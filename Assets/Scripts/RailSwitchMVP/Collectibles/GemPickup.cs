@@ -13,6 +13,9 @@ namespace RailSwitchMVP.Collectibles
         [Tooltip("Quantas gems esta pedra vale. Default 1.")]
         public int value = 1;
 
+        /// <summary>Cosmético: posição da gema coletada (VFX). Disparado antes do Destroy.</summary>
+        public static event System.Action<Vector3> Collected;
+
         [Tooltip("Velocidade de rotação visual (graus/s no eixo Y). 0 = sem giro.")]
         public float spinSpeed = 90f;
 
@@ -51,6 +54,7 @@ namespace RailSwitchMVP.Collectibles
                 CurrencyManager.Instance.Add(CurrencyType.Gems, value, "pickup");
 
             Debug.Log($"[GemPickup] +{value} gem(s) coletada(s)!");
+            Collected?.Invoke(transform.position);
             Destroy(gameObject);
         }
     }

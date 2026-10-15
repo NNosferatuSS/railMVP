@@ -49,7 +49,8 @@ namespace RailSwitchMVP.UI
             if (musicSlider != null)
             {
                 musicSlider.value = PlayerPrefs.GetFloat(KMusic, 0.7f);
-                musicSlider.onValueChanged.AddListener(v => { PlayerPrefs.SetFloat(KMusic, v); AudioListener.volume = v; });
+                // Volume lido pelo AuroraAudio (música e SFX separados) — não mexe no AudioListener global.
+                musicSlider.onValueChanged.AddListener(v => PlayerPrefs.SetFloat(KMusic, v));
             }
             if (sfxSlider != null)
             {

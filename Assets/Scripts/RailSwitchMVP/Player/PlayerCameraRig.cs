@@ -206,8 +206,12 @@ namespace RailSwitchMVP.Player
             return new Vector3(nx, ny, 0f) * magnitude;
         }
 
+        /// <summary>Cosmético: todo pedido de shake (impactos). Intensidade pedida — VFX de tela usam.</summary>
+        public static event System.Action<float> ShakeRequested;
+
         public void Shake(float intensity, float duration)
         {
+            ShakeRequested?.Invoke(intensity);
             // Se já tem shake rolando, escolhe o maior (não acumula intensity).
             if (intensity * duration <= _shakeIntensity * _shakeTimer) return;
             _shakeIntensity = intensity;

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using RailSwitchMVP.Config;
@@ -49,6 +49,10 @@ namespace RailSwitchMVP.Track
         [Tooltip("Material aplicado quando IsConnected = false (vermelho sugerido).")]
         [SerializeField] private Material disconnectedMaterial;
 
+        // Material que o connectivityRenderer tinha no prefab — usado pra
+        // despintar quando colorOnlyConnected está ligado (caminho legado).
+        private Material _connectivityOriginalMaterial;
+
         // Logs ONCE de configuração faltando (evita spam no console).
         private static bool _warnedRendererNull;
         private static bool _warnedMaterialNull;
@@ -69,6 +73,9 @@ namespace RailSwitchMVP.Track
 
         void Awake()
         {
+            if (connectivityRenderer != null)
+                _connectivityOriginalMaterial = connectivityRenderer.sharedMaterial;
+
             // Auto-resolve componentes (caso o prefab já esteja completo)
             if (Switch == null) Switch = GetComponentInChildren<SwitchController>();
             if (Coins == null) Coins = GetComponentInChildren<CoinSpawner>();
@@ -136,6 +143,39 @@ namespace RailSwitchMVP.Track
 
         void ApplyConnectivityMaterial(bool connected)
         {
+            // colorOnlyConnected (SwitchVisualConfig): desconectado não pinta nada,
+            // a mesh fica com o material do prefab. Sem vermelho.
+            bool greenOnly = ColorOnlyConnected();
+            bool paint = connected || !greenOnly;
+            var stateMat = connected ? connectedMaterial : disconnectedMaterial;
+
+            // Caminho novo: switch de 3 meshes. Só a mesh LEVANTADA (= direção
+            // escolhida) recebe a cor; as baixadas voltam pro material original
+            // do prefab, senão ficariam com a cor de uma escolha antiga.
+            var visual = Switch != null ? Switch.Visual : null;
+            if (visual != null)
+            {
+                if (paint && stateMat == null)
+                {
+                    WarnMaterialMissing(connected);
+                    return;
+                }
+
+                var raised = Switch.State;
+                for (int s = -1; s <= 1; s++)
+                {
+                    var dir = (SwitchState)s;
+                    var r = visual.GetRenderer(dir);
+                    if (r == null) continue;
+
+                    var target = (dir == raised && paint)
+                        ? stateMat
+                        : visual.GetOriginalMaterial(dir);
+                    if (target != null) r.sharedMaterial = target;
+                }
+                return;
+            }
+
             if (connectivityRenderer == null)
             {
                 if (!_warnedRendererNull)
@@ -148,19 +188,31 @@ namespace RailSwitchMVP.Track
                 return;
             }
 
-            var mat = connected ? connectedMaterial : disconnectedMaterial;
-            if (mat == null)
+            var legacyMat = paint ? stateMat : _connectivityOriginalMaterial;
+            if (legacyMat == null)
             {
-                if (!_warnedMaterialNull)
-                {
-                    Debug.LogWarning($"[TrackTile] {(connected ? "connectedMaterial" : "disconnectedMaterial")} " +
-                        "NÃO atribuído no TrackTile_Prefab. Atribua materials verde/vermelho no Inspector.", this);
-                    _warnedMaterialNull = true;
-                }
+                if (paint) WarnMaterialMissing(connected);
                 return;
             }
 
-            connectivityRenderer.sharedMaterial = mat;
+            connectivityRenderer.sharedMaterial = legacyMat;
+        }
+
+        // Toggle vem do preset do SwitchVisual — o único lugar de tweak do
+        // visual do switch. Sem SwitchVisual/preset: comportamento clássico
+        // verde/vermelho.
+        bool ColorOnlyConnected()
+        {
+            var cfg = Switch != null && Switch.Visual != null ? Switch.Visual.Config : null;
+            return cfg != null && cfg.colorOnlyConnected;
+        }
+
+        void WarnMaterialMissing(bool connected)
+        {
+            if (_warnedMaterialNull) return;
+            Debug.LogWarning($"[TrackTile] {(connected ? "connectedMaterial" : "disconnectedMaterial")} " +
+                "NÃO atribuído no TrackTile_Prefab. Atribua materials verde/vermelho no Inspector.", this);
+            _warnedMaterialNull = true;
         }
 
         // Mantido por compat — chama UpdateConnectivityVisual.
@@ -180,7 +232,8 @@ namespace RailSwitchMVP.Track
         public void ResetForReuse()
         {
             // Switch volta pro centro
-            if (Switch != null) Switch.SetState(SwitchState.Middle);
+            // immediate: tile reciclado não deve animar a ponte na cara do jogador.
+            if (Switch != null) Switch.SetState(SwitchState.Middle, immediate: true);
 
             // Reset flags
             IsOnCriticalPath = false;
