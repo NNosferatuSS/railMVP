@@ -26,6 +26,9 @@ namespace RailSwitchMVP.Visual
         [Tooltip("Sempre de frente pra câmera (igual ao BillboardSprite), aplicado antes do giro/wobble.")]
         public bool faceCamera = false;
 
+        [Tooltip("OFF: só mexe em posição/escala (ex.: bob num Visual que já tem BillboardSprite).")]
+        public bool affectRotation = true;
+
         [Header("Oscilação de rotação (wobble)")]
         public Vector3 wobbleAxis = Vector3.up;
         public float wobbleDegrees = 0f;
@@ -60,6 +63,7 @@ namespace RailSwitchMVP.Visual
             if (pulseAmount != 0f)
                 transform.localScale = _baseScale * (1f + Mathf.Sin(t * pulseSpeed + _phase) * pulseAmount);
 
+            if (!affectRotation) return;
             Quaternion rot = _baseRot;
             if (faceCamera)
             {

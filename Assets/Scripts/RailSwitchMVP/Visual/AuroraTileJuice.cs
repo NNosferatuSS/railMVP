@@ -14,8 +14,10 @@ namespace RailSwitchMVP.Visual
         [SerializeField] private Transform[] visuals;
 
         [Header("Montagem à frente")]
-        [Tooltip("Distância em Z à frente do player a partir da qual o tile começa a afundar.")]
-        [SerializeField] private float riseStart = 42f;
+        [Tooltip("Margem (Z) antes da borda de cima da tela onde o tile começa a afundar. " +
+            "O início acompanha o alcance real da câmera (AuroraJuice.VisibleAhead), então a " +
+            "montagem nunca esconde rows que o jogador precisa ler.")]
+        [SerializeField] private float riseMarginBeforeEdge = 4f;
         [SerializeField] private float riseLength = 26f;
         [SerializeField] private float riseDepth = 9f;
         [Tooltip("Atraso por lane (efeito cascata).")]
@@ -47,6 +49,7 @@ namespace RailSwitchMVP.Visual
             float lane = _tile != null ? _tile.Lane : 0;
             float off = 0f;
 
+            float riseStart = Mathf.Max(20f, AuroraJuice.VisibleAhead - riseMarginBeforeEdge);
             float ahead = dz - (riseStart + (lane % 3) * laneStagger);
             if (ahead > 0f)
             {

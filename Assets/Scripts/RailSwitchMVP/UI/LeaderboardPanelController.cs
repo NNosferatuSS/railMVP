@@ -116,7 +116,7 @@ namespace RailSwitchMVP.UI
             if (headerText == null) return;
             if (_mode == Mode.Global)
             {
-                headerText.text = "Recordes Globais — Distância";
+                headerText.text = "Global Records — Distance";
             }
             else
             {
@@ -130,7 +130,7 @@ namespace RailSwitchMVP.UI
             var lb = LeaderboardManager.Instance;
             if (lb == null)
             {
-                ShowError("(LeaderboardManager ausente)");
+                ShowError("(LeaderboardManager missing)");
                 return;
             }
 
@@ -185,11 +185,11 @@ namespace RailSwitchMVP.UI
             if (myRankBannerText != null)
             {
                 if (hasEntry)
-                    myRankBannerText.text = $"Você: #{rank} — {distance} m";
+                    myRankBannerText.text = $"You: #{rank} — {distance} m";
                 else
                     myRankBannerText.text = _mode == Mode.Global
-                        ? "Sem recorde ainda. Jogue uma run!"
-                        : "Você ainda não jogou hoje.";
+                        ? "No record yet. Play a run!"
+                        : "You haven't played today yet.";
             }
             // CTA "JOGAR DESAFIO" só na aba Diário, quando ainda não jogou.
             if (playDailyChallengeButton != null)

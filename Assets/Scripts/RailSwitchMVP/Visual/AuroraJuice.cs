@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using RailSwitchMVP.Collectibles;
+using RailSwitchMVP.Gameplay;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
 using RailSwitchMVP.Player;
@@ -24,6 +25,8 @@ namespace RailSwitchMVP.Visual
         public static AuroraJuice Instance { get; private set; }
         /// <summary>Posição do player (mundo). Usada pelos tiles pra montar/desmontar.</summary>
         public static Vector3 PlayerPos { get; private set; }
+        /// <summary>Quanto de pista (em Z, a partir do player) cabe na tela até a borda de cima.</summary>
+        public static float VisibleAhead { get; private set; } = 40f;
 
         [Header("Refs")]
         [SerializeField] private PlayerRailRider player;
@@ -71,6 +74,18 @@ namespace RailSwitchMVP.Visual
         static readonly int WaveColorId = Shader.PropertyToID("_AuroraWaveColor");
         static readonly int TimeId = Shader.PropertyToID("_AuroraTime");
         static readonly int IntensityId = Shader.PropertyToID("_Intensity");
+        static readonly int DimId = Shader.PropertyToID("_AuroraDim");
+        static readonly int VeilBottomId = Shader.PropertyToID("_ColorBottom");
+
+        [Header("Fever / Zonas")]
+        [ColorUsage(false, true)] [SerializeField] private Color feverGlow = new Color(1.3f, 0.85f, 0.25f);
+        [ColorUsage(false, true)] [SerializeField] private Color feverWave = new Color(2.2f, 1.4f, 0.4f);
+        [ColorUsage(false, true)] [SerializeField] private Color rushVeil = new Color(1.6f, 0.25f, 0.6f);
+        [ColorUsage(false, true)] [SerializeField] private Color goldVeil = new Color(1.6f, 1.1f, 0.2f);
+        [ColorUsage(false, true)] [SerializeField] private Color eclipseVeil = new Color(0.45f, 0.3f, 1.4f);
+        float _dim, _zoneTintK;
+        Color _zoneVeil;
+        Color[] _veilBottomBase;
 
         float _flash, _hit, _veilBoost, _veilTierExtra;
         float[] _veilBase;
@@ -93,6 +108,14 @@ namespace RailSwitchMVP.Visual
             }
             CreateSpeedParticles();
             Wave(Vector3.zero, 0f, waveColor);
+            Shader.SetGlobalFloat(DimId, 0f);
+            if (veils != null)
+            {
+                _veilBottomBase = new Color[veils.Length];
+                for (int i = 0; i < veils.Length; i++)
+                    _veilBottomBase[i] = veils[i] != null && veils[i].sharedMaterial != null
+                        ? veils[i].sharedMaterial.GetColor(VeilBottomId) : Color.white;
+            }
         }
 
         void OnDestroy()
@@ -120,6 +143,11 @@ namespace RailSwitchMVP.Visual
             GemPickup.Collected += OnGem;
             PowerUpBase.Collected += OnPowerUpCollected;
             PlayerCameraRig.ShakeRequested += OnShake;
+            ComboFeverManager.FeverStarted += OnFeverStarted;
+            ComboFeverManager.FeverReady += OnFeverReady;
+            ComboFeverManager.SkillAction += OnSkill;
+            ZoneDirector.ZoneStarted += OnZoneStarted;
+            ZoneDirector.ZoneEnded += OnZoneEnded;
         }
 
         void Unsubscribe()
@@ -138,6 +166,41 @@ namespace RailSwitchMVP.Visual
             GemPickup.Collected -= OnGem;
             PowerUpBase.Collected -= OnPowerUpCollected;
             PlayerCameraRig.ShakeRequested -= OnShake;
+            ComboFeverManager.FeverStarted -= OnFeverStarted;
+            ComboFeverManager.FeverReady -= OnFeverReady;
+            ComboFeverManager.SkillAction -= OnSkill;
+            ZoneDirector.ZoneStarted -= OnZoneStarted;
+            ZoneDirector.ZoneEnded -= OnZoneEnded;
+            Shader.SetGlobalFloat(DimId, 0f);
+        }
+
+        void OnFeverStarted()
+        {
+            _flash = 1f;
+            _veilBoost = Mathf.Max(_veilBoost, 1.6f);
+            if (player != null) Wave(player.transform.position, 3f, feverWave, 2.2f);
+            if (playerJuice != null) playerJuice.PowerUpPop();
+        }
+
+        void OnFeverReady() { _flash = Mathf.Max(_flash, 0.5f); }
+
+        void OnSkill(string kind)
+        {
+            _flash = Mathf.Max(_flash, kind == "nearmiss" ? 0.22f : 0.3f);
+            if (player != null && kind != "nearmiss") Wave(player.transform.position, 0.9f, kind == "risky" ? new Color(2f, 0.6f, 1.2f) : waveColor);
+        }
+
+        void OnZoneStarted(Core.ZoneKind k)
+        {
+            _flash = 1f;
+            _veilBoost = Mathf.Max(_veilBoost, 1.2f);
+            _zoneVeil = k == Core.ZoneKind.Rush ? rushVeil : k == Core.ZoneKind.GoldRain ? goldVeil : eclipseVeil;
+            if (player != null) Wave(player.transform.position, 2.4f, _zoneVeil, 2.2f);
+        }
+
+        void OnZoneEnded(Core.ZoneKind k, int bonus)
+        {
+            if (bonus > 0) { _flash = Mathf.Max(_flash, 0.7f); if (player != null) Wave(player.transform.position, 1.6f, waveColor, 1.6f); }
         }
 
         // ------------------------------------------------------------ eventos
@@ -149,7 +212,7 @@ namespace RailSwitchMVP.Visual
             if (playerJuice != null) playerJuice.Land();
         }
 
-        void OnCoin(Vector3 p) { _flash = Mathf.Max(_flash, coinFlash); }
+        void OnCoin(Vector3 p, int value) { _flash = Mathf.Max(_flash, value > 1 ? gemFlash : coinFlash); }
         void OnGem(Vector3 p) { _flash = Mathf.Max(_flash, gemFlash); Wave(p, 0.6f, new Color(1.4f, 0.6f, 2.2f)); }
 
         void OnPowerUpCollected(Vector3 p)
@@ -199,6 +262,9 @@ namespace RailSwitchMVP.Visual
 
         // ------------------------------------------------------------ API
 
+        /// <summary>Flash de tela (bloom) — 0..1.</summary>
+        public void Flash(float amount) => _flash = Mathf.Max(_flash, amount);
+
         /// <summary>Onda de choque nos trilhos a partir de <paramref name="pos"/>.</summary>
         public void Wave(Vector3 pos, float strength, Color color, float durationScale = 1f)
         {
@@ -220,7 +286,9 @@ namespace RailSwitchMVP.Visual
                 PlayerPos = pp;
                 bool dead = playerJuice != null && playerJuice.IsDead;
                 Shader.SetGlobalVector(PlayerPosId, new Vector4(pp.x, pp.y, pp.z, glowRadius));
-                var g = glowColor * (dead ? 0f : glowIntensity);
+                bool fever = RunModifiers.FeverCoinMultiplier > 1 || RunModifiers.CometActive;
+                var baseGlow = fever ? Color.Lerp(feverGlow, glowColor, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 10f)) : glowColor;
+                var g = baseGlow * (dead ? 0f : glowIntensity * (fever ? 1.8f : 1f));
                 Shader.SetGlobalColor(GlowColorId, new Color(g.r, g.g, g.b, 1f));
             }
 
@@ -230,6 +298,11 @@ namespace RailSwitchMVP.Visual
             if (hitVolume != null) hitVolume.weight = Ease(_hit);
 
             _veilBoost = Mathf.MoveTowards(_veilBoost, 0f, dt * 0.5f);
+            var zone = RunModifiers.ActiveZone;
+            _dim = Mathf.MoveTowards(_dim, zone == ZoneKind.Eclipse ? 1f : 0f, dt * 1.2f);
+            Shader.SetGlobalFloat(DimId, _dim);
+            _zoneTintK = Mathf.MoveTowards(_zoneTintK, zone != ZoneKind.None ? 1f : 0f, dt * 0.8f);
+            if (RunModifiers.FeverCoinMultiplier > 1) _veilBoost = Mathf.Max(_veilBoost, 0.8f);
             if (veils != null && _veilBase != null)
             {
                 float k = 1f + _veilTierExtra + _veilBoost;
@@ -238,11 +311,24 @@ namespace RailSwitchMVP.Visual
                     if (veils[i] == null) continue;
                     veils[i].GetPropertyBlock(_mpb);
                     _mpb.SetFloat(IntensityId, _veilBase[i] * k);
+                    if (_veilBottomBase != null)
+                        _mpb.SetColor(VeilBottomId, Color.Lerp(_veilBottomBase[i], _zoneVeil, _zoneTintK * 0.8f));
                     veils[i].SetPropertyBlock(_mpb);
                 }
             }
 
             UpdateSpeedParticles();
+            UpdateVisibleAhead();
+        }
+
+        void UpdateVisibleAhead()
+        {
+            if (_cam == null) _cam = Camera.main;
+            if (_cam == null) return;
+            var ray = _cam.ViewportPointToRay(new Vector3(0.5f, 1f, 0f));
+            if (ray.direction.y >= -1e-3f) { VisibleAhead = 200f; return; }
+            float t = -ray.origin.y / ray.direction.y;
+            VisibleAhead = Mathf.Max(10f, ray.origin.z + ray.direction.z * t - PlayerPos.z);
         }
 
         static float Ease(float x) => x * x * (3f - 2f * x);
@@ -297,7 +383,8 @@ namespace RailSwitchMVP.Visual
             _speedBox.position = new Vector3(c.x, -6f, PlayerPos.z + 48f);
             var em = _speed.emission;
             bool dead = playerJuice != null && playerJuice.IsDead;
-            em.rateOverTime = dead ? 0f : speed * speedParticlesPerUnit;
+            float zoneK = RunModifiers.ActiveZone == ZoneKind.Rush ? 2.2f : (RunModifiers.FeverCoinMultiplier > 1 ? 1.6f : 1f);
+            em.rateOverTime = dead ? 0f : speed * speedParticlesPerUnit * zoneK;
         }
     }
 }

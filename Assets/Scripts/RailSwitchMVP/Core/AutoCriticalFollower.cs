@@ -31,7 +31,7 @@ namespace RailSwitchMVP.Core
         }
 
         public bool IsActive => debugForceActive
-            || (PowerUpManager.Instance != null && PowerUpManager.Instance.HasAutoCriticalFollow);
+            || (PowerUpManager.Instance != null && (PowerUpManager.Instance.HasAutoCriticalFollow || PowerUpManager.Instance.HasComet));
 
         private PlayerRailRider _player;
         private bool _subscribed;
@@ -92,8 +92,40 @@ namespace RailSwitchMVP.Core
             var nextRow = rm.GetRow(currentTile.Row + 1);
             if (nextRow == null) return;
 
-            int chosenOffset = FindBestOffset(nextRow, currentTile.Lane);
+            bool comet = PowerUpManager.Instance != null && PowerUpManager.Instance.HasComet;
+            int chosenOffset = comet ? FindCometOffset(nextRow, currentTile.Lane) : FindBestOffset(nextRow, currentTile.Lane);
             currentTile.Switch.SetState((SwitchState)chosenOffset);
+        }
+
+        static readonly Collider[] _scan = new Collider[32];
+
+        // Cometa: escolhe o trilho vizinho com mais "presas" — hazard vale 3 (vira moedas
+        // no SMASH), moeda vale 1; empate segue reto. Cair não é problema (CometProtection).
+        static int FindCometOffset(RowData nextRow, int currentLane)
+        {
+            int best = 0;
+            float bestScore = float.MinValue;
+            foreach (int off in new[] { 0, -1, 1 })
+            {
+                int lane = currentLane + off;
+                if (!nextRow.HasTile(lane)) continue;
+                var t = nextRow.Tiles[lane];
+                float score = off == 0 ? 0.1f : 0f;
+                if (t.StartPoint != null && t.EndPoint != null)
+                {
+                    var a = t.StartPoint.position; var b = t.EndPoint.position;
+                    var c = (a + b) * 0.5f + Vector3.up * 0.6f;
+                    var half = new Vector3(0.9f, 1.2f, Mathf.Max(0.5f, Mathf.Abs(b.z - a.z) * 0.5f));
+                    int n = Physics.OverlapBoxNonAlloc(c, half, _scan, Quaternion.identity, ~0, QueryTriggerInteraction.Collide);
+                    for (int i = 0; i < n; i++)
+                    {
+                        if (_scan[i].GetComponentInParent<RailSwitchMVP.Obstacles.ObstacleBase>() != null) score += 3f;
+                        else if (_scan[i].GetComponent<RailSwitchMVP.Collectibles.CollectibleCoin>() != null) score += 1f;
+                    }
+                }
+                if (score > bestScore) { bestScore = score; best = off; }
+            }
+            return bestScore == float.MinValue ? FindBestOffset(nextRow, currentLane) : best;
         }
 
         static int FindBestOffset(RowData nextRow, int currentLane)

@@ -450,6 +450,7 @@ def render_music(out):
         "music_drums": (layer_drums, -18.5),
         "music_bass": (layer_bass, -20.0),
         "music_sparkle": (layer_sparkle, -26.0),
+        "music_fever": (layer_fever, -23.0),
     }
     rendered = {}
     for name, (fn, db) in layers.items():
@@ -472,6 +473,19 @@ def sfx_coin(i):
     b[:secs(0.35)] += pluck(f * 2, 0.35, bright=1.3, decay=14) * 0.4
     b[:secs(0.06)] += hp(noise(0.06), 9000) * env_exp(0.06, 80) * 0.15
     return normalize(fade(reverb(b, 0.18)[:, :secs(0.8)].mean(axis=0), 0, 0.15), 0.8)
+
+
+def sfx_coin_simple():
+    """Moeda: 'ti-ding' curto e limpo (B5 → E6), sempre igual."""
+    y = np.zeros(secs(0.5))
+    for k, (f, start, amp) in enumerate([(987.77, 0.0, 0.55), (1318.51, 0.055, 1.0)]):
+        t = tvec(0.42)
+        tone = np.sin(2 * np.pi * f * t) + 0.18 * np.sin(2 * np.pi * f * 2 * t) * np.exp(-t * 30)
+        env = np.clip(t / 0.003, 0, 1) * np.exp(-t * (16 if k == 0 else 9))
+        i0 = secs(start)
+        y[i0:i0 + len(t)] += tone * env * amp
+    y = reverb(y, 0.12)[:, :secs(0.5)].mean(axis=0)
+    return normalize(fade(y, 0, 0.08), 0.75)
 
 
 def sfx_gem():
@@ -643,8 +657,129 @@ def sfx_ui_click():
     return normalize(fade(y, 0, 0.01), 0.55)
 
 
+# ============================================================== SFX — camada de jogo (combo/fever/zonas)
+
+def sfx_clutch():
+    """Ting ascendente rápido: duas notas da pentatônica + brilho."""
+    y = np.zeros(secs(0.9))
+    for k, deg in enumerate([7, 10]):
+        b = bell(midi(penta(deg, 1)), 0.6, index=2.2, ratio=3.0, decay=6)
+        st = secs(k * 0.06)
+        y[st:st + len(b)] += b * (0.6 + 0.2 * k)
+    y[:secs(0.12)] += hp(noise(0.12), 7000) * env_exp(0.12, 40) * 0.2
+    return normalize(fade(reverb(y, 0.25), 0, 0.2), 0.8)
+
+
+def sfx_risky():
+    """Intervalo 'ousado' (trítono resolvendo) com pluck grave-agudo."""
+    y = np.zeros(secs(0.9))
+    a = pluck(midi(62), 0.5, bright=1.1, decay=8)
+    b = pluck(midi(69 + 12), 0.6, bright=1.3, decay=7)
+    y[:len(a)] += a * 0.6
+    st = secs(0.09)
+    y[st:st + len(b)] += b * 0.7
+    return normalize(fade(reverb(y, 0.3), 0, 0.2), 0.8)
+
+
+def sfx_nearmiss():
+    """Whoosh curtinho passando + blip agudo."""
+    d = 0.35
+    t = tvec(d)
+    shape = np.exp(-((t - 0.09) / 0.05) ** 2)
+    y = bp(noise(d), 1500, 9000) * shape * 0.8
+    blip = sine(midi(93) * (1 + 0.3 * np.exp(-t * 60)), d) * env_exp(d, 18, 0.002)
+    y += blip * 0.35
+    return normalize(fade(y, 0, 0.05), 0.7)
+
+
+def sfx_fever_ready():
+    """Arpejo cintilante subindo (barra cheia)."""
+    y = np.zeros(secs(1.6))
+    for k, deg in enumerate([5, 7, 9, 10, 12, 14]):
+        b = bell(midi(penta(deg, 1)), 1.0, index=1.8, ratio=2.0, decay=4)
+        st = secs(k * 0.055)
+        y[st:st + len(b)] += b * 0.5
+    return normalize(fade(reverb(y, 0.45), 0, 0.3), 0.85)
+
+
+def sfx_fever_start():
+    """Riser curto + impacto + acorde enorme (o 'drop')."""
+    r = riser(0.45, 300, 9000) * 0.6
+    y = np.zeros(secs(3.0))
+    y[:len(r)] += r
+    st = secs(0.44)
+    imp = kick(0.9, 1.4) + hp(noise(0.9), 3000) * env_exp(0.9, 4) * 0.35
+    y[st:st + len(imp)] += imp
+    for i, n in enumerate([50, 62, 65, 69, 72, 74, 77, 81]):
+        v = supersaw(midi(n), 2.2) * env_adsr(2.2, 0.004, 0.4, 0.55, 1.2)
+        y[st:st + len(v)] += lp(v, 3600 + 300 * i) * 0.18
+    return normalize(fade(reverb(y, 0.5), 0, 0.5), 0.95)
+
+
+def sfx_fever_end():
+    d = 0.9
+    t = tvec(d)
+    y = lp_sweep(supersaw(np.geomspace(midi(74), midi(62), len(t)), d), np.geomspace(5000, 400, len(t)))
+    y *= env_exp(d, 3.5, 0.01)
+    return normalize(fade(reverb(y, 0.35), 0, 0.3), 0.7)
+
+
+def sfx_zone_start():
+    """Alarme musical: stab de synth duplo + riser."""
+    y = np.zeros(secs(2.4))
+    r = riser(0.5, 200, 5000) * 0.45
+    y[:len(r)] += r
+    for k, chord in enumerate([[62, 65, 69, 74], [65, 69, 72, 77]]):
+        st = secs(0.5 + k * 0.24)
+        for n in chord:
+            v = supersaw(midi(n), 0.5) * env_adsr(0.5, 0.003, 0.15, 0.4, 0.2)
+            y[st:st + len(v)] += lp(v, 4200) * 0.28
+        kk = kick(0.4, 1.0)
+        y[st:st + len(kk)] += kk * 0.5
+    return normalize(fade(reverb(y, 0.4), 0, 0.4), 0.92)
+
+
+def sfx_zone_end():
+    y = np.zeros(secs(2.0))
+    for k, deg in enumerate([5, 8, 10, 12, 15]):
+        b = bell(midi(penta(deg, 1)), 1.1, index=1.6, ratio=2.0, decay=3.2)
+        st = secs(k * 0.08)
+        y[st:st + len(b)] += b * 0.45
+    return normalize(fade(reverb(y, 0.45), 0, 0.4), 0.88)
+
+
+def sfx_bonus_coin():
+    """Coin 'gorda': acorde de sinos + brilho longo."""
+    y = np.zeros(secs(1.2))
+    for deg in (10, 12, 14):
+        b = bell(midi(penta(deg, 1)), 0.9, index=2.4, ratio=3.0, decay=5)
+        y[:len(b)] += b * 0.4
+    y[:secs(0.5)] += hp(noise(0.5), 8000) * env_exp(0.5, 9) * 0.18
+    return normalize(fade(reverb(y, 0.35), 0, 0.3), 0.9)
+
+
+def layer_fever():
+    """Camada só do Fever: lead em 16ths uma oitava acima + ride/shaker."""
+    buf = new_buf(3.0)
+    pat = [0, 2, 4, 3, 2, 4, 1, 4, 0, 3, 4, 2, 4, 3, 1, 4]
+    for bar in range(BARS):
+        notes = CHORDS[chord_at(bar)]
+        for s16 in range(16):
+            n = notes[pat[s16]] + 24
+            v = saw(midi(n), STEP * 0.95) * 0.5 + saw(midi(n) * 1.006, STEP * 0.95) * 0.5
+            v = lp_sweep(v, 900 + 5200 * np.exp(-tvec(STEP * 0.95) * 18), block=64)
+            v *= env_adsr(STEP * 0.95, 0.002, 0.05, 0.6, 0.03)
+            accent = 1.0 if s16 % 4 == 0 else 0.7
+            place(buf, pan(v * 0.32 * accent, -0.4 + 0.8 * ((s16 * 5) % 16) / 15), secs(bar * BAR + s16 * STEP))
+            sh = hp(noise(0.04), 9000) * env_exp(0.04, 90) * (0.14 if s16 % 2 else 0.22)
+            place(buf, pan(sh, 0.45), secs(bar * BAR + s16 * STEP))
+    buf = pingpong(buf, BEAT * 0.5, fb=0.35, wet=0.3, repeats=4, damp=5000)
+    buf = reverb(buf, 0.2)
+    return fold_loop(buf)
+
+
 def render_sfx(out):
-    jobs = {f"sfx_coin_{i}": (lambda i=i: sfx_coin(i)) for i in range(10)}
+    jobs = {}   # moeda: só o sfx_coin simples (o combo de 10 notas foi aposentado)
     jobs.update({
         "sfx_gem": sfx_gem,
         "sfx_powerup_collect": sfx_powerup_collect,
@@ -664,6 +799,16 @@ def render_sfx(out):
         "sfx_count": lambda: sfx_count(False),
         "sfx_go": lambda: sfx_count(True),
         "sfx_ui_click": sfx_ui_click,
+        "sfx_clutch": sfx_clutch,
+        "sfx_risky": sfx_risky,
+        "sfx_nearmiss": sfx_nearmiss,
+        "sfx_fever_ready": sfx_fever_ready,
+        "sfx_fever_start": sfx_fever_start,
+        "sfx_fever_end": sfx_fever_end,
+        "sfx_zone_start": sfx_zone_start,
+        "sfx_zone_end": sfx_zone_end,
+        "sfx_bonus_coin": sfx_bonus_coin,
+        "sfx_coin": sfx_coin_simple,
     })
     for name, fn in jobs.items():
         x = trim_tail(fn())
@@ -675,6 +820,7 @@ if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "out"
     os.makedirs(out, exist_ok=True)
     which = sys.argv[2] if len(sys.argv) > 2 else "all"
+    only = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else None
     if which in ("all", "sfx"):
         render_sfx(out)
     if which in ("all", "music"):

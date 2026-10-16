@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a37adabfc1225aa41bf858edf2aaadd5, type: 3}
+  m_Name: GameplayLayerConfig_Default
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Config.GameplayLayerConfig
+  meterMax: 100
+  decayDelay: 3.5
+  decayPerSecond: 4.5
+  clutchGain: 12
+  riskyGain: 14
+  nearMissGain: 8
+  coinGain: 2.5
+  bonusCoinGain: 10
+  gemGain: 25
+  powerUpGain: 6
+  impactPenalty: 15
+  chainWindow: 2.6
+  chainBonusPerLink: 0.08
+  chainBonusMax: 1.5
+  clutchThreshold: 0.68
+  nearMissLanes: 1.05
+  feverDuration: 8
+  feverCoinMultiplier: 2
+  firstZoneAt: 260
+  zoneInterval: 420
+  zoneDuration: 20
+  minTierIndex: 2
+  rushSpeedMultiplier: 1.18
+  clearBonusCoins: 25
+  clearFeverGain: 30
+  baseBonusCoinChance: 0.1
+  goldRainBonusCoinChance: 0.45
+  tutorialSlowTimeScale: 0.12
+  tutorialSlowTriggerProgress: 0.4
+  tutorialSlowRampIn: 0.25
+  tutorialSlowRampOut: 0.2
+  tutorialSlowMaxHold: 6
+  tutorialSpeedMultiplier: 0.7

@@ -61,6 +61,9 @@ namespace RailSwitchMVP.Core
             "chance muito baixa (RailGenConfig.gemSpawnChance). Se vazio, gems não spawnam.")]
         [SerializeField] private GameObject gemPrefab;
 
+        [Tooltip("Moeda bônus (vale mais) que aparece como isca em decoys. Chance: RunModifiers.BonusCoinChance (ZoneDirector).")]
+        [SerializeField] private GameObject bonusCoinPrefab;
+
         [System.Serializable]
         public struct PowerUpPrefabBinding
         {
@@ -373,6 +376,7 @@ namespace RailSwitchMVP.Core
         /// <param name="parent">Parent opcional para os GameObjects spawnados (organização).</param>
         public RowData GenerateRow(int rowIndex, DifficultyTier tier, Transform parent = null)
         {
+            tier = RunModifiers.ModifyTier(tier);   // zonas (Chuva de Ouro, Rush, Eclipse)
             if (config == null || tilePrefab == null)
             {
                 Debug.LogError("[ProceduralRailGenerator] Config or TilePrefab not assigned.", this);
@@ -552,6 +556,12 @@ namespace RailSwitchMVP.Core
                         int coinCount = coinMin == coinMax ? coinMin : Random.Range(coinMin, coinMax + 1);
                         if (coinCount > 0)
                             tile.Coins.Spawn(coinCount, totalSlots, slotPadding, reservedSlots, config.coinSlotStrategy);
+                    }
+                    // Moeda bônus (vale mais): isca em decoy sem coins, sem hazard e sem power-up.
+                    else if (bonusCoinPrefab != null && !tileHasHazard && !tileHasPowerUp && tile.PowerUps != null
+                             && Random.value < RunModifiers.BonusCoinChance)
+                    {
+                        tile.PowerUps.Spawn(bonusCoinPrefab, totalSlots / 2, totalSlots, slotPadding);
                     }
                 }
 

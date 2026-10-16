@@ -19,7 +19,7 @@ namespace RailSwitchMVP.Collectibles
         public int value = 1;
 
         /// <summary>Cosmético: posição da moeda coletada (VFX). Disparado antes do Destroy.</summary>
-        public static event System.Action<Vector3> Collected;
+        public static event System.Action<Vector3, int> Collected;
 
         [Tooltip("Velocidade de rotação visual (graus/s no eixo Y). 0 = sem giro.")]
         public float spinSpeed = 180f;
@@ -86,7 +86,7 @@ namespace RailSwitchMVP.Collectibles
                 if (player != null && player.CurrentTile != null)
                     MissionTracker.Instance.OnTileWithCoin(player.CurrentTile.GetInstanceID());
             }
-            Collected?.Invoke(transform.position);
+            Collected?.Invoke(transform.position, value);
             Destroy(gameObject);
         }
     }

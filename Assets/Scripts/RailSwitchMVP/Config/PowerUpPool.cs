@@ -49,6 +49,8 @@ namespace RailSwitchMVP.Config
                     return "AutoFollow — o jogo segue o critical path sozinho por N tiles.";
                 case PowerUpType.TimeFreeze:
                     return "TimeFreeze — slow-mo (timeScale baixo) por alguns segundos. Consumido na colisão.";
+                case PowerUpType.Comet:
+                    return "COMET (overpower) — por N trilhos: piloto automático mais rápido, esmaga hazards em moedas, ímã gigante, onda de choque no fim. Parâmetros no GameplayLayerConfig.";
                 case PowerUpType.MysteryBox:
                     return "Mystery Box — caixa surpresa: concede um power-up aleatório do mysteryBoxPool do tier.";
                 case PowerUpType.SpeedUpDebuff:

@@ -31,9 +31,9 @@ namespace RailSwitchMVP.UI
         [SerializeField] private TMP_Text errorText;
 
         [Header("Strings (PT-BR defaults)")]
-        [SerializeField] private string errorTooShort = "Nome muito curto (mínimo {min}).";
-        [SerializeField] private string errorTooLong = "Nome muito longo (máximo {max}).";
-        [SerializeField] private string errorEmpty = "Digite um nome.";
+        [SerializeField] private string errorTooShort = "Name too short (min {min}).";
+        [SerializeField] private string errorTooLong = "Name too long (max {max}).";
+        [SerializeField] private string errorEmpty = "Enter a name.";
 
         void Awake()
         {
@@ -75,7 +75,7 @@ namespace RailSwitchMVP.UI
             var pdm = PlayerDataManager.Instance;
             if (pdm == null)
             {
-                ShowError("Sistema indisponível.");
+                ShowError("System unavailable.");
                 return;
             }
             string raw = nameInputField != null ? nameInputField.text : "";
@@ -104,7 +104,7 @@ namespace RailSwitchMVP.UI
             }
             else
             {
-                ShowError("Nome inválido.");
+                ShowError("Invalid name.");
             }
         }
 

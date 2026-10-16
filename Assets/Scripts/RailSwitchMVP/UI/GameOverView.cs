@@ -108,8 +108,8 @@ namespace RailSwitchMVP.UI
             if (continueButton != null) continueButton.interactable = affordable;
             if (continueSubtitle != null)
                 continueSubtitle.text = affordable
-                    ? "Respawn no caminho seguro"
-                    : $"Gems insuficientes ({gems}/{cost})";
+                    ? "Respawn on the safe path"
+                    : $"Not enough gems ({gems}/{cost})";
         }
 
         void OnContinueClicked()

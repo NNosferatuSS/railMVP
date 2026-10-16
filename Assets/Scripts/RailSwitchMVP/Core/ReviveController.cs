@@ -153,12 +153,12 @@ namespace RailSwitchMVP.Core
             {
                 adButton.gameObject.SetActive(adReady);
                 adButton.interactable = adReady;
-                if (adButtonText != null) adButtonText.text = "Continuar (Ad)";
+                if (adButtonText != null) adButtonText.text = "Continue (Ad)";
             }
             if (coinsButton != null)
             {
                 coinsButton.interactable = canAfford;
-                if (coinsButtonText != null) coinsButtonText.text = $"Continuar ({cost} coins)";
+                if (coinsButtonText != null) coinsButtonText.text = $"Continue ({cost} coins)";
             }
         }
 

@@ -125,7 +125,7 @@ namespace RailSwitchMVP.Core
                 if (!tierLockEnabled)
                 {
                     var dm = DifficultyManager.Instance;
-                    if (dm != null) lockedTierIndex = dm.CurrentTierIndex;
+                    if (dm != null) lockedTierIndex = dm.ConfigTierIndex;
                 }
                 tierLockEnabled = !tierLockEnabled;
                 Debug.Log($"[SpawnOverride] Tier Lock {(tierLockEnabled ? $"ON → tier {lockedTierIndex}" : "OFF")} via {tierLockKey}");

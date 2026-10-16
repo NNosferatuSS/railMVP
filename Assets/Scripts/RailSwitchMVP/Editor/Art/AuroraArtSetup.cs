@@ -11,6 +11,9 @@ using RailSwitchMVP.Config;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.Track;
 using RailSwitchMVP.Visual;
+using RailSwitchMVP.Gameplay;
+using RailSwitchMVP.UI;
+using RailSwitchMVP.Collectibles;
 
 namespace RailSwitchMVP.EditorTools
 {
@@ -35,6 +38,7 @@ namespace RailSwitchMVP.EditorTools
         const string Spawnables = "Assets/Prefabs/Spawnables";
         const string RailGenConfigPath = "Assets/ScriptableObjects/RailSwitchMVP/RailGenConfig_Default.asset";
         const string DifficultyConfigPath = "Assets/ScriptableObjects/RailSwitchMVP/DifficultyConfig_Default.asset";
+        const string GameplayLayerConfigPath = "Assets/ScriptableObjects/RailSwitchMVP/GameplayLayerConfig_Default.asset";
         const string PreviewDir = "Docs/ArtDirection/2026-10-15-aurora-unity";
 
         // Comprimentos com que os conectores foram modelados no Blender (gap + 0.4 de sobreposição).
@@ -54,7 +58,9 @@ namespace RailSwitchMVP.EditorTools
             var profile = BuildVolumeProfile();
             ApplyTrackTile(m, preset);
             ApplyCollectibles(m);
+            CometSetup.EnsurePrefabAndPools();
             ApplyPickups(m);
+            CometSetup.BindHudIcon();
             ApplyScene(m, profile);
             ConfigurePipelineAssets();
             AssetDatabase.SaveAssets();
@@ -81,6 +87,12 @@ namespace RailSwitchMVP.EditorTools
                 Debug.LogException(e);
                 EditorApplication.Exit(1);
             }
+        }
+
+        public static void BatchApplyOnly()
+        {
+            try { ApplyAll(); EditorApplication.Exit(0); }
+            catch (Exception e) { Debug.LogException(e); EditorApplication.Exit(1); }
         }
 
         public static void BatchPreviewOnly()
@@ -163,7 +175,8 @@ namespace RailSwitchMVP.EditorTools
         {
             public Material trackBody, trackRim, conOn, conVoid, pearl, crescent, coin, gem,
                 powerRing, debuffFrame, hazard, hazardStripe, arc, veilGreen, veilViolet, sky,
-                trail, burst, flash, ring, mote, bubble, magnetRing;
+                trail, burst, flash, ring, mote, bubble, magnetRing, coinBonus,
+                goodGlow, badGlow;
         }
 
         /// <summary>
@@ -233,16 +246,18 @@ namespace RailSwitchMVP.EditorTools
                 crescent = Surface("M_Aurora_Crescent", "#0a3a50", "#06263a", "#3fd8ff", 1.8f, fog: 0f),
                 coin = Surface("M_Aurora_Coin", "#ffc23d", "#c0650e", "#ffa21a", 0.45f, fog: 0.5f),
                 gem = Surface("M_Aurora_Gem", "#d9a6ff", "#6a3db8", "#b070ff", 0.6f, fog: 0.5f),
-                powerRing = Surface("M_Aurora_PowerRing", "#1a4a58", "#103040", "#8ff6ff", 1.3f, fog: 0.4f),
-                debuffFrame = Surface("M_Aurora_DebuffFrame", "#4a1040", "#300a2a", "#ff5fd2", 1.3f, fog: 0.4f),
-                hazard = Surface("M_Aurora_Hazard", "#ff5a66", "#9a1a38", "#ff2040", 0.12f, fog: 0.5f),
+                // Linguagem de cor: DOURADO = bom (power-up, igual à moeda); VERMELHO = ruim
+                // (hazard e debuff, igual ao conector pro vazio).
+                powerRing = Surface("M_Aurora_PowerRing", "#4a3a10", "#2a1e06", "#ffd25a", 1.9f, fog: 0.2f),
+                debuffFrame = Surface("M_Aurora_DebuffFrame", "#4a0a14", "#2a0610", "#ff2a48", 1.7f, fog: 0.3f),
+                hazard = Surface("M_Aurora_Hazard", "#ff5a66", "#9a1a38", "#ff2040", 0.55f, fog: 0.4f),
                 hazardStripe = Surface("M_Aurora_HazardStripe", "#ffe6dc", "#ffe6dc", "#ffd8c8", 0.25f, fog: 0.5f),
                 arc = Surface("M_Aurora_Arc", "#1a4a80", "#0a1838", rim: "#3a6ad8", rimI: 0.25f, fog: 0.35f),
                 veilGreen = Mat("M_Aurora_VeilGreen", "Rail/Aurora/Veil", m =>
                 {
                     C(m, "_ColorBottom", Lin("#2dffa0", 1.1f));
                     C(m, "_ColorTop", Lin("#3a4dff", 0.55f));
-                    m.SetFloat("_Intensity", 0.75f);
+                    m.SetFloat("_Intensity", 0.15f);   // aurora 80% mais discreta (era 0.75)
                     m.SetFloat("_RayDensity", 42f);
                     m.SetFloat("_ScrollSpeed", 0.22f);
                     m.SetFloat("_Falloff", 1.6f);
@@ -251,7 +266,7 @@ namespace RailSwitchMVP.EditorTools
                 {
                     C(m, "_ColorBottom", Lin("#22e8c0", 0.9f));
                     C(m, "_ColorTop", Lin("#9a4dff", 0.8f));
-                    m.SetFloat("_Intensity", 0.6f);
+                    m.SetFloat("_Intensity", 0.12f);   // aurora 80% mais discreta (era 0.6)
                     m.SetFloat("_RayDensity", 30f);
                     m.SetFloat("_ScrollSpeed", 0.17f);
                     m.SetFloat("_Falloff", 1.3f);
@@ -308,6 +323,21 @@ namespace RailSwitchMVP.EditorTools
                     m.SetFloat("_Bands", 9f);
                 }),
                 magnetRing = Surface("M_Aurora_MagnetRing", "#3a2a08", "#201804", "#ffc23d", 1.6f, fog: 0f),
+                goodGlow = Mat("M_Aurora_GoodGlow", "Rail/Aurora/Additive", m =>
+                {
+                    C(m, "_TintColor", Lin("#ffc93a", 0.9f));
+                    m.SetFloat("_Shape", 1f);
+                    m.SetFloat("_Softness", 1f);
+                    m.SetFloat("_Core", 0.9f);
+                }),
+                badGlow = Mat("M_Aurora_BadGlow", "Rail/Aurora/Additive", m =>
+                {
+                    C(m, "_TintColor", Lin("#ff1e40", 1.7f));
+                    m.SetFloat("_Shape", 1f);
+                    m.SetFloat("_Softness", 1f);
+                    m.SetFloat("_Core", 1.1f);
+                }),
+                coinBonus = Surface("M_Aurora_CoinBonus", "#ffd9f0", "#c04a90", "#ff7ad0", 1.1f, "#ffffff", 0.6f, 2f, fog: 0.4f),
             };
             AssetDatabase.SaveAssets();
             return r;
@@ -626,6 +656,25 @@ namespace RailSwitchMVP.EditorTools
                 mo.bobAmplitude = 0f; mo.pulseAmount = 0.06f; mo.pulseSpeed = 5f;
             });
 
+            // Moeda bônus (vale 5): cópia do coin com visual maior e rosa-dourado.
+            var bonusPath = $"{Spawnables}/Resource_CoinBonus.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(bonusPath) == null)
+                AssetDatabase.CopyAsset($"{Spawnables}/Resource_CoinPrefab.prefab", bonusPath);
+            EditPrefab(bonusPath, root =>
+            {
+                var coin = root.GetComponent<CollectibleCoin>();
+                if (coin != null) coin.value = 5;
+                var v = root.transform.Find("Aurora_Visual");
+                if (v != null)
+                {
+                    NeutralizeParent(v, root.transform, 1.9f);
+                    var mr = v.GetComponent<MeshRenderer>();
+                    if (mr != null) mr.sharedMaterial = m.coinBonus;
+                    var mo = v.GetComponent<AuroraMotion>();
+                    if (mo != null) { mo.pulseAmount = 0.12f; mo.pulseSpeed = 7f; }
+                }
+            });
+
             EditPrefab($"{Spawnables}/Resource_Gem.prefab", root =>
             {
                 foreach (var r in root.GetComponents<Renderer>()) r.enabled = false;
@@ -678,24 +727,57 @@ namespace RailSwitchMVP.EditorTools
                         if (sr != null) sr.enabled = false;
                         bool isBarrier = file.Contains("Barrier");
                         var v = MeshChild(t, "Aurora_Visual", isBarrier ? barrier : lethal, m.hazard, m.hazardStripe);
-                        v.transform.localScale = InverseScale(t);
+                        v.transform.localScale = InverseScale(t, 1.5f);
                         v.AddComponent<AuroraGroundSnap>().surfaceY = TrackTopY;
+                        var hzm = v.AddComponent<AuroraMotion>();
+                        hzm.bobAmplitude = 0f; hzm.pulseAmount = 0.06f; hzm.pulseSpeed = 7f;
+                        GroundGlow(t, m.badGlow, 3.0f, 0.2f, 7f);
                         return;
                     }
 
                     if (sr != null)
                     {
-                        // Ícone (sprite billboard) dentro do anel / moldura. Filho do Visual
-                        // → herda o billboard e a escala do sprite.
+                        // Ícone de mundo com linguagem de forma + cor (Art/Source/Pickups):
+                        // círculo dourado = bom, triângulo vermelho = ruim.
+                        var badge = PickupBadge(file);
+                        if (badge != null)
+                        {
+                            sr.sprite = badge;
+                            var bb = visual.GetComponent<BillboardSprite>();
+                            if (bb != null) { bb.sprite = badge; bb.tint = Color.white; EditorUtility.SetDirty(bb); }
+                            sr.color = Color.white;
+                            EditorUtility.SetDirty(sr);
+                        }
                         var size = SpriteSize(sr);
                         float s = Mathf.Max(size.x, size.y);
-                        var v = isDebuff
-                            ? MeshChild(visual, "Aurora_Visual", frame, m.debuffFrame)
-                            : MeshChild(visual, "Aurora_Visual", ring, m.powerRing);
-                        v.transform.localPosition = new Vector3(0f, isDebuff ? 0.06f * s : 0f, 0.02f);
-                        v.transform.localScale = Vector3.one * (isDebuff ? s * 1.05f : s * 1.05f);
+
+                        var vm = visual.GetComponent<AuroraMotion>();
+                        if (vm == null) vm = visual.gameObject.AddComponent<AuroraMotion>();
+                        vm.affectRotation = false;   // a rotação é do BillboardSprite
+                        if (isDebuff)
+                        {
+                            // Ruim: sem moldura (o triângulo já é a forma), treme nervoso e pulsa,
+                            // poça vermelha no chão.
+                            vm.bobAmplitude = 0.035f; vm.bobSpeed = 26f;
+                            vm.pulseAmount = 0.07f; vm.pulseSpeed = 9f;
+                            GroundGlow(t, m.badGlow, 2.7f, 0.18f, 8f);
+                            return;
+                        }
+
+                        // Bom: anel dourado + halo atrás do ícone, flutua devagar, poça dourada.
+                        vm.bobAmplitude = 0.14f; vm.bobSpeed = 2.6f;
+                        vm.pulseAmount = 0f;
+                        var v = MeshChild(visual, "Aurora_Visual", ring, m.powerRing);
+                        v.transform.localPosition = new Vector3(0f, 0f, 0.02f);
+                        v.transform.localScale = Vector3.one * s * 1.08f;
                         var mo = v.AddComponent<AuroraMotion>();
-                        mo.bobAmplitude = 0f; mo.pulseAmount = 0.05f; mo.pulseSpeed = 5f;
+                        mo.bobAmplitude = 0f; mo.pulseAmount = 0.04f; mo.pulseSpeed = 3f;
+                        var iconHalo = MeshChild(visual, "Aurora_Visual", QuadMesh(), m.goodGlow);
+                        iconHalo.transform.localPosition = new Vector3(0f, 0f, 0.05f);
+                        iconHalo.transform.localScale = Vector3.one * s * 1.7f;
+                        var ihm = iconHalo.AddComponent<AuroraMotion>();
+                        ihm.bobAmplitude = 0f; ihm.pulseAmount = 0.12f; ihm.pulseSpeed = 3.2f;
+                        GroundGlow(t, m.goodGlow, 1.7f, 0.1f, 3.2f);
                         return;
                     }
 
@@ -722,8 +804,66 @@ namespace RailSwitchMVP.EditorTools
                     cr.transform.localScale = Vector3.one * 0.9f;
                     var cm = cr.AddComponent<AuroraMotion>();
                     cm.bobAmplitude = 0f; cm.spinSpeed = 140f; cm.spinAxis = Vector3.up;
+                    hm.bobAmplitude = 0.14f;
+                    var halo = MeshChild(holder, "Halo", QuadMesh(), m.goodGlow);
+                    halo.transform.localPosition = new Vector3(0f, 0f, 0.15f);
+                    halo.transform.localScale = Vector3.one * 2.2f;
+                    var hm2 = halo.AddComponent<AuroraMotion>();
+                    hm2.bobAmplitude = 0f; hm2.pulseAmount = 0.12f; hm2.pulseSpeed = 3.2f;
+                    GroundGlow(t, m.goodGlow, 1.7f, 0.1f, 3.2f);
                 });
             }
+        }
+
+        const string PickupDir = "Assets/Graphics/Aurora/Pickups";
+
+        // Prefab → ícone de mundo gerado por Art/Source/Pickups/make_pickup_badges.py.
+        static Sprite PickupBadge(string prefabFile)
+        {
+            string name =
+                prefabFile.Contains("Shield") ? "Pickup_Shield" :
+                prefabFile.Contains("Magnet") ? "Pickup_Magnet" :
+                prefabFile.Contains("Ghost") ? "Pickup_Ghost" :
+                prefabFile.Contains("_2x") ? "Pickup_2x" :
+                prefabFile.Contains("Comet") ? "Pickup_Comet" :
+                prefabFile.Contains("SpeedUp") ? "Pickup_Bad_SpeedUp" :
+                prefabFile.Contains("LaneSwap") ? "Pickup_Bad_LaneSwap" :
+                prefabFile.Contains("Vortex") ? "Pickup_Bad_Vortex" : null;
+            if (name == null) return null;
+            var path = $"{PickupDir}/{name}.png";
+            var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (imp == null) { Debug.LogWarning($"[Aurora] badge não encontrado: {path}"); return null; }
+            if (imp.textureType != TextureImporterType.Sprite || !Mathf.Approximately(imp.spritePixelsPerUnit, 90f))
+            {
+                imp.textureType = TextureImporterType.Sprite;
+                imp.spriteImportMode = SpriteImportMode.Single;
+                imp.spritePixelsPerUnit = 90f;   // ≈ tamanho de mundo dos ícones antigos (288 px @ 100)
+                imp.mipmapEnabled = true;
+                imp.alphaIsTransparency = true;
+                imp.sRGBTexture = true;
+                imp.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        static Mesh _quad;
+        static Mesh QuadMesh()
+        {
+            if (_quad == null) _quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            return _quad;
+        }
+
+        // Poça de luz deitada na pista sob o item (dourada = bom, vermelha = ruim).
+        static void GroundGlow(Transform root, Material mat, float size, float pulse, float pulseSpeed)
+        {
+            var g = MeshChild(root, "Aurora_Visual", QuadMesh(), mat);
+            g.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            var s = root.lossyScale;
+            // Depois do giro de 90° em X, o eixo Y do quad vira o Z do root.
+            g.transform.localScale = new Vector3(size / Mathf.Max(1e-4f, s.x), size / Mathf.Max(1e-4f, s.z), 1f);
+            g.AddComponent<AuroraGroundSnap>().surfaceY = TrackTopY + 0.02f;
+            var mo = g.AddComponent<AuroraMotion>();
+            mo.bobAmplitude = 0f; mo.pulseAmount = pulse; mo.pulseSpeed = pulseSpeed;
         }
 
         // ================================================================ Cena
@@ -849,9 +989,69 @@ namespace RailSwitchMVP.EditorTools
             var envGo = BuildEnvironment(m, cam != null ? cam.transform : null, rider);
             SceneManager.MoveGameObjectToScene(envGo, scene);
 
+            // ---- Camada de jogo: Combo/Fever, Zonas, HUD
+            foreach (var old in AllInScene<ComboFeverManager>(scene)) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            var gp = new GameObject("Aurora_Gameplay");
+            SceneManager.MoveGameObjectToScene(gp, scene);
+            var layerCfg = EnsureGameplayLayerConfig();
+            SetRef(gp.AddComponent<ComboFeverManager>(), "config", layerCfg);
+            SetRef(gp.AddComponent<ZoneDirector>(), "config", layerCfg);
+            SetRef(gp.AddComponent<CometController>(), "config", layerCfg);
+            var hud = gp.AddComponent<RunHUD>();
+            var theme = AssetDatabase.LoadAssetAtPath<RailSwitchMVP.UI.Theme.UITheme>("Assets/UI/ScriptableObjects/UITheme.asset");
+            if (theme != null) SetRef(hud, "font", theme.chakraBold);
+
+            // Tutorial contextual V2 (substitui o painel V1 que pausava o jogo).
+            var tut = gp.AddComponent<TutorialDirector>();
+            if (theme != null) SetRef(tut, "font", theme.chakraBold);
+            SetRef(tut, "config", layerCfg);
+            foreach (var oldTut in AllInScene<TutorialOverlayController>(scene))
+                oldTut.gameObject.SetActive(false);
+
+            // Input: SmartTouchInput (toque no trilho + tap nas metades + swipe) no lugar do touch antigo.
+            foreach (var comp in AllInScene<RailSwitchMVP.InputSys.CompositeDirectionalInput>(scene))
+            {
+                var smart = comp.GetComponent<RailSwitchMVP.InputSys.SmartTouchInput>()
+                    ?? comp.gameObject.AddComponent<RailSwitchMVP.InputSys.SmartTouchInput>();
+                foreach (var oldTouch in comp.GetComponents<RailSwitchMVP.InputSys.TouchDirectionalInput>())
+                    oldTouch.enabled = false;
+                var cso = new SerializedObject(comp);
+                var src = cso.FindProperty("sources");
+                var list = new System.Collections.Generic.List<UnityEngine.Object> { smart };
+                for (int i = 0; i < src.arraySize; i++)
+                {
+                    var o = src.GetArrayElementAtIndex(i).objectReferenceValue;
+                    if (o == null || o is RailSwitchMVP.InputSys.TouchDirectionalInput || o == smart) continue;
+                    list.Add(o);
+                }
+                src.arraySize = list.Count;
+                for (int i = 0; i < list.Count; i++) src.GetArrayElementAtIndex(i).objectReferenceValue = list[i];
+                cso.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            var gen = FirstInScene<RailSwitchMVP.Core.ProceduralRailGenerator>(scene);
+            if (gen != null)
+            {
+                SetRef(gen, "bonusCoinPrefab", AssetDatabase.LoadAssetAtPath<GameObject>($"{Spawnables}/Resource_CoinBonus.prefab"));
+                CometSetup.BindGenerator(gen);
+            }
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             CloseGameScene(scene, wasOpen);
+        }
+
+        /// <summary>Carrega (ou cria com os defaults) o config de Combo/Fever/Zonas. Nunca sobrescreve valores tunados.</summary>
+        static GameplayLayerConfig EnsureGameplayLayerConfig()
+        {
+            var cfg = AssetDatabase.LoadAssetAtPath<GameplayLayerConfig>(GameplayLayerConfigPath);
+            if (cfg == null)
+            {
+                cfg = ScriptableObject.CreateInstance<GameplayLayerConfig>();
+                AssetDatabase.CreateAsset(cfg, GameplayLayerConfigPath);
+                AssetDatabase.SaveAssets();
+            }
+            return cfg;
         }
 
         static GameObject BuildEnvironment(Mats m, Transform cam, PlayerRailRider playerRider)
@@ -972,7 +1172,30 @@ namespace RailSwitchMVP.EditorTools
             ".XXXXX.", "XXXXXXX", "XX.XX.X", ".XXX.XX", "X.XXX.X", "XX.X.XX", ".XXXXX.", "XX.X.XX", "X.XXX.X", "XXX.XXX", ".XX.XX.", "XXXXXXX",
         };
 
-        static void RenderPreview(int lanes, string file)
+        /// <summary>Pior caso de enquadramento: 7 lanes, tier 6, player na lane mais externa.
+        /// Gera câmera travada (follow 0) e com o follow lateral do RailGenConfig.</summary>
+        [MenuItem("Tools/RailSwitch/Art/Aurora — Render Camera Follow Check", priority = 202)]
+        public static void RenderFollowCheck()
+        {
+            var rail = AssetDatabase.LoadAssetAtPath<RailGenConfig>(RailGenConfigPath);
+            float keep = rail.cameraLateralFollow;
+            try
+            {
+                rail.cameraLateralFollow = 0f;
+                RenderPreview(7, "camera_follow_OFF.png", playerLaneOffset: -3, tierIndex: 6, useRigLateral: true);
+                rail.cameraLateralFollow = keep;
+                RenderPreview(7, "camera_follow_ON.png", playerLaneOffset: -3, tierIndex: 6, useRigLateral: true);
+            }
+            finally { rail.cameraLateralFollow = keep; }
+        }
+
+        public static void BatchFollowCheck()
+        {
+            try { RenderFollowCheck(); EditorApplication.Exit(0); }
+            catch (Exception e) { Debug.LogException(e); EditorApplication.Exit(1); }
+        }
+
+        static void RenderPreview(int lanes, string file, int playerLaneOffset = 0, int tierIndex = 0, bool useRigLateral = false)
         {
             bool wasOpen = IsGameSceneOpen();
             var scene = OpenGameScene();
@@ -1039,10 +1262,11 @@ namespace RailSwitchMVP.EditorTools
 
             int mid = first + lanes / 2;
             int left = mid - 1, right = mid + 1;
+            int playerLane = Mathf.Clamp(mid + playerLaneOffset, first, first + lanes - 1);
 
             // Player na row 1, lane central
             var rider = FirstInScene<PlayerRailRider>(scene);
-            var p1 = tiles[1, mid];
+            var p1 = tiles[1, playerLane] ?? tiles[1, mid];
             var playerPos = p1.StartPoint.position + Vector3.forward * 2.5f;
             playerPos.y = rider.transform.position.y;
             rider.transform.position = playerPos;
@@ -1070,12 +1294,26 @@ namespace RailSwitchMVP.EditorTools
             // Câmera igual ao PlayerCameraRig (tier 0, sem death cam)
             var rig = FirstInScene<PlayerCameraRig>(scene);
             var cam = rig.GetComponent<Camera>();
-            var tier = diff.tiers[0];
+            var tier = diff.tiers[Mathf.Clamp(tierIndex, 0, diff.tiers.Count - 1)];
             float zoom = (tier.cameraZoom > 0 ? tier.cameraZoom : 10f) * Mathf.Max(0.01f, rail.cameraZoomGlobalMultiplier);
             float tilt = tier.overrideCameraAngle ? tier.cameraTilt : rail.cameraTilt;
             cam.fieldOfView = tier.overrideCameraAngle ? tier.cameraFieldOfView : rail.cameraFieldOfView;
             var rot = Quaternion.Euler(tilt, 0f, 0f);
-            var focusBase = new Vector3(0f, playerPos.y, playerPos.z);
+            float camX = 0f;
+            const int w = 720, h = 1560;
+            var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
+            if (useRigLateral)
+            {
+                // Mesma função que o jogo usa (PlayerCameraRig.ResolveLateralX), com o aspect real do RT.
+                cam.targetTexture = rt;
+                var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                typeof(PlayerCameraRig).GetField("_cam", bf).SetValue(rig, cam);
+                typeof(PlayerCameraRig).GetField("_hasLateral", bf).SetValue(rig, false);
+                camX = (float)typeof(PlayerCameraRig).GetMethod("ResolveLateralX", bf)
+                    .Invoke(rig, new object[] { zoom, cam.fieldOfView });
+                cam.targetTexture = null;
+            }
+            var focusBase = new Vector3(camX, playerPos.y, playerPos.z);
             var focus = focusBase + rot * Vector3.up * (zoom * rail.cameraLookAhead);
             cam.transform.SetPositionAndRotation(focus - rot * Vector3.forward * zoom, rot);
 
@@ -1100,8 +1338,6 @@ namespace RailSwitchMVP.EditorTools
             if (env != null) { env.PushGlobals(); env.Tick(cam.transform.position); }
 
             // Render (9:19.5, MSAA 4x, com post)
-            const int w = 720, h = 1560;
-            var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
             var prevTarget = cam.targetTexture;
             cam.targetTexture = rt;
             cam.Render();
@@ -1118,7 +1354,7 @@ namespace RailSwitchMVP.EditorTools
             File.WriteAllBytes(Path.Combine(PreviewDir, file), tex.EncodeToPNG());
             UnityEngine.Object.DestroyImmediate(tex);
             rt.Release();
-            Debug.Log($"[Aurora] preview salvo: {PreviewDir}/{file} (zoom {zoom}, tilt {tilt}, fov {cam.fieldOfView})");
+            Debug.Log($"[Aurora] preview salvo: {PreviewDir}/{file} (zoom {zoom}, tilt {tilt}, fov {cam.fieldOfView}, camX {camX:0.00}, playerX {playerPos.x:0.00})");
             }
             finally
             {

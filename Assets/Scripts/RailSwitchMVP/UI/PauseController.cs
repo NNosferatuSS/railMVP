@@ -45,6 +45,7 @@ namespace RailSwitchMVP.UI
             if (resumeButton != null) resumeButton.onClick.AddListener(Close);
             if (restartButton != null) restartButton.onClick.AddListener(Restart);
             if (quitButton != null) quitButton.onClick.AddListener(Quit);
+            CreateReplayTutorialButton();
 
             if (musicSlider != null)
             {
@@ -99,6 +100,38 @@ namespace RailSwitchMVP.UI
             Time.timeScale = 1f;
             var scene = SceneManager.GetActiveScene();
             SceneManager.LoadScene(scene.buildIndex);
+        }
+
+        /// <summary>Zera o tutorial e reinicia a corrida pra ele rodar de novo (testes / jogador que quer rever).</summary>
+        public void ReplayTutorial()
+        {
+            RailSwitchMVP.Gameplay.TutorialDirector.ResetTutorial();
+            PlayerPrefs.Save();
+            Restart();
+        }
+
+        // Botão "REPLAY TUTORIAL" criado em runtime dentro do card do Pause, abaixo da linha
+        // de info — clona o RESTART pra herdar o estilo, sem precisar reconstruir o prefab.
+        void CreateReplayTutorialButton()
+        {
+            if (restartButton == null || panel == null) return;
+            var card = panel.transform.Find("Panel");
+            if (card == null || card.Find("Btn_ReplayTutorial") != null) return;
+
+            var go = Instantiate(restartButton.gameObject, card);
+            go.name = "Btn_ReplayTutorial";
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.offsetMin = new Vector2(20f, -(320f + 44f));
+            rt.offsetMax = new Vector2(-20f, -320f);
+
+            var btn = go.GetComponent<Button>();
+            btn.onClick = new Button.ButtonClickedEvent();
+            btn.onClick.AddListener(ReplayTutorial);
+            var label = go.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = "REPLAY TUTORIAL";
         }
 
         public void Quit()

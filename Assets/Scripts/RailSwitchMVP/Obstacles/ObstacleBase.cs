@@ -22,6 +22,20 @@ namespace RailSwitchMVP.Obstacles
     [RequireComponent(typeof(Collider))]
     public abstract class ObstacleBase : MonoBehaviour
     {
+        /// <summary>Hazard esmagado pelo cometa (vira moedas; efeitos no CometController).</summary>
+        public static event System.Action<ObstacleBase> Smashed;
+
+        bool _smashed;
+
+        /// <summary>Esmaga este obstáculo: sem efeito no player, avisa e some.</summary>
+        public void Smash()
+        {
+            if (_smashed) return;
+            _smashed = true;
+            Smashed?.Invoke(this);
+            Destroy(gameObject);
+        }
+
         void OnTriggerEnter(Collider other)
         {
             // Log diagnóstico: dispara em TODO trigger pra ajudar debugar prefabs
@@ -31,6 +45,13 @@ namespace RailSwitchMVP.Obstacles
             if (!other.CompareTag("Player"))
             {
                 Debug.Log($"[Obstacle/{gameObject.name}] Other is not Player. Ignored.");
+                return;
+            }
+
+            // Cometa = esmaga (vira moedas) em vez de sofrer o efeito.
+            if (PowerUpManager.Instance != null && PowerUpManager.Instance.HasComet)
+            {
+                Smash();
                 return;
             }
 

@@ -16,7 +16,7 @@ namespace RailSwitchMVP.EditorTools
     /// usa o sistema de desenho do Odin, ela é independente do Inspector normal
     /// (os custom editors/drawers existentes continuam intocados).
     ///
-    /// v1: lista os configs (Difficulty, Generation, Revive, Pools). Tabela curada de
+    /// v1: lista os configs (Difficulty, Generation, Revive, Gameplay Layer, Pools). Tabela curada de
     /// tiers (v2) e Play Tools/ações de runtime (v3) vêm depois.
     /// </summary>
     public class RailSwitchControlPanel : OdinMenuEditorWindow
@@ -38,6 +38,7 @@ namespace RailSwitchMVP.EditorTools
             AddFirst<DifficultyConfig>(tree, "Difficulty");
             AddFirst<RailGenConfig>(tree, "Generation");
             AddFirst<ReviveConfig>(tree, "Revive");
+            AddFirst<GameplayLayerConfig>(tree, "Gameplay Layer (Combo · Fever · Zonas)");
             AddAll<SwitchVisualConfig>(tree, "Switch Visual");
 
             // Pools (vários assets — um item por asset).

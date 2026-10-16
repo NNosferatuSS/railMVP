@@ -1581,6 +1581,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 1104b3b374d36654db2e2ff9f1f5349b, type: 3}
   - type: 11
     icon: {fileID: 21300000, guid: bfee0aecc6c932e42991c4a72d9bff3a, type: 3}
+  - type: 14
+    icon: {fileID: 21300000, guid: 3d0e1ad25ee6d18469af8cb71f23f853, type: 3}
   switchBars: {fileID: 5917002881209718534}
   switchLabel: {fileID: 6017117469607258599}
   switchActiveColor: {r: 0.13333334, g: 0.8901961, b: 1, a: 1}

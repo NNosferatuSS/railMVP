@@ -59,6 +59,7 @@ Shader "Rail/Aurora/Surface"
             float4 _AuroraWaveParams;  // x = velocidade, y = largura, z = duração
             half4 _AuroraWaveColor;
             float _AuroraTime;
+            float _AuroraDim;          // 0..1: escurece a parte NÃO emissiva (zona Eclipse)
 
             struct Attributes
             {
@@ -103,7 +104,7 @@ Shader "Rail/Aurora/Surface"
 
                 half ndl = saturate(dot(n, l));
                 half lit = smoothstep(0.5 - _ShadeSoftness * 0.5, 0.5 + _ShadeSoftness * 0.5, ndl);
-                half3 col = lerp(_ShadeColor.rgb, _BaseColor.rgb, lit);
+                half3 col = lerp(_ShadeColor.rgb, _BaseColor.rgb, lit) * (1.0 - _AuroraDim * 0.85);
 
                 float3 viewDir = normalize(GetWorldSpaceViewDir(i.positionWS));
                 half fres = pow(1.0 - saturate(dot(n, viewDir)), _RimPower);

@@ -274,9 +274,9 @@ namespace RailSwitchMVP.UI
             if (!IsHazard(type) || hazardBanner == null) return;
             _activeHazard = type;
             if (type == PowerUpType.LaneSwapDebuff)
-                hazardBanner.Show(HazardBannerUI.Kind.Pink, "LANE SWAP", "controles invertidos");
+                hazardBanner.Show(HazardBannerUI.Kind.Pink, "LANE SWAP", "controls inverted");
             else
-                hazardBanner.Show(HazardBannerUI.Kind.Orange, "SPEED UP", "velocidade aumentada");
+                hazardBanner.Show(HazardBannerUI.Kind.Orange, "SPEED UP", "speed boosted");
         }
 
         // ---------- handlers ----------

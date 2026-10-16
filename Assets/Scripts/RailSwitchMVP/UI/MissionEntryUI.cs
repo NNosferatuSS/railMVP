@@ -59,8 +59,8 @@ namespace RailSwitchMVP.UI
 
             if (claimButtonText != null)
             {
-                if (entry.IsClaimed) claimButtonText.text = "Reclamado";
-                else if (entry.IsComplete) claimButtonText.text = "Reclamar";
+                if (entry.IsClaimed) claimButtonText.text = "Claimed";
+                else if (entry.IsComplete) claimButtonText.text = "Claim";
                 else claimButtonText.text = "—";
             }
 

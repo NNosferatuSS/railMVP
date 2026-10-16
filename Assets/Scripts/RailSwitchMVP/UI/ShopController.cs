@@ -115,7 +115,7 @@ namespace RailSwitchMVP.UI
                 _pendingBuyIndex = index;
                 var def = CharacterCatalog.Get(index);
                 if (confirmText != null)
-                    confirmText.text = $"Comprar {def.Name} por {def.Cost} coins?";
+                    confirmText.text = $"Buy {def.Name} for {def.Cost} coins?";
                 if (confirmPanel != null) confirmPanel.SetActive(true);
             }
         }

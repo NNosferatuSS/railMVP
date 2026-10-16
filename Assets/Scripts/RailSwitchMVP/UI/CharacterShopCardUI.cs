@@ -53,10 +53,10 @@ namespace RailSwitchMVP.UI
             string action;
             bool enabled;
 
-            if (equipped) { status = "Equipado"; action = "Equipado"; enabled = false; }
-            else if (owned) { status = "Desbloqueado"; action = "Equipar"; enabled = true; }
-            else if (canBuy) { status = $"{def.Cost} coins"; action = "Comprar"; enabled = true; }
-            else { status = $"{def.Cost} coins"; action = "Insuficiente"; enabled = false; }
+            if (equipped) { status = "Equipped"; action = "Equipped"; enabled = false; }
+            else if (owned) { status = "Unlocked"; action = "Equip"; enabled = true; }
+            else if (canBuy) { status = $"{def.Cost} coins"; action = "Buy"; enabled = true; }
+            else { status = $"{def.Cost} coins"; action = "Not enough"; enabled = false; }
 
             if (statusText != null) statusText.text = status;
             if (actionText != null) actionText.text = action;

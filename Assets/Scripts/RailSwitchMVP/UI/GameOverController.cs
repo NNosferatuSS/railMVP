@@ -409,7 +409,7 @@ namespace RailSwitchMVP.UI
 
             string detail = "";
             if (_runGemsPickups > 0 && _runGemsDistance > 0)
-                detail = $" ({_runGemsPickups} pickup + {_runGemsDistance} distância)";
+                detail = $" ({_runGemsPickups} pickup + {_runGemsDistance} distance)";
             else if (_runGemsDistance > 0)
                 detail = $" ({_runMeters} m milestone)";
 

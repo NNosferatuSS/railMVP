@@ -26,7 +26,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Falloff: 1.3
-    - _Intensity: 0.6
+    - _Intensity: 0.12
     - _RayDensity: 30
     - _ScrollSpeed: 0.17
     m_Colors:

@@ -28,6 +28,8 @@ namespace RailSwitchMVP.Core
         // Burst instantâneo: slow-mo (Time.timeScale baixo) por N segundos. Consumido
         // na colisão (era active item PostMVP2.3, virou power-up normal).
         TimeFreeze,
+        // Overpower: piloto automático + esmaga hazards em moedas + ímã gigante + onda de choque.
+        Comet,
     }
 
     /// <summary>
@@ -101,6 +103,7 @@ namespace RailSwitchMVP.Core
         [SerializeField] private int autoCriticalFollowTilesRemaining;
         [SerializeField] private int speedUpDebuffTilesRemaining;
         [SerializeField] private int laneSwapDebuffTilesRemaining;
+        [SerializeField] private int cometTilesRemaining;
 
         public int ShieldCharges => shieldCharges;
         public int SlowDownTilesRemaining => slowDownTilesRemaining;
@@ -113,10 +116,14 @@ namespace RailSwitchMVP.Core
         public int AutoCriticalFollowTilesRemaining => autoCriticalFollowTilesRemaining;
         public int SpeedUpDebuffTilesRemaining => speedUpDebuffTilesRemaining;
         public int LaneSwapDebuffTilesRemaining => laneSwapDebuffTilesRemaining;
+        public int CometTilesRemaining => cometTilesRemaining;
+        public bool HasComet => cometTilesRemaining > 0;
+        /// <summary>Fallback quando não há CometController (o valor real vem do GameplayLayerConfig).</summary>
+        public int CometDefaultTiles => 10;
 
         public bool HasShield => shieldCharges > 0;
         public bool HasSlowDown => slowDownTilesRemaining > 0;
-        public bool HasMagnet => magnetTilesRemaining > 0;
+        public bool HasMagnet => magnetTilesRemaining > 0 || RunModifiers.ForceMagnet || RunModifiers.CometMagnetRadius > 0f;
         public bool HasDoubleCoins => doubleCoinsTilesRemaining > 0;
         public bool IsGhost => ghostTilesRemaining > 0;
         public bool HasLanePreview => lanePreviewTilesRemaining > 0;
@@ -128,7 +135,7 @@ namespace RailSwitchMVP.Core
         public float SpeedUpMultiplier => HasSpeedUpDebuff ? speedUpMultiplier : 1f;
 
         public float SpeedMultiplier => HasSlowDown ? slowDownSpeedMultiplier : 1f;
-        public int CoinMultiplier => HasDoubleCoins ? 2 : 1;
+        public int CoinMultiplier => Mathf.Min(4, (HasDoubleCoins ? 2 : 1) * RunModifiers.CoinMultiplier);
         public int SlowDownDefaultTiles => slowDownDefaultTiles;
         public int MagnetDefaultTiles => magnetDefaultTiles;
         public int DoubleCoinsDefaultTiles => doubleCoinsDefaultTiles;
@@ -145,7 +152,7 @@ namespace RailSwitchMVP.Core
         public event System.Action<PowerUpType, int> OnPowerUpTick;
 
         private PlayerRailRider _player;
-        private static readonly Collider[] _magnetScanBuffer = new Collider[32];
+        private static readonly Collider[] _magnetScanBuffer = new Collider[96];
 
         void Awake()
         {
@@ -254,6 +261,15 @@ namespace RailSwitchMVP.Core
             OnPowerUpTick?.Invoke(PowerUpType.AutoCriticalFollow, autoCriticalFollowTilesRemaining);
         }
 
+        /// <summary>Cometa: renova a duração (sem stack).</summary>
+        public void GrantComet(int tiles)
+        {
+            cometTilesRemaining = tiles;
+            Debug.Log($"[PowerUpManager] +Comet (tiles={cometTilesRemaining})");
+            OnPowerUpActivated?.Invoke(PowerUpType.Comet);
+            OnPowerUpTick?.Invoke(PowerUpType.Comet, cometTilesRemaining);
+        }
+
         /// <summary>
         /// TimeFreeze: ativa o slow-mo instantâneo (Time.timeScale baixo por N
         /// segundos reais). Delega ao TimeFreezeController. Consumido na colisão —
@@ -303,6 +319,10 @@ namespace RailSwitchMVP.Core
                 case PowerUpType.Teleport:           GrantTeleport(teleportDefaultTiles); break;
                 case PowerUpType.AutoCriticalFollow: GrantAutoCriticalFollow(autoCriticalFollowDefaultTiles); break;
                 case PowerUpType.TimeFreeze:         GrantTimeFreeze(); break;
+                case PowerUpType.Comet:
+                    GrantComet(RailSwitchMVP.Gameplay.CometController.Instance != null
+                        ? RailSwitchMVP.Gameplay.CometController.Instance.DefaultTiles : CometDefaultTiles);
+                    break;
                 default:
                     Debug.LogWarning($"[PowerUpManager] GrantByType: tipo {type} não concedível (debuff/mystery). Ignorado.");
                     break;
@@ -338,6 +358,7 @@ namespace RailSwitchMVP.Core
             Tick(ref autoCriticalFollowTilesRemaining, PowerUpType.AutoCriticalFollow);
             Tick(ref speedUpDebuffTilesRemaining, PowerUpType.SpeedUpDebuff);
             Tick(ref laneSwapDebuffTilesRemaining, PowerUpType.LaneSwapDebuff);
+            Tick(ref cometTilesRemaining, PowerUpType.Comet);
         }
 
         void Tick(ref int counter, PowerUpType type)
@@ -357,7 +378,8 @@ namespace RailSwitchMVP.Core
             if (!HasMagnet || _player == null) return;
 
             Vector3 playerPos = _player.transform.position;
-            int hitCount = Physics.OverlapSphereNonAlloc(playerPos, magnetRadius, _magnetScanBuffer);
+            float radius = RunModifiers.CometMagnetRadius > 0f ? RunModifiers.CometMagnetRadius : magnetRadius;
+            int hitCount = Physics.OverlapSphereNonAlloc(playerPos, radius, _magnetScanBuffer);
             for (int i = 0; i < hitCount; i++)
             {
                 var coin = _magnetScanBuffer[i].GetComponent<CollectibleCoin>();
@@ -382,6 +404,7 @@ namespace RailSwitchMVP.Core
             autoCriticalFollowTilesRemaining = 0;
             speedUpDebuffTilesRemaining = 0;
             laneSwapDebuffTilesRemaining = 0;
+            cometTilesRemaining = 0;
         }
     }
 }

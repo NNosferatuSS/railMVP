@@ -415,7 +415,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "M\xFAsica"
+  m_text: Music
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
@@ -900,7 +900,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Colete 100 moedas
+  m_text: Collect 100 coins
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -1174,7 +1174,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Sem recorde ainda
+  m_text: No record yet
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
@@ -1933,7 +1933,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R$ 4,90
+  m_text: $0.99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -3688,7 +3688,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R$ 9,90
+  m_text: $1.99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0c2583ecaac6eec498df5eb1a597eea2, type: 2}
   m_sharedMaterial: {fileID: -4825669035662401938, guid: 0c2583ecaac6eec498df5eb1a597eea2, type: 2}
@@ -5527,7 +5527,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Complete todas pra abrir
+  m_text: Complete all to unlock
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
@@ -9257,7 +9257,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R$ 4,90
+  m_text: $0.99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -9394,7 +9394,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Modo canhoto
+  m_text: Left-handed mode
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
@@ -9874,7 +9874,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "VOC\xCA"
+  m_text: YOU
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -12879,7 +12879,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Efeitos
+  m_text: Effects
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
@@ -16657,7 +16657,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Colete 100 moedas
+  m_text: Collect 100 coins
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -16968,7 +16968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: EDITAR NOME
+  m_text: EDIT NAME
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0c2583ecaac6eec498df5eb1a597eea2, type: 2}
   m_sharedMaterial: {fileID: -4825669035662401938, guid: 0c2583ecaac6eec498df5eb1a597eea2, type: 2}
@@ -18281,7 +18281,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R$ 4,90
+  m_text: $0.99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -20124,7 +20124,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Colete 100 moedas
+  m_text: Collect 100 coins
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -21116,7 +21116,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R$ 4,90
+  m_text: $0.99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
   m_sharedMaterial: {fileID: 3159809168679928812, guid: d1baf532657e73a4c80ef1af3710d01d, type: 2}
@@ -21527,7 +21527,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Vibra\xE7\xE3o"
+  m_text: Vibration
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}

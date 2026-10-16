@@ -129,6 +129,11 @@ namespace RailSwitchMVP.Config
         [Range(0.1f, 3f)]
         public float globalSpeedMultiplier = 1f;
 
+        [Tooltip("Aceleração (unidades/s²) com que a velocidade do player converge pra velocidade do " +
+            "tier. Evita o 'tranco' na troca de tier (ex.: 16→22 instantâneo). 0 = troca instantânea.")]
+        [Range(0f, 40f)]
+        public float speedRampPerSecond = 5f;
+
         [Header("Streaming")]
         [Tooltip("Quantas linhas spawnar à frente do player")]
         public int rowsAhead = 12;
@@ -162,6 +167,22 @@ namespace RailSwitchMVP.Config
             "Aplica em cima do cameraZoom de cada tier do DifficultyConfig.")]
         [Range(0.3f, 3f)]
         public float cameraZoomGlobalMultiplier = 1f;
+
+        [Header("Camera — Follow lateral")]
+        [Tooltip("Quanto a câmera acompanha o X do player. 0 = travada no centro do grid " +
+            "(player sai da tela nas lanes externas em telas estreitas). 1 = segue 100%. " +
+            "~0.6 mostra o player E o miolo do grid.")]
+        [Range(0f, 1f)]
+        public float cameraLateralFollow = 0.6f;
+
+        [Tooltip("Garantia: o player nunca passa desta fração da meia-largura visível " +
+            "(1 = pode encostar na borda). Calculado com o aspect real da tela.")]
+        [Range(0.2f, 1f)]
+        public float cameraLateralSafeZone = 0.65f;
+
+        [Tooltip("Tempo (s) de suavização do movimento lateral da câmera. Menor = mais colado.")]
+        [Range(0f, 1f)]
+        public float cameraLateralSmoothTime = 0.28f;
 
         [Header("Camera — Smoothing")]
         [Tooltip("Suavização da posição da câmera (Lerp factor). " +

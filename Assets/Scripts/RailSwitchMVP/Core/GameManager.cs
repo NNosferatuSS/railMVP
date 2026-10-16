@@ -70,6 +70,11 @@ namespace RailSwitchMVP.Core
         public void TriggerGameOver(GameOverReason reason)
         {
             if (state == GameState.GameOver) return;
+            if (RunModifiers.TutorialProtection && reason == GameOverReason.HitObstacle)
+            {
+                Debug.Log("[GameManager] Tutorial: hit ignorado (proteção).");
+                return;
+            }
 
             // Camada 3: dá ao ReviveController a chance de oferecer um continue ANTES de
             // comprometer o game over. Se ele assume (pausa + overlay), o game over só é

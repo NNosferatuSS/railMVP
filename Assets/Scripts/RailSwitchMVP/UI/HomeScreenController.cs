@@ -247,7 +247,7 @@ namespace RailSwitchMVP.UI
             if (!show) return;
 
             if (loginDayText != null)
-                loginDayText.text = $"Dia {dl.NextDay} de {DailyLoginManager.LoginCycleLength}";
+                loginDayText.text = $"Day {dl.NextDay} of {DailyLoginManager.LoginCycleLength}";
             if (loginRewardText != null)
                 loginRewardText.text = $"+{dl.NextDayReward} coins";
 
@@ -274,7 +274,7 @@ namespace RailSwitchMVP.UI
             if (dl == null)
             {
                 chestButton.interactable = false;
-                if (chestButtonText != null) chestButtonText.text = "Baú Grátis";
+                if (chestButtonText != null) chestButtonText.text = "Free Chest";
                 return;
             }
             bool available = dl.IsChestAvailable();
@@ -291,9 +291,9 @@ namespace RailSwitchMVP.UI
             chestButton.interactable = show;
             if (chestButtonText != null)
             {
-                if (!available) chestButtonText.text = "Baú já reclamado hoje";
-                else if (!adsAvailable) chestButtonText.text = "Carregando...";
-                else chestButtonText.text = $"Baú Grátis +{DailyLoginManager.ChestReward}";
+                if (!available) chestButtonText.text = "Chest already claimed today";
+                else if (!adsAvailable) chestButtonText.text = "Loading...";
+                else chestButtonText.text = $"Free Chest +{DailyLoginManager.ChestReward}";
             }
         }
 
@@ -319,13 +319,13 @@ namespace RailSwitchMVP.UI
             var daily = DailyChallengeManager.Instance;
             if (daily == null)
             {
-                dailyChallengeText.text = "Daily Challenge — (manager ausente)";
+                dailyChallengeText.text = "Daily Challenge — (manager missing)";
                 if (dailyChallengeButton != null) dailyChallengeButton.interactable = false;
                 return;
             }
             string today = daily.HasPlayedToday() ? $"{daily.TodayBestM} m" : "—";
             string ever = daily.BestEverM > 0 ? $"{daily.BestEverM} m" : "—";
-            dailyChallengeText.text = $"Hoje: {today}   Best: {ever}";
+            dailyChallengeText.text = $"Today: {today}   Best: {ever}";
             if (dailyChallengeButton != null) dailyChallengeButton.interactable = true;
         }
 

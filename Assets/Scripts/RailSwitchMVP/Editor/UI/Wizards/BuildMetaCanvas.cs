@@ -375,7 +375,7 @@ namespace RailSwitchMVP.EditorTools.UI
                 UIBuilder.StretchHTop((RectTransform)row.transform, 0f, 0f, i * (RowH + RowGap), RowH);
                 row.AddComponent<MissionEntryUI>();
 
-                var desc = UIBuilder.TxtTop(row.transform, "Description", "Colete 100 moedas",
+                var desc = UIBuilder.TxtTop(row.transform, "Description", "Collect 100 coins",
                     t.barlowBold, 13f, Color.white, TextAlignmentOptions.Left, 14f, 18f, 16f, 108f);
                 var prog = UIBuilder.TxtTop(row.transform, "Progress", "0 / 100",
                     t.barlowMedium, 11f, t.textMid, TextAlignmentOptions.Left, 34f, 16f, 16f, 108f);
@@ -413,7 +413,7 @@ namespace RailSwitchMVP.EditorTools.UI
             ciRt.sizeDelta = new Vector2(40f, 40f);
             UIBuilder.TxtTop(chest.transform, "Title", "ALL 3 DAILIES", t.chakraBold, 15f,
                 chestDark, TextAlignmentOptions.Left, 20f, 20f, 68f, 110f, uppercase: true);
-            UIBuilder.TxtTop(chest.transform, "Sub", "Complete todas pra abrir", t.barlowMedium, 11f,
+            UIBuilder.TxtTop(chest.transform, "Sub", "Complete all to unlock", t.barlowMedium, 11f,
                 UITheme.WithA(chestDark, 0.75f), TextAlignmentOptions.Left, 44f, 16f, 68f, 110f);
             var chestBtn = SmallButton(chest.transform, "ChestButton", "0/3", t, t.btn_sm_gold, chestDark);
             var cbRt = (RectTransform)chestBtn.transform;
@@ -477,9 +477,9 @@ namespace RailSwitchMVP.EditorTools.UI
             // --- Linha "você" ---
             var you = UIBuilder.Image9("MyRankBanner", s.transform, t.panel_md, UITheme.WithA(t.accent, 0.14f));
             col.Push(you, 56f);
-            UIBuilder.TxtTop(you.transform, "Label", "VOCÊ", t.barlowBold, 11f,
+            UIBuilder.TxtTop(you.transform, "Label", "YOU", t.barlowBold, 11f,
                 t.accent, TextAlignmentOptions.Left, 10f, 14f, 16f, 16f, uppercase: true, tracking: 0.18f);
-            UIBuilder.TxtTop(you.transform, "Value", "Sem recorde ainda", t.barlowMedium, 12f,
+            UIBuilder.TxtTop(you.transform, "Value", "No record yet", t.barlowMedium, 12f,
                 Color.white, TextAlignmentOptions.Left, 28f, 18f, 16f, 16f);
 
             return s;
@@ -528,7 +528,7 @@ namespace RailSwitchMVP.EditorTools.UI
             }
 
             // --- Editar nome ---
-            var edit = GhostButton(s.transform, "Btn_EditName", "EDITAR NOME", t, 16f);
+            var edit = GhostButton(s.transform, "Btn_EditName", "EDIT NAME", t, 16f);
             col.Push(edit, 54f);
 
             return s;
@@ -543,9 +543,9 @@ namespace RailSwitchMVP.EditorTools.UI
             col.Push(Header(s.transform, "SETTINGS", t), HeaderH);
 
             col.Push(SettingsSection(s.transform, "AUDIO",
-                new[] { "Música", "Efeitos" }, t), 132f);
+                new[] { "Music", "Effects" }, t), 132f);
             col.Push(SettingsSection(s.transform, "GAMEPLAY",
-                new[] { "Vibração", "Modo canhoto" }, t), 132f);
+                new[] { "Vibration", "Left-handed mode" }, t), 132f);
             col.Push(SettingsSection(s.transform, "ACCOUNT",
                 new[] { "Sincronizar dados" }, t), 96f);
 

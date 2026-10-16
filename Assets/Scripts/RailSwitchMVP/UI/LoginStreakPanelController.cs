@@ -103,8 +103,8 @@ namespace RailSwitchMVP.UI
                 claimButton.interactable = canClaim;
                 if (claimButtonText != null)
                     claimButtonText.text = canClaim
-                        ? $"Reclamar Dia {nextDay}"
-                        : "Já reclamado hoje";
+                        ? $"Claim Day {nextDay}"
+                        : "Already claimed today";
             }
         }
 

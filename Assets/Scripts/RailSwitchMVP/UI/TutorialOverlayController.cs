@@ -27,11 +27,11 @@ namespace RailSwitchMVP.UI
         [Header("Strings (PT-BR)")]
         [TextArea(3, 6)]
         [SerializeField] private string mobileText =
-            "BEM-VINDO!\n\nToque na ESQUERDA ou DIREITA da tela pra trocar de trilho.\n\nEvite obstáculos e colete moedas.";
+            "WELCOME!\n\nTap LEFT or RIGHT on the screen to switch tracks.\n\nAvoid obstacles and collect coins.";
 
         [TextArea(3, 6)]
         [SerializeField] private string desktopText =
-            "BEM-VINDO!\n\nUse as setas ← → (ou A/D) pra trocar de trilho.\n\nEvite obstáculos e colete moedas.";
+            "WELCOME!\n\nUse the ← → arrows (or A/D) to switch tracks.\n\nAvoid obstacles and collect coins.";
 
         bool _gameWasPaused;
 

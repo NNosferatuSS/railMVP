@@ -56,6 +56,9 @@ namespace RailSwitchMVP.Track
         /// <summary>Cosmético (áudio): qualquer switch mudou por INPUT do jogador (Nudge).</summary>
         public static event System.Action<SwitchState> AnyNudged;
 
+        /// <summary>Conector de um trilho À FRENTE girado por toque (não é o trilho do player).</summary>
+        public static event System.Action<SwitchController> AnyRemoteSelected;
+
         void Awake()
         {
             if (visual == null) visual = GetComponentInChildren<SwitchVisual>();
@@ -87,6 +90,33 @@ namespace RailSwitchMVP.Track
             ApplyVisual(animate: true);
             OnStateChanged?.Invoke(state);
             AnyNudged?.Invoke(state);
+        }
+
+        /// <summary>
+        /// Seleção absoluta POR INPUT (toque no trilho / swipe-override): anima e
+        /// dispara os mesmos eventos de um Nudge.
+        /// </summary>
+        public void Select(SwitchState s)
+        {
+            if (s == state) return;
+            state = s;
+            ApplyVisual(animate: true);
+            OnStateChanged?.Invoke(state);
+            AnyNudged?.Invoke(state);
+        }
+
+        /// <summary>
+        /// Seleção por toque num trilho À FRENTE (o conector deste trilho passa a apontar pro
+        /// trilho tocado). Dispara OnStateChanged (flash) e AnyRemoteSelected (som) — NÃO
+        /// dispara AnyNudged, pra não contar como troca do trilho do player (clutch).
+        /// </summary>
+        public void SelectRemote(SwitchState s)
+        {
+            if (s == state) return;
+            state = s;
+            ApplyVisual(animate: true);
+            OnStateChanged?.Invoke(state);
+            AnyRemoteSelected?.Invoke(this);
         }
 
         /// <summary>

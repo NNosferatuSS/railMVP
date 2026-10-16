@@ -39,7 +39,7 @@ namespace RailSwitchMVP.UI
         public void Bind(int dayNumber, int coinsReward, int gemBonus, LoginDayStatus status)
         {
             if (dayLabel != null)
-                dayLabel.text = $"Dia {dayNumber}";
+                dayLabel.text = $"Day {dayNumber}";
 
             if (coinsText != null)
                 coinsText.text = $"+{coinsReward}";

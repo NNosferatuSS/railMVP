@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using RailSwitchMVP.Collectibles;
 using RailSwitchMVP.Config;
 using RailSwitchMVP.Core;
+using RailSwitchMVP.Gameplay;
 using RailSwitchMVP.Meta;
 using RailSwitchMVP.Player;
 using RailSwitchMVP.PowerUps;
@@ -38,8 +39,10 @@ namespace RailSwitchMVP.Audio
 
         // ------------------------------------------------------------ config
 
-        static readonly string[] Layers = { "music_pad", "music_arp", "music_drums", "music_bass", "music_sparkle" };
-        const int Pad = 0, Arp = 1, Drums = 2, Bass = 3, Sparkle = 4;
+        static readonly string[] Layers = { "music_pad", "music_arp", "music_drums", "music_bass", "music_sparkle", "music_fever" };
+        const int Pad = 0, Arp = 1, Drums = 2, Bass = 3, Sparkle = 4, Fever = 5;
+        // A mix das camadas foi normalizada junto com a camada de Fever (pico maior) → ganho de compensação.
+        const float MusicGain = 1.23f;
 
         const string KMusic = "settings.music";
         const string KSfx = "settings.sfx";
@@ -56,7 +59,7 @@ namespace RailSwitchMVP.Audio
         AudioLowPassFilter[] _lpf;
         AudioSource[] _sfx;
         int _sfxNext;
-        readonly float[] _layerVol = new float[5];
+        readonly float[] _layerVol = new float[6];
         float _musicPitch = 1f, _cutoff = 22000f;
 
         Mode _mode = Mode.Menu;
@@ -122,8 +125,18 @@ namespace RailSwitchMVP.Audio
             GemPickup.Collected += OnGem;
             PowerUpBase.Collected += OnPowerUpCollected;
             SwitchController.AnyNudged += OnNudge;
+            SwitchController.AnyRemoteSelected += OnRemoteSelected;
+            PlayerRailRider.TapResolved += OnTapResolved;
+            CometController.SmashedAt += OnCometSmash;
+            CometController.Ended += OnCometEnd;
             WarmupController.CountdownStep += OnCountdown;
             PlayerCameraRig.ShakeRequested += OnShake;
+            ComboFeverManager.SkillAction += OnSkill;
+            ComboFeverManager.FeverReady += OnFeverReady;
+            ComboFeverManager.FeverStarted += OnFeverStarted;
+            ComboFeverManager.FeverEnded += OnFeverEnded;
+            ZoneDirector.ZoneStarted += OnZoneStarted;
+            ZoneDirector.ZoneEnded += OnZoneEnded;
             SceneManager.sceneLoaded += OnSceneLoaded;
 
             ReadPrefs();
@@ -137,8 +150,18 @@ namespace RailSwitchMVP.Audio
             GemPickup.Collected -= OnGem;
             PowerUpBase.Collected -= OnPowerUpCollected;
             SwitchController.AnyNudged -= OnNudge;
+            SwitchController.AnyRemoteSelected -= OnRemoteSelected;
+            PlayerRailRider.TapResolved -= OnTapResolved;
+            CometController.SmashedAt -= OnCometSmash;
+            CometController.Ended -= OnCometEnd;
             WarmupController.CountdownStep -= OnCountdown;
             PlayerCameraRig.ShakeRequested -= OnShake;
+            ComboFeverManager.SkillAction -= OnSkill;
+            ComboFeverManager.FeverReady -= OnFeverReady;
+            ComboFeverManager.FeverStarted -= OnFeverStarted;
+            ComboFeverManager.FeverEnded -= OnFeverEnded;
+            ZoneDirector.ZoneStarted -= OnZoneStarted;
+            ZoneDirector.ZoneEnded -= OnZoneEnded;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             UnbindScene();
             Instance = null;
@@ -181,7 +204,13 @@ namespace RailSwitchMVP.Audio
                 _pm.OnPowerUpActivated += OnPowerUpActivated;
                 _pm.OnPowerUpExpired += OnPowerUpExpired;
             }
-            if (_rider != null) _rider.OnTileEntered += OnLand;
+            if (_rider != null) { _rider.OnTileEntered += OnLand; _rider.GhostFlightStarted += OnGhostFlight; }
+        }
+
+        void OnGhostFlight()
+        {
+            Play("sfx_powerup_activate", 0.55f, 0.75f);
+            Play("sfx_whoosh", 0.4f, 0.7f);
         }
 
         void UnbindScene()
@@ -198,18 +227,21 @@ namespace RailSwitchMVP.Audio
                 _pm.OnPowerUpActivated -= OnPowerUpActivated;
                 _pm.OnPowerUpExpired -= OnPowerUpExpired;
             }
-            if (_rider != null) _rider.OnTileEntered -= OnLand;
+            if (_rider != null) { _rider.OnTileEntered -= OnLand; _rider.GhostFlightStarted -= OnGhostFlight; }
             _gm = null; _dm = null; _pm = null; _rider = null;
         }
 
         // ------------------------------------------------------------ eventos → SFX
 
-        void OnCoin(Vector3 p)
+        void OnCoin(Vector3 p, int value)
         {
+            if (value > 1) { Play("sfx_bonus_coin", 0.8f, 1f, PanOf(p)); return; }
+            // Som único e fixo (sem variação de pitch). Moedas coladas (< 45 ms) tocam uma vez só,
+            // pra não embolar em sequência rápida.
             float now = Time.unscaledTime;
-            _coinCombo = now - _lastCoinTime <= CoinComboWindow ? _coinCombo + 1 : 0;
+            if (now - _lastCoinTime < 0.045f) return;
             _lastCoinTime = now;
-            Play($"sfx_coin_{Mathf.Min(_coinCombo, 9)}", 0.5f, 1f, PanOf(p));
+            Play("sfx_coin", 0.42f, 1f, PanOf(p));
         }
 
         void OnGem(Vector3 p) => Play("sfx_gem", 0.8f, 1f, PanOf(p));
@@ -219,6 +251,7 @@ namespace RailSwitchMVP.Audio
         {
             bool debuff = t == PowerUpType.SpeedUpDebuff || t == PowerUpType.LaneSwapDebuff;
             if (debuff) Play("sfx_debuff", 0.75f);
+            else if (t == PowerUpType.Comet) { Play("sfx_fever_start", 0.9f); Play("sfx_powerup_activate", 0.5f, 1.5f); }
             else Play("sfx_powerup_activate", 0.5f, PitchFor(t));
         }
 
@@ -226,6 +259,7 @@ namespace RailSwitchMVP.Audio
         {
             if (_mode == Mode.Dead) return;
             if (t == PowerUpType.Shield) Play("sfx_shield_break", 0.85f);
+            else if (t == PowerUpType.Comet) return;   // som próprio na onda de choque (OnCometEnd)
             else if (t != PowerUpType.SpeedUpDebuff && t != PowerUpType.LaneSwapDebuff) Play("sfx_powerdown", 0.35f);
         }
 
@@ -233,6 +267,31 @@ namespace RailSwitchMVP.Audio
         {
             string clip = s == SwitchState.Left ? "sfx_switch_left" : s == SwitchState.Right ? "sfx_switch_right" : "sfx_switch_mid";
             Play(clip, 0.42f, Random.Range(0.98f, 1.02f), (int)s * 0.25f);
+        }
+
+        void OnRemoteSelected(SwitchController sw)
+        {
+            string clip = sw.State == SwitchState.Left ? "sfx_switch_left" : sw.State == SwitchState.Right ? "sfx_switch_right" : "sfx_switch_mid";
+            Play(clip, 0.32f, 1.12f, (int)sw.State * 0.2f);
+        }
+
+        void OnCometSmash(Vector3 p, int coins)
+        {
+            Play("sfx_impact", 0.5f, 1f, PanOf(p));
+            Play("sfx_bonus_coin", 0.45f, 1f, PanOf(p));
+        }
+
+        void OnCometEnd(int smashed)
+        {
+            if (_mode == Mode.Dead) return;
+            Play("sfx_impact", 0.9f, 0.85f);
+            Play("sfx_zone_end", 0.6f);
+            if (smashed > 0) Play("sfx_bonus_coin", 0.7f);
+        }
+
+        void OnTapResolved(TrackTile tapped, TrackTile changed, bool ok)
+        {
+            if (!ok) Play("sfx_switch_mid", 0.3f, 0.62f);   // "não alcança": tique grave e curto
         }
 
         void OnLand(TrackTile tile)
@@ -248,6 +307,23 @@ namespace RailSwitchMVP.Audio
         }
 
         void OnWarmupEnded() => _mode = Mode.Run;
+
+        // ---- combo / fever / zonas
+        void OnSkill(string kind)
+        {
+            switch (kind)
+            {
+                case "clutch": Play("sfx_clutch", 0.55f, Random.Range(0.98f, 1.03f)); break;
+                case "risky": Play("sfx_risky", 0.55f); break;
+                case "nearmiss": Play("sfx_nearmiss", 0.5f, Random.Range(0.95f, 1.08f)); break;
+            }
+        }
+
+        void OnFeverReady() => Play("sfx_fever_ready", 0.7f);
+        void OnFeverStarted() => Play("sfx_fever_start", 0.9f);
+        void OnFeverEnded() { if (_mode != Mode.Dead) Play("sfx_fever_end", 0.5f); }
+        void OnZoneStarted(ZoneKind k) => Play("sfx_zone_start", 0.75f, k == ZoneKind.Eclipse ? 0.89f : k == ZoneKind.Rush ? 1.122f : 1f);
+        void OnZoneEnded(ZoneKind k, int bonus) { if (bonus > 0) Play("sfx_zone_end", 0.75f); }
 
         void OnTier(DifficultyTier tier)
         {
@@ -331,7 +407,7 @@ namespace RailSwitchMVP.Audio
             int tierIdx = _dm != null ? _dm.CurrentTierIndex : 0;
 
             // Volumes-alvo por estado (0..1, o mix já vem balanceado do synth).
-            float pad = 0.9f, arp = 0f, drums = 0f, bass = 0f, sparkle = 0f;
+            float pad = 0.9f, arp = 0f, drums = 0f, bass = 0f, sparkle = 0f, fever = 0f;
             float cutoff = 22000f, pitch = 1f;
             switch (_mode)
             {
@@ -345,6 +421,11 @@ namespace RailSwitchMVP.Audio
                     arp = 1f; drums = 1f; bass = 1f;
                     sparkle = Mathf.Clamp01((Mathf.Max(tierIdx, _tierSteps) - 1) * 0.5f);
                     pad = 0.8f;
+                    var zone = RunModifiers.ActiveZone;
+                    if (RunModifiers.FeverCoinMultiplier > 1 || RunModifiers.CometActive) { fever = 1f; sparkle = 1f; pad = 1f; }
+                    else if (zone == ZoneKind.Rush) { fever = 0.55f; pitch = 1.06f; }
+                    else if (zone == ZoneKind.GoldRain) sparkle = 1f;
+                    else if (zone == ZoneKind.Eclipse) { pad = 1f; arp = 0.75f; cutoff = 4200f; }
                     break;
                 case Mode.Dead:
                     arp = 0.6f; bass = 0.3f; drums = 0f; sparkle = 0.2f;
@@ -352,6 +433,9 @@ namespace RailSwitchMVP.Audio
                     break;
             }
             if (paused) { cutoff = Mathf.Min(cutoff, 900f); drums *= 0.5f; }
+            // Slow-motion (tutorial / TimeFreeze): música abafada, bateria some.
+            else if (Time.timeScale < 0.6f && _mode != Mode.Dead && _mode != Mode.Menu)
+            { cutoff = Mathf.Min(cutoff, 1500f); drums *= 0.25f; }
 
             float k = 1f - Mathf.Exp(-dt * (_mode == Mode.Dead ? 1.6f : 2.5f));
             _layerVol[Pad] = Mathf.Lerp(_layerVol[Pad], pad, k);
@@ -359,13 +443,14 @@ namespace RailSwitchMVP.Audio
             _layerVol[Drums] = Mathf.Lerp(_layerVol[Drums], drums, k * 2f);
             _layerVol[Bass] = Mathf.Lerp(_layerVol[Bass], bass, k * 1.5f);
             _layerVol[Sparkle] = Mathf.Lerp(_layerVol[Sparkle], sparkle, k * 0.5f);
+            _layerVol[Fever] = Mathf.Lerp(_layerVol[Fever], fever, k * 3f);
             // cutoff em escala log (soa natural)
             _cutoff = Mathf.Exp(Mathf.Lerp(Mathf.Log(_cutoff), Mathf.Log(cutoff), k * 1.5f));
             _musicPitch = Mathf.Lerp(_musicPitch, pitch, k);
 
             for (int i = 0; i < _music.Length; i++)
             {
-                _music[i].volume = _layerVol[i] * _userMusic;
+                _music[i].volume = Mathf.Min(1f, _layerVol[i] * _userMusic * MusicGain);
                 _music[i].pitch = _musicPitch;
                 _lpf[i].cutoffFrequency = _cutoff;
             }

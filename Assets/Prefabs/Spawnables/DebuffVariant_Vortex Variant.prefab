@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5481843501732191994
+--- !u!1 &100030455251758347
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,10 +8,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6110404580036969510}
-  - component: {fileID: 873376462210278452}
-  - component: {fileID: 7594172572219995526}
-  - component: {fileID: 8651962732893664241}
+  - component: {fileID: 8376862539914866381}
+  - component: {fileID: 7896678370156864431}
+  - component: {fileID: 6216426782884963258}
+  - component: {fileID: 5675122533454786316}
+  - component: {fileID: 4080538605734793315}
   m_Layer: 0
   m_Name: Aurora_Visual
   m_TagString: Untagged
@@ -19,36 +20,36 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6110404580036969510
+--- !u!4 &8376862539914866381
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481843501732191994}
+  m_GameObject: {fileID: 100030455251758347}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.15359999, z: 0.02}
-  m_LocalScale: {x: 2.6879997, y: 2.6879997, z: 2.6879997}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2.7, y: 2.7, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8928983160107257307}
+  m_Father: {fileID: 405473028019294857}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &873376462210278452
+--- !u!33 &7896678370156864431
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481843501732191994}
-  m_Mesh: {fileID: -124691175289136634, guid: 9f64b2840ba4a5145ae8324f4c698f99, type: 3}
---- !u!23 &7594172572219995526
+  m_GameObject: {fileID: 100030455251758347}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &6216426782884963258
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481843501732191994}
+  m_GameObject: {fileID: 100030455251758347}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -67,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89182c06b452df742bacee059394fde2, type: 2}
+  - {fileID: 2100000, guid: d177d39a0e11d05428237426e2dc7b77, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -91,13 +92,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &8651962732893664241
+--- !u!114 &5675122533454786316
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481843501732191994}
+  m_GameObject: {fileID: 100030455251758347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381e3a47257c6d744918fb092f4d9dc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Visual.AuroraGroundSnap
+  surfaceY: 0.120000005
+  continuous: 0
+--- !u!114 &4080538605734793315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100030455251758347}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a42c3d591172504787fec4fd066a5ad, type: 3}
@@ -107,9 +122,10 @@ MonoBehaviour:
   bobSpeed: 2.2
   spinAxis: {x: 0, y: 1, z: 0}
   spinSpeed: 0
-  pulseAmount: 0.05
-  pulseSpeed: 5
+  pulseAmount: 0.18
+  pulseSpeed: 8
   faceCamera: 0
+  affectRotation: 1
   wobbleAxis: {x: 0, y: 1, z: 0}
   wobbleDegrees: 0
   wobbleSpeed: 1.5
@@ -176,14 +192,14 @@ PrefabInstance:
     - target: {fileID: 7471640322785802876, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 6da1b6d90a1754579882bf71c3191b25, type: 3}
+      objectReference: {fileID: 21300000, guid: 685f2d01ff405ad42ae79f8764211982, type: 3}
     - target: {fileID: 7471640322785802876, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: m_Color.b
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7471640322785802876, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: m_Color.g
-      value: 0.59751904
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7471640322785802876, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: m_Color.r
@@ -196,14 +212,14 @@ PrefabInstance:
     - target: {fileID: 8853793539421469721, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 6da1b6d90a1754579882bf71c3191b25, type: 3}
+      objectReference: {fileID: 21300000, guid: 685f2d01ff405ad42ae79f8764211982, type: 3}
     - target: {fileID: 8853793539421469721, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: tint.b
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8853793539421469721, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: tint.g
-      value: 0.59751904
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8853793539421469721, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       propertyPath: tint.r
@@ -212,13 +228,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 7956959770085212186, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 1163711778907234120, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6110404580036969510}
+      addedObject: {fileID: 8376862539914866381}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1458194593700745622, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7461353264862132105}
+    - targetCorrespondingSourceObject: {fileID: 8258148004591405887, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8638966223573725987}
   m_SourcePrefab: {fileID: 100100000, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
 --- !u!1 &124515711640804439 stripped
 GameObject:
@@ -238,8 +257,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Obstacles.VortexObstacle
   pushMode: 0
---- !u!4 &8928983160107257307 stripped
+--- !u!4 &405473028019294857 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 7956959770085212186, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1163711778907234120, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
   m_PrefabInstance: {fileID: 1551158159167688129}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7429822263494838014 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8258148004591405887, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
+  m_PrefabInstance: {fileID: 1551158159167688129}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8638966223573725987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7429822263494838014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a42c3d591172504787fec4fd066a5ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Visual.AuroraMotion
+  bobAmplitude: 0.035
+  bobSpeed: 26
+  spinAxis: {x: 0, y: 1, z: 0}
+  spinSpeed: 0
+  pulseAmount: 0.07
+  pulseSpeed: 9
+  faceCamera: 0
+  affectRotation: 0
+  wobbleAxis: {x: 0, y: 1, z: 0}
+  wobbleDegrees: 0
+  wobbleSpeed: 1.5

@@ -64,7 +64,7 @@ namespace RailSwitchMVP.Core
         public DifficultyTier CurrentTier
         {
 #if UNITY_EDITOR
-            get => (config != null && config.tiers != null
+            get => (_endlessStep == 0 && config != null && config.tiers != null
                     && currentTierIndex >= 0 && currentTierIndex < config.tiers.Count)
                 ? config.tiers[currentTierIndex]
                 : currentTier;
@@ -73,7 +73,17 @@ namespace RailSwitchMVP.Core
 #endif
         }
 
-        public int CurrentTierIndex => currentTierIndex;
+        /// <summary>Tier atual contando os infinitos (HUD, missões, zonas): 11, 12, 13…</summary>
+        public int CurrentTierIndex => currentTierIndex + _endlessStep;
+
+        /// <summary>Índice na lista configurada (nunca passa do último). Use pra indexar config.tiers.</summary>
+        public int ConfigTierIndex => currentTierIndex;
+
+        /// <summary>Quantos tiers infinitos já foram gerados nesta run (0 = ainda nos configurados).</summary>
+        public int EndlessStep => _endlessStep;
+
+        // Tiers infinitos (DifficultyConfig.endless): gerados depois do último configurado.
+        int _endlessStep;
         public float DistanceTraveled => distanceTraveled;
 
         public event System.Action<DifficultyTier> OnTierChanged;
@@ -141,6 +151,7 @@ namespace RailSwitchMVP.Core
             distanceTraveled = 0f;
             _rampActive = false;
             currentTierIndex = 0;
+            _endlessStep = 0;
             currentTier = config.tiers[0];
             Debug.Log($"[DifficultyManager] RESET → Tier 0 (speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes})");
             OnDifficultyReset?.Invoke();
@@ -237,6 +248,7 @@ namespace RailSwitchMVP.Core
         {
             if (config == null || config.tiers == null || config.tiers.Count == 0) return;
             idx = Mathf.Clamp(idx, 0, config.tiers.Count - 1);
+            _endlessStep = 0;
             currentTierIndex = idx;
             currentTier = config.tiers[idx];
             OnTierChanged?.Invoke(currentTier);
@@ -291,8 +303,9 @@ namespace RailSwitchMVP.Core
             if (ov != null && ov.TryGetLockedTier(config.tiers.Count, out int lockedIdx))
             {
                 _rampActive = false;
-                if (lockedIdx != currentTierIndex)
+                if (lockedIdx != currentTierIndex || _endlessStep != 0)
                 {
+                    _endlessStep = 0;
                     currentTierIndex = lockedIdx;
                     currentTier = config.tiers[lockedIdx];
                     Debug.Log($"[DifficultyManager] 🔒 LOCKED Tier {lockedIdx} (debug override)");
@@ -320,16 +333,37 @@ namespace RailSwitchMVP.Core
                     $"coins=[{currentTier.criticalCoinsMin}-{currentTier.criticalCoinsMax}])");
                 OnTierChanged?.Invoke(currentTier);
             }
+
+            // Endless: depois do último tier configurado, gera tiers por código.
+            if (config.endless != null && config.endless.enabled && currentTierIndex == config.tiers.Count - 1)
+            {
+                while (distanceTraveled >= config.EndlessTrigger(_endlessStep + 1))
+                    AdvanceEndless();
+            }
+        }
+
+        void AdvanceEndless()
+        {
+            _endlessStep++;
+            currentTier = config.BuildEndlessTier(_endlessStep);
+            Debug.Log($"[DifficultyManager] ∞ Tier {CurrentTierIndex} (endless +{_endlessStep}) @ {distanceTraveled:F0}m " +
+                $"speed={currentTier.playerSpeed:F1} zoom={currentTier.cameraZoom:F1} hazard={currentTier.hazardChanceOnDecoy:F2} " +
+                $"next@{config.EndlessTrigger(_endlessStep + 1):F0}m");
+            OnTierChanged?.Invoke(currentTier);
         }
 
         /// <summary>
-        /// Avança 1 tier manualmente (debug). Não-op se já está no último.
+        /// Avança 1 tier manualmente (debug). No último configurado, avança um tier infinito.
         /// </summary>
         [ContextMenu("Force Next Tier")]
         public void ForceNextTier()
         {
             if (config == null || config.tiers == null) return;
-            if (currentTierIndex + 1 >= config.tiers.Count) return;
+            if (currentTierIndex + 1 >= config.tiers.Count)
+            {
+                if (config.endless != null && config.endless.enabled) AdvanceEndless();
+                return;
+            }
             currentTierIndex++;
             currentTier = config.tiers[currentTierIndex];
             Debug.Log($"[DifficultyManager] ⏭ FORCED Tier {currentTierIndex} (speed={currentTier.playerSpeed}, maxLanes={currentTier.maxLanes})");

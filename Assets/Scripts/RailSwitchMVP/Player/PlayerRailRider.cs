@@ -59,6 +59,139 @@ namespace RailSwitchMVP.Player
         private bool _deathPending;
 
         public float CurrentSpeed => currentSpeed;
+
+        // Velocidade-base do tier com rampa de aceleração (RailGenConfig.speedRampPerSecond).
+        float _rampedBaseSpeed;
+
+        // ===== Input com buffer / tolerância =====
+        [Header("Input assist")]
+        [Tooltip("Por quanto tempo um input feito na lacuna fica guardado pro próximo trilho.")]
+        [SerializeField] private float inputBufferSeconds = 0.35f;
+        [Tooltip("Tolerância: nos primeiros X s da lacuna, um input ainda corrige o destino " +
+            "(pode salvar de um dead end por um toque atrasado).")]
+        [SerializeField] private float lateCorrectionSeconds = 0.12f;
+
+        readonly System.Collections.Generic.List<SwitchCommand> _pending = new System.Collections.Generic.List<SwitchCommand>();
+        float _gapStartTime = -10f;
+
+        /// <summary>Voo fantasma começou (Ghost atravessando o vazio) — feedback visual/sonoro.</summary>
+        public event System.Action GhostFlightStarted;
+
+        /// <summary>Atravessando o vazio com Ghost agora.</summary>
+        public bool IsGhostFlying => inGap && targetTile == null && !_gapIsFatal;
+
+        /// <summary>Tutorial corrigiu um conector que levaria a uma queda.</summary>
+        public event System.Action TutorialRescued;
+
+        /// <summary>Disparado quando a tolerância corrigiu o destino já dentro da lacuna.</summary>
+        public event System.Action LateCorrectionApplied;
+
+        void ProcessPendingCommands()
+        {
+            if (_pending.Count == 0) return;
+            float now = Time.unscaledTime;
+
+            // Toque em trilho distante: o trilho da rota logo antes dele conecta nele — agora,
+            // independente de o player estar no trilho ou na lacuna.
+            for (int i = 0; i < _pending.Count; i++)
+                if (_pending[i].kind == SwitchCommandKind.RouteTile) ConnectAhead(_pending[i]);
+            _pending.RemoveAll(c => c.kind == SwitchCommandKind.RouteTile);
+            if (_pending.Count == 0) return;
+
+            if (inGap)
+            {
+                // Tolerância: comando novo logo no começo da lacuna corrige o destino
+                // a partir do trilho que acabou de terminar (não vale pra ghost flight).
+                bool ghostFlight = targetTile == null && !_gapIsFatal;
+                if (!ghostFlight && currentTile != null && currentTile.Switch != null
+                    && now - _gapStartTime <= lateCorrectionSeconds)
+                {
+                    var before = currentTile.Switch.State;
+                    foreach (var c in _pending) ApplyCommand(c, currentTile);
+                    _pending.Clear();
+                    // A tolerância só AJUDA: se o novo destino não tem trilho, desfaz e
+                    // mantém o caminho que já estava (nunca troca um destino por uma queda).
+                    if (currentTile.Switch.State != before)
+                    {
+                        var nextRow = RailManager.Instance != null ? RailManager.Instance.GetRow(currentTile.Row + 1) : null;
+                        if (nextRow == null || !nextRow.HasTile(currentTile.Switch.TargetLane))
+                        {
+                            currentTile.Switch.SetState(before, immediate: true);
+                            return;
+                        }
+                    }
+                    if (currentTile.Switch.State != before)
+                    {
+                        float p = gapProgress;
+                        TryEnterGap();
+                        gapProgress = Mathf.Min(p, 0.95f);
+                        LateCorrectionApplied?.Invoke();
+                    }
+                    return;
+                }
+                // Fora da tolerância: segura pro próximo tile (descarta os velhos).
+                _pending.RemoveAll(c => now - c.time > inputBufferSeconds);
+                return;
+            }
+
+            if (currentTile == null || currentTile.Switch == null) { _pending.Clear(); return; }
+            foreach (var c in _pending)
+                if (now - c.time <= inputBufferSeconds + 0.05f) ApplyCommand(c, currentTile);
+            _pending.Clear();
+        }
+
+        /// <summary>
+        /// Toque num trilho resolvido (feedback visual/sonoro): trilho tocado, trilho cujo
+        /// conector trocou (ou que tentou), e se deu certo (false = não alcança).
+        /// </summary>
+        public static event System.Action<TrackTile, TrackTile, bool> TapResolved;
+
+        // Segue a rota atual (conectores como estão) até a linha antes do alvo; aquele
+        // trilho aponta pro alvo se ele estiver a até 1 lane. Muda UM conector só.
+        void ConnectAhead(SwitchCommand c)
+        {
+            var rm = RailManager.Instance;
+            var row = rm != null ? rm.GetRow(c.targetRow) : null;
+            if (row == null || !row.HasTile(c.targetLane) || currentTile == null) return;
+            var target = row.Tiles[c.targetLane];
+
+            var t = currentTile;
+            while (t != null && t.Row < c.targetRow - 1)
+            {
+                var nr = rm.GetRow(t.Row + 1);
+                int lane = t.Switch != null ? t.Switch.TargetLane : t.Lane;
+                t = nr != null && nr.HasTile(lane) ? nr.Tiles[lane] : null;
+            }
+            if (t == null || t.Switch == null || t.Row != c.targetRow - 1) { TapResolved?.Invoke(target, null, false); return; }
+
+            int d = c.targetLane - t.Lane;
+            if (Mathf.Abs(d) > 1) { TapResolved?.Invoke(target, t, false); return; }
+            t.Switch.SelectRemote((SwitchState)d);
+            TapResolved?.Invoke(target, t, true);
+        }
+
+        void ApplyCommand(SwitchCommand c, TrackTile tile)
+        {
+            var sw = tile.Switch;
+            switch (c.kind)
+            {
+                case SwitchCommandKind.Relative:
+                    sw.Nudge(c.dir);
+                    break;
+                case SwitchCommandKind.TargetTile:
+                    // Trilho tocado à frente (ou ao lado): aponta pra ele / dá um passo na direção dele.
+                    if (c.targetRow < tile.Row) break;
+                    if (c.targetRow == tile.Row && c.targetLane == tile.Lane) break;
+                    sw.Select((SwitchState)Mathf.Clamp(c.targetLane - tile.Lane, -1, 1));
+                    var tr = RailManager.Instance != null ? RailManager.Instance.GetRow(c.targetRow) : null;
+                    if (tr != null && tr.HasTile(c.targetLane)) TapResolved?.Invoke(tr.Tiles[c.targetLane], tile, true);
+                    break;
+                case SwitchCommandKind.OverrideFromPress:
+                    if (c.pressTile == tile) sw.Select((SwitchState)Mathf.Clamp(c.pressState + c.dir, -1, 1));
+                    else sw.Nudge(c.dir);
+                    break;
+            }
+        }
         public float DistanceTraveled => distanceTraveled;
         public TrackTile CurrentTile => currentTile;
 
@@ -164,20 +297,31 @@ namespace RailSwitchMVP.Player
                     multiplier *= PowerUpManager.Instance.SpeedMultiplier; // SlowDown (≤1)
                     multiplier *= PowerUpManager.Instance.SpeedUpMultiplier; // SpeedUp debuff (≥1)
                 }
+                multiplier *= RunModifiers.SpeedMultiplier * RunModifiers.AssistSpeedMultiplier; // zona Rush / tutorial
+                multiplier *= RunModifiers.CometSpeedMultiplier; // cometa
                 // Warmup speed reduction (Idea 1).
                 if (GameManager.Instance != null && GameManager.Instance.IsWarmup && config != null)
                     multiplier *= config.warmupSpeedMultiplier;
                 multiplier *= _impactFactor; // impacto do Shield (decay)
-                currentSpeed = baseSpeed * multiplier;
+
+                // Rampa: a velocidade do tier é alcançada com aceleração (sem tranco na troca).
+                float ramp = config != null ? config.speedRampPerSecond : 0f;
+                if (_rampedBaseSpeed <= 0f || ramp <= 0f) _rampedBaseSpeed = baseSpeed;
+                else _rampedBaseSpeed = Mathf.MoveTowards(_rampedBaseSpeed, baseSpeed, ramp * Time.deltaTime);
+                currentSpeed = _rampedBaseSpeed * multiplier;
             }
 
-            // Input → switch do tile atual.
-            if (_input != null && currentTile != null && currentTile.Switch != null && !inGap)
+            // Input → comandos (relativo, toque no trilho, swipe-override) com buffer:
+            // o que chega na lacuna vale pro próximo tile; e nos primeiros instantes da
+            // lacuna ainda dá pra corrigir o destino (tolerância).
+            if (_input != null)
             {
                 int dir = _input.ConsumeDirection();
-                if (dir != 0)
-                    currentTile.Switch.Nudge(dir);
+                if (dir != 0) _pending.Add(new SwitchCommand { kind = SwitchCommandKind.Relative, dir = dir, time = Time.unscaledTime });
+                if (_input is ISwitchCommandInput ci)
+                    while (ci.TryConsumeCommand(out var c)) _pending.Add(c);
             }
+            ProcessPendingCommands();
 
             if (inGap)
                 TickGap();
@@ -254,6 +398,25 @@ namespace RailSwitchMVP.Player
             // sobrevivência (redireciona) em vez de game over.
             bool invincible = ReviveController.Instance != null && ReviveController.Instance.IsGracePeriodActive;
 
+            // Tutorial: o jogador não pode perder. Conector pro vazio/fora da pista é
+            // corrigido pra um trilho vizinho que existe (visível: o conector vira).
+            if ((RunModifiers.TutorialProtection || RunModifiers.CometProtection) && currentTile.Switch != null)
+            {
+                var nr = RailManager.Instance != null ? RailManager.Instance.GetRow(currentTile.Row + 1) : null;
+                if (nr != null && !nr.HasTile(targetLane))
+                {
+                    foreach (int s in new[] { 0, -1, 1 })
+                    {
+                        if (!nr.HasTile(currentTile.Lane + s)) continue;
+                        currentTile.Switch.SetState((SwitchState)s);
+                        targetLane = currentTile.Lane + s;
+                        if (RunModifiers.TutorialProtection) TutorialRescued?.Invoke();
+                        break;
+                    }
+                }
+                invincible = true;
+            }
+
             RowData nextRow = (RailManager.Instance != null)
                 ? RailManager.Instance.GetRow(currentTile.Row + 1)
                 : null;
@@ -310,6 +473,7 @@ namespace RailSwitchMVP.Player
             _gapEndPos.y = _playerY;
             _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
             gapProgress = 0f;
+            if (!inGap) _gapStartTime = Time.unscaledTime;
             inGap = true;
             _gapIsFatal = false;
         }
@@ -335,6 +499,7 @@ namespace RailSwitchMVP.Player
             _gapDistance = Mathf.Max(0.01f, _gapEndPos.z - _gapStartPos.z);
             gapProgress = 0f;
             targetTile = null;       // não aterriza — morre no fim
+            if (!inGap) _gapStartTime = Time.unscaledTime;
             inGap = true;
             _gapIsFatal = true;
             _gapFatalReason = reason;
@@ -344,6 +509,7 @@ namespace RailSwitchMVP.Player
         // se a row N+1 tivesse um no targetLane.
         void BeginGhostFlight(int targetLane)
         {
+            GhostFlightStarted?.Invoke();
             _ghostFlightLane = targetLane;
             _ghostFlightRow = currentTile.Row + 1;
             _ghostFlightSkips = 0;

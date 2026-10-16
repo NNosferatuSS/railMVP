@@ -146,7 +146,7 @@ namespace RailSwitchMVP.EditorTools.UI
             var ctRt = (RectTransform)contTitle.transform;
             ctRt.anchorMin = new Vector2(0, 0.5f); ctRt.anchorMax = new Vector2(0, 0.5f);
             ctRt.pivot = new Vector2(0, 0.5f); ctRt.anchoredPosition = new Vector2(48, 8); ctRt.sizeDelta = new Vector2(180, 18);
-            var contSub = UIBuilder.Text("Sub", contPanel.transform, "Respawn no caminho seguro", t.barlowMedium, 11f,
+            var contSub = UIBuilder.Text("Sub", contPanel.transform, "Respawn on the safe path", t.barlowMedium, 11f,
                 new Color(1, 1, 1, 0.6f), TextAlignmentOptions.Left);
             var csRt = (RectTransform)contSub.transform;
             csRt.anchorMin = new Vector2(0, 0.5f); csRt.anchorMax = new Vector2(0, 0.5f);

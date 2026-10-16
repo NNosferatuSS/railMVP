@@ -29,7 +29,8 @@ namespace RailSwitchMVP.Player
         [SerializeField] private DifficultyManager difficulty;
 
         [Header("Lateral Follow (experimento)")]
-        [Tooltip("Quando false, X da câmera fica travado em anchoredX e ignora switch de lanes. Toggle ao vivo no Inspector.")]
+        [Tooltip("DEBUG: true = câmera segue 100% o X do player. false = follow suave do RailGenConfig " +
+            "(cameraLateralFollow / SafeZone / SmoothTime), ancorado em anchoredX.")]
         [SerializeField] private bool followLateral = false;
 
         [Tooltip("X mundial usado quando followLateral=false. 0 = centro do grid (lane central com globalMaxLanes ímpar).")]
@@ -166,6 +167,7 @@ namespace RailSwitchMVP.Player
             // a distância (effectiveZoom). Como o ângulo do player = atan(offset/distância) e
             // offset = distância·k, o ângulo fica CONSTANTE → o player aparece sempre no mesmo
             // ponto da tela em qualquer zoom/tier. k = config.cameraLookAhead (0 = centro).
+            playerPos.x = ResolveLateralX(effectiveZoom, fov);
             Vector3 focus = playerPos + camUp * (effectiveZoom * config.cameraLookAhead);
             Vector3 desiredPos = focus - viewDir * effectiveZoom;
 
@@ -188,6 +190,45 @@ namespace RailSwitchMVP.Player
             Vector3 shakeOffset = ComputeShakeOffset();
             transform.position = _basePos + shakeOffset;
             transform.rotation = rot;
+        }
+
+        // ============ Lateral follow ============
+
+        float _lateralX, _lateralVel;
+        bool _hasLateral;
+
+        /// <summary>
+        /// X da câmera. followLateral (debug) = segue 100%. Senão: segue uma fração
+        /// (cameraLateralFollow) do deslocamento do player em relação ao anchoredX e
+        /// GARANTE que o player fique dentro de cameraLateralSafeZone da meia-largura
+        /// visível (calculada com o aspect real — telas estreitas tipo 9:19.5 cortavam
+        /// as lanes externas). Suavizado com SmoothDamp.
+        /// </summary>
+        float ResolveLateralX(float distance, float fovDeg)
+        {
+            float px = player.position.x;
+            if (followLateral) return px;
+
+            float desired = anchoredX + (px - anchoredX) * config.cameraLateralFollow;
+
+            float aspect = _cam != null ? _cam.aspect : 0.5f;
+            float halfW = distance * Mathf.Tan(Mathf.Atan(Mathf.Tan(fovDeg * 0.5f * Mathf.Deg2Rad) * aspect));
+            const float playerHalfWidth = 0.7f;   // meia-largura do trilho
+            float allowed = Mathf.Max(0f, halfW * config.cameraLateralSafeZone - playerHalfWidth);
+            desired = Mathf.Clamp(desired, px - allowed, px + allowed);
+
+            if (!_hasLateral || config.cameraLateralSmoothTime <= 0f)
+            {
+                _lateralX = desired;
+                _lateralVel = 0f;
+                _hasLateral = true;
+            }
+            else
+            {
+                _lateralX = Mathf.SmoothDamp(_lateralX, desired, ref _lateralVel,
+                    config.cameraLateralSmoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
+            }
+            return _lateralX;
         }
 
         // ============ Shake ============

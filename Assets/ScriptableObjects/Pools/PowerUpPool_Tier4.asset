@@ -25,3 +25,6 @@ MonoBehaviour:
   - type: 5
     weight: 0.7
     cooldownRows: 0
+  - type: 14
+    weight: 0.2
+    cooldownRows: 60

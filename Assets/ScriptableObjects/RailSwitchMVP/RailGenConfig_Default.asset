@@ -30,6 +30,7 @@ MonoBehaviour:
   warmupRowCount: 2
   warmupSpeedMultiplier: 0.8
   globalSpeedMultiplier: 1
+  speedRampPerSecond: 5
   rowsAhead: 3
   rowsBehind: 2
   cameraTilt: 50
@@ -37,6 +38,9 @@ MonoBehaviour:
   cameraFieldOfView: 50
   cameraZoomSpeed: 8
   cameraZoomGlobalMultiplier: 2.3
+  cameraLateralFollow: 0.6
+  cameraLateralSafeZone: 0.65
+  cameraLateralSmoothTime: 0.28
   cameraPositionSmoothing: 12
   shakeLightIntensity: 0.15
   shakeLightDuration: 0.15

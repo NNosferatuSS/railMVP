@@ -2355,7 +2355,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Respawn no caminho seguro
+  m_text: Respawn on the safe path
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bc693f52aecfa32489bb325ed1681736, type: 2}
   m_sharedMaterial: {fileID: 1047008864054549863, guid: bc693f52aecfa32489bb325ed1681736, type: 2}

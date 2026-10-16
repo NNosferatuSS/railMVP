@@ -187,6 +187,49 @@ namespace RailSwitchMVP.Config
             "sempre haja tiers acima pra acelerar durante o run.")]
         public int maxStartingTierIndex = 4;
 
+        [Header("Endless (depois do último tier)")]
+        [Tooltip("Tiers gerados por código depois do último configurado — o jogo nunca para de " +
+            "evoluir. Velocidade tende a um teto (sempre jogável); intervalo entre tiers cresce em %.")]
+        public EndlessScaling endless = new EndlessScaling();
+
+        /// <summary>Distância (lógica) em que o tier infinito <paramref name="step"/> (1, 2, 3…) começa.</summary>
+        public float EndlessTrigger(int step)
+        {
+            if (tiers == null || tiers.Count == 0 || step <= 0) return float.PositiveInfinity;
+            var last = tiers[tiers.Count - 1];
+            float first = endless.firstIntervalMeters > 0f
+                ? endless.firstIntervalMeters
+                : (tiers.Count >= 2 ? Mathf.Max(100f, last.triggerAtDistance - tiers[tiers.Count - 2].triggerAtDistance) : 1000f);
+            float d = last.triggerAtDistance, interval = first;
+            for (int k = 1; k <= step; k++)
+            {
+                d += interval;
+                interval *= 1f + Mathf.Max(0f, endless.intervalGrowth);
+            }
+            return d;
+        }
+
+        /// <summary>
+        /// Tier infinito <paramref name="step"/>: cópia do último tier configurado com
+        /// velocidade aproximando endless.speedCap, zoom acompanhando a velocidade (mantém
+        /// tempo de leitura) e hazards crescendo até endless.hazardCap.
+        /// </summary>
+        public DifficultyTier BuildEndlessTier(int step)
+        {
+            var last = tiers[tiers.Count - 1];
+            var t = last;
+            float baseSpeed = Mathf.Max(0.01f, last.playerSpeed);
+            float cap = Mathf.Max(baseSpeed, endless.speedCap);
+            float k = Mathf.Pow(1f - Mathf.Clamp01(endless.speedApproach), step);
+            t.playerSpeed = cap - (cap - baseSpeed) * k;
+            t.cameraZoom = Mathf.Min(Mathf.Max(last.cameraZoom, endless.zoomCap),
+                last.cameraZoom * Mathf.Pow(t.playerSpeed / baseSpeed, endless.zoomPerSpeedExponent));
+            t.hazardChanceOnDecoy = Mathf.Min(Mathf.Max(last.hazardChanceOnDecoy, endless.hazardCap),
+                last.hazardChanceOnDecoy + step * endless.hazardPerStep);
+            t.triggerAtDistance = EndlessTrigger(step);
+            return t;
+        }
+
         void OnValidate()
         {
             if (tiers == null || tiers.Count == 0) return;
@@ -226,6 +269,15 @@ namespace RailSwitchMVP.Config
                 return "• Nenhum tier definido — DifficultyManager vai falhar.";
 
             var sb = new StringBuilder();
+
+            if (endless != null && endless.enabled)
+            {
+                var lastT = tiers[tiers.Count - 1];
+                if (endless.speedCap < lastT.playerSpeed)
+                    sb.AppendLine($"• Endless: speedCap ({endless.speedCap}) < velocidade do último tier ({lastT.playerSpeed}) — os tiers infinitos não aceleram.");
+                if (endless.speedApproach <= 0f)
+                    sb.AppendLine("• Endless: speedApproach = 0 — a velocidade nunca sobe depois do último tier.");
+            }
 
             for (int i = 0; i < tiers.Count; i++)
             {
@@ -355,5 +407,36 @@ namespace RailSwitchMVP.Config
             safeCeiling = Mathf.Max(0, safeCeiling); // proteção se houver poucos tiers
             return Mathf.Clamp(result, 0, safeCeiling);
         }
+    }
+
+    /// <summary>Parâmetros dos tiers infinitos (depois do último tier configurado).</summary>
+    [System.Serializable]
+    public class EndlessScaling
+    {
+        public bool enabled = true;
+
+        [Tooltip("Distância até o 1º tier infinito. 0 = mesmo intervalo entre os dois últimos tiers configurados.")]
+        [Min(0f)] public float firstIntervalMeters = 0f;
+
+        [Tooltip("Cada intervalo é X% maior que o anterior (0.15 = +15%). A progressão desacelera mas nunca para.")]
+        [Range(0f, 1f)] public float intervalGrowth = 0.15f;
+
+        [Tooltip("Velocidade máxima assintótica. Os tiers infinitos se aproximam disto sem passar.")]
+        [Min(1f)] public float speedCap = 32f;
+
+        [Tooltip("Fração da distância até o teto percorrida a cada tier (0.12 = 12% do que falta).")]
+        [Range(0f, 0.5f)] public float speedApproach = 0.12f;
+
+        [Tooltip("Zoom acompanha a velocidade nesta potência (1 = mantém o tempo de leitura idêntico; " +
+            "<1 = câmera abre menos, objetos não encolhem tanto).")]
+        [Range(0f, 1.5f)] public float zoomPerSpeedExponent = 0.7f;
+
+        [Tooltip("Zoom máximo (distância de câmera) dos tiers infinitos.")]
+        [Min(1f)] public float zoomCap = 28f;
+
+        [Tooltip("hazardChanceOnDecoy somado a cada tier infinito.")]
+        [Range(0f, 0.2f)] public float hazardPerStep = 0.02f;
+
+        [Range(0f, 1f)] public float hazardCap = 0.85f;
     }
 }

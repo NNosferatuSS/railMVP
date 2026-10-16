@@ -203,6 +203,7 @@ namespace RailSwitchMVP.EditorTools.UI
                 (PowerUpType.AutoCriticalFollow, t.icon_auto_critical),
                 (PowerUpType.SpeedUpDebuff,      t.icon_hazard_speedup),
                 (PowerUpType.LaneSwapDebuff,     t.icon_hazard_laneswap),
+                (PowerUpType.Comet,              AssetDatabase.LoadAssetAtPath<Sprite>(CometSetup.BadgePath)),
             };
             var mapProp = so.FindProperty("puckIconMap");
             mapProp.arraySize = iconMap.Length;

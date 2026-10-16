@@ -18,6 +18,7 @@ namespace RailSwitchMVP.Visual
 
         [Header("Cores (HDR)")]
         [ColorUsage(true, true)] [SerializeField] private Color coinColor = new Color(2.2f, 1.3f, 0.25f, 1f);
+        [ColorUsage(true, true)] [SerializeField] private Color bonusCoinColor = new Color(2.4f, 0.9f, 1.6f, 1f);
         [ColorUsage(true, true)] [SerializeField] private Color gemColor = new Color(1.5f, 0.7f, 2.4f, 1f);
         [ColorUsage(true, true)] [SerializeField] private Color powerUpColor = new Color(0.6f, 2.0f, 2.4f, 1f);
         [ColorUsage(true, true)] [SerializeField] private Color deathColor = new Color(2.4f, 0.35f, 0.5f, 1f);
@@ -47,7 +48,11 @@ namespace RailSwitchMVP.Visual
             PowerUpBase.Collected -= OnPowerUp;
         }
 
-        void OnCoin(Vector3 p) => Play(p, coinColor, 10, 1.0f, 0.9f);
+        void OnCoin(Vector3 p, int value)
+        {
+            if (value > 1) Play(p, bonusCoinColor, 22, 1.6f, 2.2f);   // moeda bônus
+            else Play(p, coinColor, 10, 1.0f, 0.9f);
+        }
         void OnGem(Vector3 p) => Play(p, gemColor, 18, 1.4f, 1.6f);
         void OnPowerUp(Vector3 p) => Play(p, powerUpColor, 26, 2.0f, 2.6f);
 
