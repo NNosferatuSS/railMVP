@@ -122,3 +122,48 @@ Ganchos usados: `OnTileEntered`, `OnGameOver`, `OnRevived`, `OnTierChanged`, `On
 - VFX de morte, revive, ativação de power-up (shield ativo, magnet etc.) e troca de tier.
 - HomeScene ainda no visual antigo.
 - Ajuste fino de cores e tamanhos após jogar.
+
+## V2 — volume e geometria (2026-10-23)
+
+Feedback: visual 3D "simplório". Diagnóstico pelos prints (câmera de jogo a 50°/30 m e câmera
+lateral): trilho era uma placa de 18 faces, coin um losango de 10 faces, conector uma fita chata,
+shader de 2 tons sem AO → tudo lia como sprite 2D flutuando no vazio.
+Comparativos: `Docs/ArtDirection/2026-10-23-aurora-v2-volume/`.
+
+**Fonte:** `Art/Source/AuroraV2/` (bpy, roda pelo MCP do Blender; coleção `Aurora_V2` no
+`RailAurora.blend`, V1 preservado na coleção oculta `Aurora_V1` com prefixo `V1_`).
+
+```
+exec(open(".../AuroraV2/aurora_v2_lib.py").read())   # helpers: loft, AO ray-cast, export
+exec(open(".../AuroraV2/track.py").read())           # Track_Ribbon
+exec(open(".../AuroraV2/assets.py").read())          # conectores, coin, gem, player, hazards, anel
+exec(open(".../AuroraV2/background.py").read())      # ilha flutuante (slot BG_Arc)
+exec(open(".../AuroraV2/export_all.py").read())      # FBX → Assets/Graphics/Aurora/Models
+```
+Depois: **Aurora — Apply All**. Nomes de mesh, pivôs e dimensões são os mesmos do V1
+(o wizard não precisou mudar a montagem dos prefabs).
+
+| Peça | V2 |
+|---|---|
+| Trilho | Lábio emissivo, chanfro, parede, linha de underglow, quilha + raiz de cristal até z=-3.6 (some no fog), deck com gradiente centro→borda, chevrons rebaixados antes do switch. |
+| Conector | Placas chanfradas sobre espinha escura (lê como ponte de energia; estica junto no ExtendZ). |
+| Coin / Gem | Lapidados (mesa, coroa, cinta, pavilhão / cristal hexagonal) + brilho especular. |
+| Player | Crescente como tubo varrido afinando nas pontas. |
+| Hazards | Letal: base listrada + espinhos facetados. Barreira: postes, sapatas, painel listrado em relevo. |
+| Power-up | Anel com seção chanfrada + 8 marcadores. |
+| Fundo | `Aurora_BGArc` virou ilha flutuante com cristais e pedras soltas (mesmo slot reciclado). |
+
+**AO por vértice:** calculado por ray-cast (BVHTree) por canto de face em `compute_ao` — o bake
+de vertex color do Cycles zera cantos em arestas duras. Exportado como cor do mesh (canal R).
+
+**Shader `Rail/Aurora/Surface` (novos, default = sem efeito):** `_VertexAO`/`_AOStrength`/
+`_AOEmission` (AO multiplica cor e emissão), `_LightRamp` (rampa contínua por cima dos 2 tons:
+facetas ganham valores diferentes), `_GlintColor`/`_GlintSize` (especular duro). Parâmetros
+expostos no `Surface(...)` do wizard (`ao`, `ramp`, `glint`, `glintI`, `glintSize`).
+
+**Sombra de contato:** shader `Rail/Aurora/Shadow` (blob alpha: círculo/losango/retângulo) via
+`ContactShadow()` no wizard — coin, coin bônus, gem (seguem o objeto se o ímã puxar), hazards e
+player.
+
+Pendente V2: medir custo no device (trilho ~120 faces/tile, conector ~110), véus de aurora ainda V1,
+HomeScene.

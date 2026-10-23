@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &100030455251758347
+--- !u!1 &7424346905058483642
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,11 +8,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8376862539914866381}
-  - component: {fileID: 7896678370156864431}
-  - component: {fileID: 6216426782884963258}
-  - component: {fileID: 5675122533454786316}
-  - component: {fileID: 4080538605734793315}
+  - component: {fileID: 1033713943135006768}
+  - component: {fileID: 1793693335284355582}
+  - component: {fileID: 604351764237834294}
+  - component: {fileID: 8776726402050019087}
+  - component: {fileID: 5529810030658757157}
   m_Layer: 0
   m_Name: Aurora_Visual
   m_TagString: Untagged
@@ -20,13 +20,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8376862539914866381
+--- !u!4 &1033713943135006768
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100030455251758347}
+  m_GameObject: {fileID: 7424346905058483642}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -35,21 +35,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 405473028019294857}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7896678370156864431
+--- !u!33 &1793693335284355582
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100030455251758347}
+  m_GameObject: {fileID: 7424346905058483642}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &6216426782884963258
+--- !u!23 &604351764237834294
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100030455251758347}
+  m_GameObject: {fileID: 7424346905058483642}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -92,13 +92,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &5675122533454786316
+--- !u!114 &8776726402050019087
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100030455251758347}
+  m_GameObject: {fileID: 7424346905058483642}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 381e3a47257c6d744918fb092f4d9dc4, type: 3}
@@ -106,13 +106,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RailSwitchMVP.Visual.AuroraGroundSnap
   surfaceY: 0.120000005
   continuous: 0
---- !u!114 &4080538605734793315
+--- !u!114 &5529810030658757157
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100030455251758347}
+  m_GameObject: {fileID: 7424346905058483642}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a42c3d591172504787fec4fd066a5ad, type: 3}
@@ -230,7 +230,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1163711778907234120, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8376862539914866381}
+      addedObject: {fileID: 1033713943135006768}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1458194593700745622, guid: 62bc2629212ce412e9f1c9b1500b624e, type: 3}
       insertIndex: -1

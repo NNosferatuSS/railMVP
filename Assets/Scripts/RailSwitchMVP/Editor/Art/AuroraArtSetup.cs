@@ -176,7 +176,7 @@ namespace RailSwitchMVP.EditorTools
             public Material trackBody, trackRim, conOn, conVoid, pearl, crescent, coin, gem,
                 powerRing, debuffFrame, hazard, hazardStripe, arc, veilGreen, veilViolet, sky,
                 trail, burst, flash, ring, mote, bubble, magnetRing, coinBonus,
-                goodGlow, badGlow;
+                goodGlow, badGlow, shadow;
         }
 
         /// <summary>
@@ -218,7 +218,8 @@ namespace RailSwitchMVP.EditorTools
 
         static Material Surface(string name, string lit, string shade, string emit = null, float emitI = 0f,
             string rim = null, float rimI = 0f, float rimPow = 3f, float softness = 0.35f, float fog = 1f,
-            float playerGlow = 0f)
+            float playerGlow = 0f, float ao = 0f, float aoEmission = 1f, float ramp = 0f,
+            string glint = null, float glintI = 0f, float glintSize = 0.94f)
         {
             return Mat(name, "Rail/Aurora/Surface", m =>
             {
@@ -231,6 +232,13 @@ namespace RailSwitchMVP.EditorTools
                 m.SetFloat("_FogAmount", fog);
                 m.SetFloat("_PlayerGlow", playerGlow);
                 m.SetFloat("_Flash", 0f);
+                // Volume (V2): AO assado por vértice nos meshes de Art/Source/AuroraV2.
+                m.SetFloat("_VertexAO", ao > 0f ? 1f : 0f);
+                m.SetFloat("_AOStrength", ao);
+                m.SetFloat("_AOEmission", aoEmission);
+                m.SetFloat("_LightRamp", ramp);
+                C(m, "_GlintColor", glint != null ? Lin(glint, glintI) : Color.black);
+                m.SetFloat("_GlintSize", glintSize);
             });
         }
 
@@ -238,21 +246,21 @@ namespace RailSwitchMVP.EditorTools
         {
             var r = new Mats
             {
-                trackBody = Surface("M_Aurora_TrackBody", "#226f7c", "#0b2742", rim: "#2fc8e8", rimI: 0.12f, rimPow: 4f, playerGlow: 1f),
-                trackRim = Surface("M_Aurora_TrackRim", "#000000", "#000000", "#46e0ff", 0.7f, playerGlow: 2.2f),
-                conOn = Surface("M_Aurora_ConnectorOn", "#0c3328", "#06201a", "#2effa0", 1.1f, fog: 0.4f),
-                conVoid = Surface("M_Aurora_ConnectorVoid", "#3a0a14", "#22060c", "#ff2d55", 1.0f, fog: 0.4f),
+                trackBody = Surface("M_Aurora_TrackBody", "#226f7c", "#0b2742", rim: "#2fc8e8", rimI: 0.12f, rimPow: 4f, playerGlow: 1f, ao: 1f, ramp: 0.55f),
+                trackRim = Surface("M_Aurora_TrackRim", "#000000", "#000000", "#46e0ff", 0.7f, playerGlow: 2.2f, ao: 1f),
+                conOn = Surface("M_Aurora_ConnectorOn", "#0c3328", "#06201a", "#2effa0", 1.1f, fog: 0.4f, ao: 1f),
+                conVoid = Surface("M_Aurora_ConnectorVoid", "#3a0a14", "#22060c", "#ff2d55", 1.0f, fog: 0.4f, ao: 1f),
                 pearl = Surface("M_Aurora_Pearl", "#e2eefa", "#7f9fc8", "#ffffff", 0.03f, "#7fe8ff", 0.45f, 3f, 0.6f, 0f),
-                crescent = Surface("M_Aurora_Crescent", "#0a3a50", "#06263a", "#3fd8ff", 1.8f, fog: 0f),
-                coin = Surface("M_Aurora_Coin", "#ffc23d", "#c0650e", "#ffa21a", 0.45f, fog: 0.5f),
-                gem = Surface("M_Aurora_Gem", "#d9a6ff", "#6a3db8", "#b070ff", 0.6f, fog: 0.5f),
+                crescent = Surface("M_Aurora_Crescent", "#0a3a50", "#06263a", "#3fd8ff", 1.8f, fog: 0f, ramp: 0.6f, glint: "#ffffff", glintI: 1.2f),
+                coin = Surface("M_Aurora_Coin", "#ffc23d", "#c0650e", "#ffa21a", 0.22f, fog: 0.5f, ao: 1f, ramp: 0.7f, glint: "#fff2c0", glintI: 1.6f, glintSize: 0.9f),
+                gem = Surface("M_Aurora_Gem", "#d9a6ff", "#6a3db8", "#b070ff", 0.6f, fog: 0.5f, ao: 1f, ramp: 0.7f, glint: "#ffffff", glintI: 1.6f, glintSize: 0.9f),
                 // Linguagem de cor: DOURADO = bom (power-up, igual à moeda); VERMELHO = ruim
                 // (hazard e debuff, igual ao conector pro vazio).
-                powerRing = Surface("M_Aurora_PowerRing", "#4a3a10", "#2a1e06", "#ffd25a", 1.9f, fog: 0.2f),
+                powerRing = Surface("M_Aurora_PowerRing", "#4a3a10", "#2a1e06", "#ffd25a", 1.9f, fog: 0.2f, ramp: 0.5f),
                 debuffFrame = Surface("M_Aurora_DebuffFrame", "#4a0a14", "#2a0610", "#ff2a48", 1.7f, fog: 0.3f),
-                hazard = Surface("M_Aurora_Hazard", "#ff5a66", "#9a1a38", "#ff2040", 0.55f, fog: 0.4f),
-                hazardStripe = Surface("M_Aurora_HazardStripe", "#ffe6dc", "#ffe6dc", "#ffd8c8", 0.25f, fog: 0.5f),
-                arc = Surface("M_Aurora_Arc", "#1a4a80", "#0a1838", rim: "#3a6ad8", rimI: 0.25f, fog: 0.35f),
+                hazard = Surface("M_Aurora_Hazard", "#ff5a66", "#9a1a38", "#ff2040", 0.55f, fog: 0.4f, ao: 1f, ramp: 0.6f, glint: "#ffd0d0", glintI: 0.8f),
+                hazardStripe = Surface("M_Aurora_HazardStripe", "#ffe6dc", "#ffe6dc", "#ffd8c8", 0.25f, fog: 0.5f, ao: 1f),
+                arc = Surface("M_Aurora_Arc", "#1a4a80", "#0a1838", rim: "#3a6ad8", rimI: 0.35f, fog: 0.35f, ao: 1f, ramp: 0.6f),
                 veilGreen = Mat("M_Aurora_VeilGreen", "Rail/Aurora/Veil", m =>
                 {
                     C(m, "_ColorBottom", Lin("#2dffa0", 1.1f));
@@ -337,7 +345,14 @@ namespace RailSwitchMVP.EditorTools
                     m.SetFloat("_Softness", 1f);
                     m.SetFloat("_Core", 1.1f);
                 }),
-                coinBonus = Surface("M_Aurora_CoinBonus", "#ffd9f0", "#c04a90", "#ff7ad0", 1.1f, "#ffffff", 0.6f, 2f, fog: 0.4f),
+                shadow = Mat("M_Aurora_ContactShadow", "Rail/Aurora/Shadow", m =>
+                {
+                    C(m, "_ShadowColor", Lin("#000614"));
+                    m.SetFloat("_Opacity", 0.85f);
+                    m.SetFloat("_Softness", 0.55f);
+                    m.SetFloat("_Shape", 0f);
+                }),
+                coinBonus = Surface("M_Aurora_CoinBonus", "#ffd9f0", "#c04a90", "#ff7ad0", 1.1f, "#ffffff", 0.6f, 2f, fog: 0.4f, ao: 1f, ramp: 0.7f, glint: "#ffffff", glintI: 1.4f, glintSize: 0.9f),
             };
             AssetDatabase.SaveAssets();
             return r;
@@ -652,6 +667,7 @@ namespace RailSwitchMVP.EditorTools
                 DestroyChildren(root.transform, "Aurora_Visual");
                 var v = MeshChild(root.transform, "Aurora_Visual", coinMesh, m.coin);
                 NeutralizeParent(v.transform, root.transform, 1.2f);
+                ContactShadow(root.transform, m.shadow, 0.95f, 0.95f, 1f, true);
                 var mo = v.AddComponent<AuroraMotion>();
                 mo.bobAmplitude = 0f; mo.pulseAmount = 0.06f; mo.pulseSpeed = 5f;
             });
@@ -664,6 +680,7 @@ namespace RailSwitchMVP.EditorTools
             {
                 var coin = root.GetComponent<CollectibleCoin>();
                 if (coin != null) coin.value = 5;
+                ContactShadow(root.transform, m.shadow, 1.4f, 1.4f, 1f, true);
                 var v = root.transform.Find("Aurora_Visual");
                 if (v != null)
                 {
@@ -681,6 +698,7 @@ namespace RailSwitchMVP.EditorTools
                 DestroyChildren(root.transform, "Aurora_Visual");
                 var v = MeshChild(root.transform, "Aurora_Visual", gemMesh, m.gem);
                 NeutralizeParent(v.transform, root.transform, 1.35f);
+                ContactShadow(root.transform, m.shadow, 0.7f, 0.7f, 0f, true);
                 var mo = v.AddComponent<AuroraMotion>();
                 mo.bobAmplitude = 0f; mo.pulseAmount = 0.08f; mo.pulseSpeed = 4f;
             });
@@ -732,6 +750,7 @@ namespace RailSwitchMVP.EditorTools
                         var hzm = v.AddComponent<AuroraMotion>();
                         hzm.bobAmplitude = 0f; hzm.pulseAmount = 0.06f; hzm.pulseSpeed = 7f;
                         GroundGlow(t, m.badGlow, 3.0f, 0.2f, 7f);
+                        ContactShadow(t, m.shadow, isBarrier ? 2.1f : 1.85f, isBarrier ? 0.75f : 1.2f, 2f);
                         return;
                     }
 
@@ -854,6 +873,34 @@ namespace RailSwitchMVP.EditorTools
         }
 
         // Poça de luz deitada na pista sob o item (dourada = bom, vermelha = ruim).
+        // Sombra de contato (blob) no deck: ancora o objeto e dá leitura de altura.
+        // Um material por formato (0 círculo, 1 losango, 2 retângulo arredondado).
+        static void ContactShadow(Transform root, Material mat, float sizeX, float sizeZ, float shape, bool follow = false, float y = TrackTopY + 0.012f)
+        {
+            DestroyChildren(root, "Aurora_Shadow");
+            var g = MeshChild(root, "Aurora_Shadow", QuadMesh(), mat);
+            g.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            var s = root.lossyScale;
+            g.transform.localScale = new Vector3(sizeX / Mathf.Max(1e-4f, s.x), sizeZ / Mathf.Max(1e-4f, s.z), 1f);
+            var snap = g.AddComponent<AuroraGroundSnap>();
+            snap.surfaceY = y;
+            snap.continuous = follow;   // coin/gem podem voar (ímã): a sombra fica no deck
+            var mr = g.GetComponent<MeshRenderer>();
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            var path = $"{MatDir}/M_Aurora_ContactShadow_{shape:0}.mat";
+            var shapeMat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (shapeMat == null)
+            {
+                shapeMat = new Material(mat);
+                AssetDatabase.CreateAsset(shapeMat, path);
+            }
+            shapeMat.CopyPropertiesFromMaterial(mat);
+            shapeMat.SetFloat("_Shape", shape);
+            EditorUtility.SetDirty(shapeMat);
+            mr.sharedMaterial = shapeMat;
+        }
+
         static void GroundGlow(Transform root, Material mat, float size, float pulse, float pulseSpeed)
         {
             var g = MeshChild(root, "Aurora_Visual", QuadMesh(), mat);
@@ -892,6 +939,13 @@ namespace RailSwitchMVP.EditorTools
 
                 var body = new GameObject("Body").transform;
                 body.SetParent(vis, false);
+
+                // Sombra de contato: no trilho e no conector (o player sempre anda sobre um).
+                var shadowGo = MeshChild(vis, "Shadow", QuadMesh(), m.shadow);
+                shadowGo.transform.localPosition = new Vector3(0f, TrackTopY + 0.015f - 0.45f, 0f);
+                shadowGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                shadowGo.transform.localScale = Vector3.one * 0.8f;
+                shadowGo.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
 
                 var pearl = MeshChild(body, "Pearl", LoadMesh("Aurora_Player", "Player_Pearl"), m.pearl);
                 var cres = MeshChild(body, "Crescent", LoadMesh("Aurora_Player", "Player_Crescent"), m.crescent);
@@ -1079,16 +1133,16 @@ namespace RailSwitchMVP.EditorTools
             Veil("Veil_L2", new Vector3(-24f, -52f, 105f), 12f, 1.6f, m.veilViolet);
             Veil("Veil_R2", new Vector3(26f, -48f, 95f), 168f, 1.5f, m.veilGreen);
 
-            // Arcos: aros gigantes escuros cruzando por baixo das pistas, reciclados
+            // Ilhas flutuantes de cristal (mesh Aurora_BGArc, V2) nas laterais, abaixo das pistas, recicladas
             // pra frente — passam pela tela e dão leitura de velocidade.
             const float spacing = 48f;
             for (int i = 0; i < 5; i++)
             {
                 var a = MeshChild(passing, $"Arc_{i}", arc, m.arc);
                 float side = (i % 2 == 0) ? 1f : -1f;
-                // Arco no plano YZ: um "portal" lateral que o player passa ao lado.
-                a.transform.localPosition = new Vector3(side * (19f + (i % 3) * 3f), -34f - (i % 3) * 5f, i * spacing);
-                a.transform.localRotation = Quaternion.Euler(0f, 90f + side * 12f, side * -10f);
+                // Ilha com o topo ~10 m abaixo das pistas; giro em Y varia a silhueta entre instâncias.
+                a.transform.localPosition = new Vector3(side * (17f + (i % 3) * 3f), -33f - (i % 3) * 5f, i * spacing);
+                a.transform.localRotation = Quaternion.Euler(0f, 90f + side * 12f + i * 47f, side * -6f);
                 a.transform.localScale = Vector3.one * (0.9f + (i % 3) * 0.12f);
             }
 

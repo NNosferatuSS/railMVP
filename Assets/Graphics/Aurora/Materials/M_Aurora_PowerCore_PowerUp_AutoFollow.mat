@@ -25,14 +25,20 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _AOEmission: 1
+    - _AOStrength: 0
     - _Flash: 0
     - _FogAmount: 0.4
+    - _GlintSize: 0.94
+    - _LightRamp: 0
     - _PlayerGlow: 0
     - _RimPower: 3
     - _ShadeSoftness: 0.35
+    - _VertexAO: 0
     m_Colors:
     - _BaseColor: {r: 0.9921568, g: 0.9921568, b: 0.9921568, a: 1}
     - _EmissionColor: {r: 1.0358087, g: 1.0358087, b: 1.0358087, a: 1}
+    - _GlintColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 0, g: 0, b: 0, a: 1}
     - _ShadeColor: {r: 0.101960756, g: 0.18823525, b: 0.31372547, a: 1}
   m_BuildTextureStacks: []

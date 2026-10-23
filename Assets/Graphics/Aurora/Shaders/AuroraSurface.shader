@@ -16,6 +16,13 @@ Shader "Rail/Aurora/Surface"
         [Header(Juice)]
         _PlayerGlow ("Player Glow (poça de luz + onda)", Range(0, 4)) = 0
         _Flash ("Flash (MPB)", Range(0, 4)) = 0
+        [Header(Volume)]
+        [Toggle] _VertexAO ("AO por vértice (canal R da cor do mesh)", Float) = 0
+        _AOStrength ("AO Strength", Range(0, 1.5)) = 1
+        _AOEmission ("AO escurece emissão", Range(0, 1)) = 1
+        _LightRamp ("Rampa de luz (facetas)", Range(0, 1)) = 0
+        [HDR] _GlintColor ("Brilho especular (cor)", Color) = (0, 0, 0, 1)
+        _GlintSize ("Brilho especular (tamanho)", Range(0.5, 0.999)) = 0.94
     }
 
     SubShader
@@ -35,6 +42,12 @@ Shader "Rail/Aurora/Surface"
             half _FogAmount;
             half _PlayerGlow;
             half _Flash;
+            half _VertexAO;
+            half _AOStrength;
+            half _AOEmission;
+            half _LightRamp;
+            half4 _GlintColor;
+            half _GlintSize;
         CBUFFER_END
         ENDHLSL
 
@@ -65,6 +78,7 @@ Shader "Rail/Aurora/Surface"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -73,6 +87,7 @@ Shader "Rail/Aurora/Surface"
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
                 float3 normalWS : TEXCOORD1;
+                half ao : TEXCOORD2;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -85,6 +100,8 @@ Shader "Rail/Aurora/Surface"
                 o.positionCS = p.positionCS;
                 o.positionWS = p.positionWS;
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+                // AO assado no Blender (Art/Source/AuroraV2). Sem o toggle = 1 (meshes sem cor).
+                o.ao = _VertexAO > 0.5 ? saturate(1.0 - (1.0 - v.color.r) * _AOStrength) : 1.0;
                 return o;
             }
 
@@ -109,7 +126,13 @@ Shader "Rail/Aurora/Surface"
                 float3 viewDir = normalize(GetWorldSpaceViewDir(i.positionWS));
                 half fres = pow(1.0 - saturate(dot(n, viewDir)), _RimPower);
                 col += _RimColor.rgb * fres;
-                col += _EmissionColor.rgb * (1.0 + _Flash);
+                // Volume: rampa contínua por cima dos 2 tons (cada faceta ganha um valor) e
+                // brilho especular duro (lapidação de coin/gem, chanfros).
+                col *= lerp(1.0, 0.5 + 0.5 * ndl, _LightRamp);
+                half glint = smoothstep(_GlintSize, lerp(_GlintSize, 1.0, 0.35), saturate(dot(n, normalize(l + viewDir))));
+                col += _GlintColor.rgb * glint;
+                col *= i.ao;
+                col += _EmissionColor.rgb * (1.0 + _Flash) * lerp(1.0, i.ao, _AOEmission);
 
                 // Juice: poça de luz sob o player + onda de choque que corre pelos trilhos.
                 if (_PlayerGlow > 0.001)

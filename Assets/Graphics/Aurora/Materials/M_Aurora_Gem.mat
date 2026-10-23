@@ -12,7 +12,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _VERTEXAO_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -25,14 +26,20 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _AOEmission: 1
+    - _AOStrength: 1
     - _Flash: 0
     - _FogAmount: 0.5
+    - _GlintSize: 0.9
+    - _LightRamp: 0.7
     - _PlayerGlow: 0
     - _RimPower: 3
     - _ShadeSoftness: 0.35
+    - _VertexAO: 1
     m_Colors:
     - _BaseColor: {r: 0.8509804, g: 0.6509804, b: 1, a: 1}
     - _EmissionColor: {r: 0.5473287, g: 0.34446573, b: 0.79773766, a: 1}
+    - _GlintColor: {r: 1.2381744, g: 1.2381744, b: 1.2381744, a: 1}
     - _RimColor: {r: 0, g: 0, b: 0, a: 1}
     - _ShadeColor: {r: 0.41568625, g: 0.23921564, b: 0.72156864, a: 1}
   m_BuildTextureStacks: []
